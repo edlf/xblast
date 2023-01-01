@@ -8,19 +8,16 @@
  ***************************************************************************/
 #include "EepromEditMenuActions.h"
 #include "ToolsMenuActions.h"
-#include "FatFSAccessor.h"
+#include "BootFATX.h"
 #include "lpcmod_v1.h"
 #include "lib/cromwell/cromString.h"
 #include "lib/LPCMod/xblastDebug.h"
 #include "MenuActions.h"
 #include "string.h"
-#include "stdio.h"
 #include "boot.h"
 #include "menu/misc/OnScreenKeyboard.h"
 #include "menu/misc/ConfirmDialog.h"
 #include "xblast/HardwareIdentifier.h"
-
-static const char* const eepromDirectoryLocation = PathSep"MASTER_C"PathSep"XBlast"PathSep"eeproms";
 
 void displayEditEEPROMBuffer(void *ignored)
 {
@@ -238,44 +235,20 @@ void editMACAddress(void *ignored)
     }
 }
 
-const char* const getEEPROMDirectoryLocation(void)
-{
-    return eepromDirectoryLocation;
-}
-
 void restoreEEPROMFromFile(void *fname)
 {
-    int res = 0;
-    unsigned char fileBuf[sizeof(EEPROMDATA)];
-    unsigned int size;
-    const char* filename = (const char *)fname;
-    char fullPathName[255 + sizeof('\0')];
-    FILEX fileHandle;
+    int res;
+    FATXFILEINFO fileinfo;
+    FATXPartition *partition;
 
-    if(255 < (strlen(getEEPROMDirectoryLocation()) + sizeof(cPathSep) + strlen(filename)))
-    {
-        return;
-    }
+    partition = OpenFATXPartition (0, SECTOR_SYSTEM, SYSTEM_SIZE);
 
-    sprintf(fullPathName, "%s"PathSep"%s", getEEPROMDirectoryLocation(), filename);
-
-    fileHandle = fatxopen(fullPathName, FileOpenMode_OpenExistingOnly | FileOpenMode_Read);
-    if(fileHandle)
-    {
-        size = fatxsize(fileHandle);
-        if(sizeof(EEPROMDATA) == size)
-        {
-            if(size == fatxread(fileHandle, fileBuf, size))
-            {
-                res = 1;
-            }
-        }
-        fatxclose(fileHandle);
-    }
+    res = LoadFATXFile(partition, fname, &fileinfo);
     UiHeader("Load EEPROM image from HDD");
     if(res)
     {
-        updateEEPROMEditBufferFromInputBuffer(fileBuf, size, true);
+        updateEEPROMEditBufferFromInputBuffer(fileinfo.buffer, fileinfo.fileSize, true);
+        free(fileinfo.buffer);
     }
     else
     {
@@ -302,7 +275,7 @@ int updateEEPROMEditBufferFromInputBuffer(unsigned char *buffer, unsigned int si
     else
     {
         newVersion = EepromSanityCheck((EEPROMDATA *)buffer);
-        XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "Input EEPROM image version : %u", newVersion);
+        debugSPIPrint(DEBUG_GENERAL_UI, "Input EEPROM image version : %u\n", newVersion);
 
         if(newVersion >= EEPROM_EncryptV1_0 && newVersion <= EEPROM_EncryptV1_6)   //Current content in eeprom is valid.
         {
@@ -342,7 +315,7 @@ int updateEEPROMEditBufferFromInputBuffer(unsigned char *buffer, unsigned int si
                 }
             }
 
-            XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "Encrypt new image into version : %u", hostVersion);
+            debugSPIPrint(DEBUG_GENERAL_UI, "Encrypt new image into version : %u\n", hostVersion);
             encryptEEPROMData(decryptedData, &result, hostVersion);
 
             // Save back to EEprom

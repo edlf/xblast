@@ -11,7 +11,6 @@ void FlashBiosFromHDD512(void *fname);
 void FlashBiosFromHDD256(void *fname);
 void FlashBiosFromHDDOS(void *fname);
 
-const char* const getBIOSDirectoryLocation(void);
 void FlashBiosFromHDD(void *fname);
 void FlashBiosFromCD(void *cdromId);
 

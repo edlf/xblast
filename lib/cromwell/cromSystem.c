@@ -11,7 +11,6 @@
 #include "lib/LPCMod/LCDRingBuffer.h"
 #include "WebServerOps.h"
 #include "lib/LPCMod/BootLCD.h"
-#include "CallbackTimer.h"
 
 unsigned char cromwellLoop(void)
 {
@@ -24,8 +23,6 @@ unsigned char cromwellLoop(void)
     {
         updateLCDRingBuffer();
     }
-
-    callbackTimer_execute();
 
     //debugSPIPrint loop
     //LCD loop

@@ -4,7 +4,6 @@
 #include "boot.h"
 #include "LCDMenuActions.h"
 #include "string.h"
-#include "stdio.h"
 #include "xblast/settings/xblastSettingsDefs.h"
 #include "xblast/HardwareIdentifier.h"
 
@@ -19,7 +18,7 @@ TEXTMENU* LCDMenuInit(void)
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Enable LCD : ");
-    strcpy(itemPtr->szParameter, LPCmodSettings.LCDsettings.enable5V? "Yes" : "No");
+    sprintf(itemPtr->szParameter, "%s", LPCmodSettings.LCDsettings.enable5V? "Yes" : "No");
     itemPtr->functionPtr = LCDToggleEN5V;
     itemPtr->functionDataPtr = itemPtr->szParameter;
     itemPtr->functionLeftPtr = LCDToggleEN5V;
@@ -104,7 +103,7 @@ TEXTMENU* LCDMenuInit(void)
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Display message at boot : ");
-    strcpy(itemPtr->szParameter, LPCmodSettings.LCDsettings.displayMsgBoot ? "Yes" : "No");
+    sprintf(itemPtr->szParameter, "%s", LPCmodSettings.LCDsettings.displayMsgBoot ? "Yes" : "No");
     itemPtr->functionPtr = LCDToggleDisplayBootMsg;
     itemPtr->functionDataPtr = itemPtr->szParameter;
     itemPtr->functionLeftPtr = LCDToggleDisplayBootMsg;
@@ -115,7 +114,7 @@ TEXTMENU* LCDMenuInit(void)
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Display booting BIOS name : ");
-    strcpy(itemPtr->szParameter, LPCmodSettings.LCDsettings.displayBIOSNameBoot ? "Yes" : "No");
+    sprintf(itemPtr->szParameter, "%s", LPCmodSettings.LCDsettings.displayBIOSNameBoot ? "Yes" : "No");
     itemPtr->functionPtr = LCDToggledisplayBIOSNameBoot;
     itemPtr->functionDataPtr = itemPtr->szParameter;
     itemPtr->functionLeftPtr = LCDToggledisplayBIOSNameBoot;
@@ -125,8 +124,8 @@ TEXTMENU* LCDMenuInit(void)
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Display custom text : ");
-    strcpy(itemPtr->szParameter, LPCmodSettings.LCDsettings.customTextBoot ? "Yes" : "No");
+    sprintf(itemPtr->szCaption, "Display custom text : ");
+    sprintf(itemPtr->szParameter, "%s", LPCmodSettings.LCDsettings.customTextBoot ? "Yes" : "No");
     itemPtr->functionPtr = LCDToggledisplayCustomTextBoot;
     itemPtr->functionDataPtr = itemPtr->szParameter;
     itemPtr->functionLeftPtr = LCDToggledisplayCustomTextBoot;
@@ -136,22 +135,22 @@ TEXTMENU* LCDMenuInit(void)
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Custom line 1");
+    sprintf(itemPtr->szCaption, "Custom line 1");
     itemPtr->functionPtr = editCustomString0;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Custom line 2");
+    sprintf(itemPtr->szCaption, "Custom line 2");
     itemPtr->functionPtr = editCustomString1;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Custom line 3");
+    sprintf(itemPtr->szCaption, "Custom line 3");
     itemPtr->functionPtr = editCustomString2;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Custom line 4");
+    sprintf(itemPtr->szCaption, "Custom line 4");
     itemPtr->functionPtr = editCustomString3;
     TextMenuAddItem(menuPtr, itemPtr);
 

@@ -11,7 +11,6 @@
 #include "FlashUi.h"
 #include "boot.h"
 #include "i2c.h"
-#include "lib/LPCMod/DebugLogger.h"
 
 void SlowReboot(void* ignored)
 {
@@ -19,7 +18,6 @@ void SlowReboot(void* ignored)
     {
         assertWriteEEPROM();
         BootStopUSB();
-        forceFlushLog();
         I2CRebootSlow();
     }
 }
@@ -30,7 +28,6 @@ void QuickReboot(void* ignored)
     {
         assertWriteEEPROM();
         BootStopUSB();
-        forceFlushLog();
         I2CRebootQuick();
     }
 }
@@ -40,7 +37,6 @@ void PowerOff(void* ignored)
     if(SaveXBlastOSSettings())
     {
         assertWriteEEPROM();
-        forceFlushLog();
         I2CPowerOff();
     }
 }
@@ -48,19 +44,16 @@ void PowerOff(void* ignored)
 void SlowRebootNoSave(void* ignored)
 {
     BootStopUSB();
-    forceFlushLog();
     I2CRebootSlow();
 }
 
 void QuickRebootNoSave(void* ignored)
 {
     BootStopUSB();
-    forceFlushLog();
     I2CRebootQuick();
 }
 
 void PowerOffNoSave(void* ignored)
 {
-    forceFlushLog();
     I2CPowerOff();
 }

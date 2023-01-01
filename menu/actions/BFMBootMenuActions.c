@@ -11,7 +11,7 @@
 #include "BFMBootMenuActions.h"
 #include "boot.h"
 #include "BootIde.h"
-#include "FatFSAccessor.h"
+#include "BootFATX.h"
 #include "video.h"
 #include "lpcmod_v1.h"
 #include "memory_layout.h"

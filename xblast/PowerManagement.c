@@ -11,21 +11,23 @@
 #include "lpcmod_v1.h"
 #include "boot.h"
 #include "lib/LPCMod/BootLPCMod.h"
-#include "FatFSAccessor.h"
+#include "BootFATX.h"
 #include "xblast/scriptEngine/xblastScriptEngine.h"
 #include "xblast/HardwareIdentifier.h"
-#include "XBlastScriptMenuActions.h"
-#include "stdio.h"
 
 void assertBankScriptExecBankBoot(void * data)
 {
+    FATXFILEINFO fileinfo;
     int bank = *(unsigned char *)data;
-    char path[100];
 
     if(LPCmodSettings.OSsettings.runBankScript)
     {
-        sprintf(path, "%s"PathSep"%s", getScriptDirectoryLocation(), "bank.script");
-        loadRunScriptNoParams(path);
+        extern bool loadScriptFromHDD(char * filename, FATXFILEINFO *fileinfo);
+        if(loadScriptFromHDD("\\XBlast\\scripts\\bank.script", &fileinfo))
+        {
+            runScript(fileinfo.buffer, fileinfo.fileSize, 1, (int*)&bank);
+            free(fileinfo.buffer);
+        }
     }
 
     BootModBios(bank);
@@ -33,13 +35,17 @@ void assertBankScriptExecBankBoot(void * data)
 
 void assertBankScriptExecTSOPBoot(void * data)
 {
+    FATXFILEINFO fileinfo;
     int bank = *(unsigned char *)data;
-    char path[100];
 
     if(LPCmodSettings.OSsettings.runBankScript)
     {
-        sprintf(path, "%s"PathSep"%s", getScriptDirectoryLocation(), "bank.script");
-        loadRunScriptNoParams(path);
+        extern bool loadScriptFromHDD(char * filename, FATXFILEINFO *fileinfo);
+        if(loadScriptFromHDD("\\XBlast\\scripts\\bank.script", &fileinfo))
+        {
+            runScript(fileinfo.buffer, fileinfo.fileSize, 1, (int*)&bank);
+            free(fileinfo.buffer);
+        }
     }
 
     BootOriginalBios(bank);
@@ -72,7 +78,6 @@ void BootOriginalBios(FlashBank bank)
             I2CTransmitWord(0x10, 0x1b00 + ( I2CTransmitByteGetReturn(0x10, 0x1b) | 0x04 )); // set noani-bit
         }
 
-        forceFlushLog();
         I2CRebootQuick();
     }
 }
@@ -95,7 +100,7 @@ void BootModBios(FlashBank bank)
         {
             I2CTransmitWord(0x10, 0x1b00 + ( I2CTransmitByteGetReturn(0x10, 0x1b) | 0x04 )); // set noani-bit
         }
-        forceFlushLog();
+
         I2CRebootQuick();
     }
 }

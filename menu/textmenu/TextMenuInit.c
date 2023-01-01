@@ -33,16 +33,16 @@ TEXTMENU *TextMenuInit(void)
         //XBlast(modchip) SETTINGS MENU
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "XBlast settings");
-        itemPtr->functionPtr=dynamicDrawChildTextMenu;
-        itemPtr->functionDataPtr = ModchipMenuInit;
+        itemPtr->functionPtr=DrawChildTextMenu;
+        itemPtr->functionDataPtr = ModchipMenuInit();
         TextMenuAddItem(menuPtr, itemPtr);
     }
 
     //SYSTEM SETTINGS MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "System settings");
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = SystemMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = SystemMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
 
     if(isLCDSupported())    //No need to display this menu if no modchip is present.
@@ -50,16 +50,16 @@ TEXTMENU *TextMenuInit(void)
         //LCD SETTINGS MENU
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "LCD settings");
-        itemPtr->functionPtr=dynamicDrawChildTextMenu;
-        itemPtr->functionDataPtr = LCDMenuInit;
+        itemPtr->functionPtr=DrawChildTextMenu;
+        itemPtr->functionDataPtr = LCDMenuInit();
         TextMenuAddItem(menuPtr, itemPtr);
     }
 
     //TOOLS MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Tools");
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = ToolsMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = ToolsMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
 
 
@@ -87,8 +87,8 @@ TEXTMENU *TextMenuInit(void)
         //FLASH MENU
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "Flash menu");
-        itemPtr->functionPtr = dynamicDrawChildTextMenu;
-        itemPtr->functionDataPtr = BankSelectMenuInit;
+        itemPtr->functionPtr = DrawChildTextMenu;
+        itemPtr->functionDataPtr = BankSelectMenuInit();
         TextMenuAddItem(menuPtr, itemPtr);
     }
     else
@@ -107,29 +107,29 @@ TEXTMENU *TextMenuInit(void)
     //HDD MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "HDD menu");
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = HDDMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = HDDMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
 
     //CD MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "CD menu");
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = CDMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = CDMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
 
     // Info Menu
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Info menu");
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = InfoMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = InfoMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
 
     // Power Menu
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Power menu");
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = ResetMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = ResetMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
     
     return menuPtr;

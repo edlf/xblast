@@ -18,7 +18,7 @@
 #define ComparebufSize 100
 char bypassConfirmDialog[ComparebufSize];        //Arbitrary length
 
-bool ConfirmDialog(const char * string, bool critical)
+bool ConfirmDialog(char * string, bool critical)
 {
     unsigned int yPos = 120;
     unsigned int stringLength = strlen(string);
@@ -44,7 +44,7 @@ bool ConfirmDialog(const char * string, bool critical)
            risefall_xpad_STATE(XPAD_STATE_START)
            && XPAD_current[0].keys[5]) //white button
         {
-            XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "All correct buttons pressed. Accepting.");
+            debugSPIPrint(DEBUG_GENERAL_UI, "All correct buttons pressed. Accepting.\n");
             strncpy(bypassConfirmDialog, string, stringLength);
             result = false;
             break;

@@ -14,8 +14,7 @@
 
 #include "boot.h"
 #include "BootEEPROM.h"
-#include "FatFSAccessor.h"
-#include "VirtualRoot.h"
+#include "BootFATX.h"
 #include "i2c.h"
 #include "lib/LPCMod/BootLPCMod.h"
 #include "lib/LPCMod/BootLCD.h"
@@ -40,7 +39,6 @@
 #include "xblast/HardwareIdentifier.h"
 #include "FlashDriver.h"
 #include "lib/time/timeManagement.h"
-#include "lib/cromwell/CallbackTimer.h"
 
 JPEG jpegBackdrop;
 
@@ -161,7 +159,8 @@ extern void BootResetAction ( void )
     unsigned char tempFanSpeed = 20;
     int res, dcluster;
     _LPCmodSettings *tempLPCmodSettings;
-    unsigned char* fileBuffPtr;;
+    FATXPartition *partition;
+    FATXFILEINFO fileinfo;
 
     unsigned char EjectButtonPressed=0;
 
@@ -171,7 +170,7 @@ extern void BootResetAction ( void )
     LPCMod_WriteIO(0x4, 0x4); // /CS to '1'
 #endif
 
-    XBlastLogger(DEBUG_ALWAYS_SHOW, DBG_LVL_INFO, "XBlast OS is starting.");
+    debugSPIPrint(DEBUG_ALWAYS_SHOW, "XBlast OS is starting.\n");
 
     A19controlModBoot = BNKFULLTSOP;        //Start assuming no control over A19 line.
 
@@ -214,7 +213,7 @@ extern void BootResetAction ( void )
 
     // init malloc() and free() structures
     MemoryManagementInitialization((void *)MEMORYMANAGERSTART, MEMORYMANAGERSIZE);
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_DEBUG, "Init soft MMU.");
+    debugSPIPrint(DEBUG_BOOT_LOG,"Init soft MMU.\n");
 
     BootInterruptsWriteIdt();
 
@@ -239,10 +238,9 @@ extern void BootResetAction ( void )
 #ifndef SILENT_MODE
     printk("           BOOT: start USB init\n");
 #endif
-    callbackTimer_init();
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_DEBUG, "CallbackTimer init done.");
+
     BootStartUSB();
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "USB init done.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "USB init done.\n");
 
     Flash_Init();
 
@@ -261,10 +259,10 @@ extern void BootResetAction ( void )
     }
     wait_us_blocking(760000);
 
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Read persistent OS settings from flash.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "Read persistent OS settings from flash.\n");
     if(bootReadXBlastOSSettings() == false)
     {
-            XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_WARN, "No persistent OS settings found on flash. Created default settings.");
+            debugSPIPrint(DEBUG_BOOT_LOG, "No persistent OS settings found on flash. Created default settings.\n");
             fFirstBoot = true;
             LEDFirstBoot(NULL);
     }
@@ -308,31 +306,31 @@ extern void BootResetAction ( void )
         }
         I2CSetFanSpeed(LPCmodSettings.OSsettings.fanSpeed);     //Else we're booting in ROM mode and have a fan speed to set.
     }
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_DEBUG, "Fan speed adjustment if needed.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "Fan speed adjustment if needed.\n");
 
     if(isPureXBlast() && isXBlastOnTSOP())
     {
         //LPCmodSettings.OSsettings.TSOPcontrol = (ReadFromIO(XODUS_CONTROL) & 0x20) >> 5;     //A19ctrl maps to bit5
         LPCmodSettings.OSsettings.TSOPcontrol = (unsigned char)GenPurposeIOs.A19BufEn;
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Buffer enable for A19 control : %sabled.", GenPurposeIOs.A19BufEn? "En" : "Dis");
+        debugSPIPrint(DEBUG_BOOT_LOG, "Buffer enable for A19 control : %sabled.\n", GenPurposeIOs.A19BufEn? "En" : "Dis");
     }
 
     BootLCDInit();    //Basic init. Do it even if no LCD is connected on the system.
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "BootLCDInit done.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "BootLCDInit done.\n");
 
     //Stuff to do right after loading persistent settings from flash.
     if(fFirstBoot == false)
     {
         if(emergencyRecoverSettings())
         {
-                XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_WARN, "Emergency recover triggered. Resetting settings.");
+                debugSPIPrint(DEBUG_BOOT_LOG, "Emergency recover triggered. Resetting settings.\n");
                 fFirstBoot = true;
                 LEDFirstBoot(NULL);
         }
 
         if(isLCDSupported())
         {
-            XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_DEBUG, "Check if we need to drive the LCD.");
+            debugSPIPrint(DEBUG_BOOT_LOG, "Check if we need to drive the LCD.\n");
             assertInitLCD();                            //Function in charge of checking if a init of LCD is needed.
         }
         //further init here.
@@ -352,7 +350,7 @@ extern void BootResetAction ( void )
     eepromChangeTrackerInit();
     BootEepromReadEntireEEPROM();
     memcpy(&origEeprom, &eeprom, sizeof(EEPROMDATA));
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Initial EEprom read.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "Initial EEprom read.\n");
         
     I2CTransmitWord(0x10, 0x1b04); // unknown
         
@@ -379,27 +377,27 @@ extern void BootResetAction ( void )
     {
         if(LPCmodSettings.OSsettings.runBootScript && isXBE() == false)
         {
-            XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Running boot script.");
+            debugSPIPrint(DEBUG_BOOT_LOG, "Running boot script.\n");
             if(LPCmodSettings.flashScript.scriptSize > 0)
             {
                 i = BNKOS;
                 runScript(LPCmodSettings.flashScript.scriptData, LPCmodSettings.flashScript.scriptSize, 1, &i);
             }
-            XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Boot script execution done.");
+            debugSPIPrint(DEBUG_BOOT_LOG, "Boot script execution done.\n");
         }
 
         if(isXBlastOnLPC() && isXBE() == false)       //Quickboot only if on the right hardware.
 		{
             if(LPCmodSettings.OSsettings.Quickboot)
             {
-                XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Check any Quickboot or EjectButton boot rule.");
+                debugSPIPrint(DEBUG_BOOT_LOG, "Check any Quickboot or EjectButton boot rule.\n");
 
                 // No quickboot if both button pressed at that point.
                 if(EjectButtonPressed == 0)
                 {
                     if(traystate == ETS_NOTHING && LPCmodSettings.OSsettings.activeBank != BNKOS)
                     {
-                        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Going to Power Button Quickboot.");
+                        debugSPIPrint(DEBUG_BOOT_LOG, "Going to Power Button Quickboot.\n");
                         quickboot(LPCmodSettings.OSsettings.activeBank);
                     }
                 }
@@ -407,7 +405,8 @@ extern void BootResetAction ( void )
                 {
                     if(LPCmodSettings.OSsettings.altBank != BNKOS)
                     {
-                        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Eject button press boot detected.");
+                        debugSPIPrint(DEBUG_BOOT_LOG, "Eject button press boot detected.\n");
+                        debugSPIPrint(DEBUG_BOOT_LOG, "Going to alt Quickboot.\n");
                         quickboot(LPCmodSettings.OSsettings.altBank);
                     }
                 }
@@ -418,12 +417,12 @@ extern void BootResetAction ( void )
             I2CTransmitWord(0x10, 0x0c01); // close DVD tray
         }
 
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_DEBUG, "No Quickboot or EjectButton boot this time.");
+        debugSPIPrint(DEBUG_BOOT_LOG, "No Quickboot or EjectButton boot this time.\n");
         initialSetLED(LPCmodSettings.OSsettings.LEDColor);
     }
     else
     {
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "First boot so no script or bank loading before going to OS at least once.");
+        debugSPIPrint(DEBUG_BOOT_LOG, "First boot so no script or bank loading before going to OS at least once.\n");
     }
 
     if(BootVideoInitJPEGBackdropBuffer(&jpegBackdrop))
@@ -437,7 +436,7 @@ extern void BootResetAction ( void )
         );
     }
     // paint the backdrop
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Print Main Menu header.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "Print Main Menu header.\n");
     printMainMenuHeader();
 
     // set Ethernet MAC address from EEPROM
@@ -463,86 +462,71 @@ extern void BootResetAction ( void )
 #endif
 
 
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Starting IDE init.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "Starting IDE init.\n");
     BootIdeInit();
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "IDE init done.");
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Starting FatFS init.");
-    FatFS_init();
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "FatFS init done.");
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Starting VirtualRoot init.");
-    VirtualRootInit();
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "VirtualRoot init done.");
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Starting DebugLogger init.");
-    debugLoggerInit();
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "DebugLogger init done.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "IDE init done.\n");
 
     //Load settings from xblast.cfg file if no settings were detected.
     //But first do we have a HDD on Master?
     if(tsaHarddiskInfo[0].m_fDriveExists && tsaHarddiskInfo[0].m_fAtapi == false)
     {
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_DEBUG, "Master HDD exist.");
+        debugSPIPrint(DEBUG_BOOT_LOG, "Master HDD exist.\n");
         if(fFirstBoot == false)
         {
             //TODO: Load optional JPEG backdrop from HDD here. Maybe fetch skin name from cfg file?
-            XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Trying to load JPEGs from HDD.");
-            if(LPCMod_ReadJPGFromHDD(PathSep"MASTER_C"PathSep"XBlast"PathSep"icons.jpg") == false)
+            debugSPIPrint(DEBUG_BOOT_LOG, "Trying to load new JPEG from HDD.\n");
+            if(LPCMod_ReadJPGFromHDD("\\XBlast\\icons.jpg") == false)
             {
-                XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "\"icons.jpg\" loaded. Moving on to \"backdrop.jpg\".");
+                debugSPIPrint(DEBUG_BOOT_LOG, "\"Ã¬cons.jpg\" loaded. Moving on to \"backdrop.jpg\".\n");
             }
-            if(LPCMod_ReadJPGFromHDD(PathSep"MASTER_C"PathSep"XBlast"PathSep"backdrop.jpg") == false)
+            if(LPCMod_ReadJPGFromHDD("\\XBlast\\backdrop.jpg") == false)
             {
-                XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "\"backdrop.jpg\" loaded. Repainting.");
+                debugSPIPrint(DEBUG_BOOT_LOG, "\"backdrop.jpg\" loaded. Repainting.\n");
                 printMainMenuHeader();
             }
 
             if(isXBE() && isXBlastOnLPC() == false)
             {
-                XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Trying to load settings from cfg file on HDD.");
+                debugSPIPrint(DEBUG_BOOT_LOG, "Trying to load settings from cfg file on HDD.\n");
                 _LPCmodSettings tempLPCmodSettings;
                 returnValue = LPCMod_ReadCFGFromHDD(&tempLPCmodSettings, &settingsPtrStruct);
                 if(returnValue == 0)
                 {
                     importNewSettingsFromCFGLoad(&tempLPCmodSettings);
-                    res = 0;
-                    FILEX fileHandle = fatxopen(PathSep"MASTER_C"PathSep"XBlast"PathSep"scripts"PathSep"bank.script", FileOpenMode_OpenExistingOnly | FileOpenMode_Read);
-                    if(fileHandle)
+
+                    partition = OpenFATXPartition(0, SECTOR_SYSTEM, SYSTEM_SIZE);
+                    if(partition != NULL)
                     {
-                        if(fatxsize(fileHandle) > 0)
+                        dcluster = FATXFindDir(partition, FATX_ROOT_FAT_CLUSTER, "XBlast");
+                        if((dcluster != -1) && (dcluster != 1))
                         {
-                            res = 1;
+                            dcluster = FATXFindDir(partition, dcluster, "scripts");
                         }
-                        fatxclose(fileHandle);
+                        if((dcluster != -1) && (dcluster != 1))
+                        {
+                            res = FATXFindFile(partition, "bank.script", FATX_ROOT_FAT_CLUSTER, &fileinfo);
+                            if(res == 0 || fileinfo.fileSize == 0)
+                            {
+                                LPCmodSettings.OSsettings.runBankScript = 0;
+                            }
+                            res = FATXFindFile(partition, "boot.script", FATX_ROOT_FAT_CLUSTER, &fileinfo);
+                            if(res == 0 || fileinfo.fileSize == 0)
+                            {
+                                LPCmodSettings.OSsettings.runBootScript = 0;
+                            }
+                        }
+                            CloseFATXPartition(partition);
                     }
-                    if(0 == res)
-                    {
-                        XBlastLogger(DEBUG_SETTINGS, DBG_LVL_DEBUG, "Could not find valid bank.script file on HDD. Forcing setting to '0'.");
-                        LPCmodSettings.OSsettings.runBankScript = 0;
-                    }
-
-                    res = 0;
-                     fileHandle = fatxopen(PathSep"MASTER_C"PathSep"XBlast"PathSep"scripts"PathSep"boot.script", FileOpenMode_OpenExistingOnly | FileOpenMode_Read);
-                     if(fileHandle)
-                     {
-                         if(fatxsize(fileHandle) > 0)
-                         {
-                             res = 1;
-                         }
-                         fatxclose(fileHandle);
-                     }
-                     if(0 == res)
-                     {
-                         XBlastLogger(DEBUG_SETTINGS, DBG_LVL_DEBUG, "Could not find valid boot.script file on HDD. Forcing setting to '0'.");
-                         LPCmodSettings.OSsettings.runBootScript = 0;
-                     }
-
                     //bootScriptSize should not have changed if we're here.
                     if(LPCmodSettings.OSsettings.runBootScript && LPCmodSettings.flashScript.scriptSize == 0)
                     {
-                        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Running boot script.");
-                        i = BNKOS;
-                        loadRunScriptWithParams(PathSep"MASTER_C"PathSep"XBlast"PathSep"scripts"PathSep"boot.script", 1, &i);
-
-                        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Boot script execution done.");
+                        debugSPIPrint(DEBUG_BOOT_LOG, "Running boot script.\n");
+                        if(loadScriptFromHDD("\\XBlast\\scripts\\boot.script", &fileinfo))
+                        {
+                            i = BNKOS;
+                            runScript(fileinfo.buffer, fileinfo.fileSize, 1, &i);
+                        }
+                        debugSPIPrint(DEBUG_BOOT_LOG, "Boot script execution done.\n");
                     }
                 }
             }
@@ -562,12 +546,50 @@ extern void BootResetAction ( void )
     videosavepage = malloc(FB_SIZE);
 
     //Check for unformatted drives.
-    formatNewDrives();
-    
+    for (i=0; i<2; ++i)
+    {
+        if (tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi == false
+            && tsaHarddiskInfo[i].m_dwCountSectorsTotal >= (SECTOR_EXTEND - 1)
+            && (tsaHarddiskInfo[i].m_securitySettings&0x0002) == 0)
+        {    //Drive not locked.
+            if(tsaHarddiskInfo[i].m_enumDriveType != EDT_XBOXFS)
+            {
+                debugSPIPrint(DEBUG_BOOT_LOG, "No FATX detected on %s HDD.\n", i ? "Slave" : "Master");
+                // We save the complete framebuffer to memory (we restore at exit)
+                //videosavepage = malloc(FB_SIZE);
+                memcpy(videosavepage,(void*)FB_START,FB_SIZE);
+                char ConfirmDialogString[50];
+                sprintf(ConfirmDialogString, "Format new drive (%s)?", i ? "slave":"master");
+                if(ConfirmDialog(ConfirmDialogString, 1) == false)
+                {
+                    debugSPIPrint(DEBUG_BOOT_LOG, "Formatting base partitions.\n");
+                    FATXFormatDriveC(i, 0);                     //'0' is for non verbose
+                    FATXFormatDriveE(i, 0);
+                    FATXFormatCacheDrives(i, 0);
+                    FATXSetBRFR(i);
+                    //If there's enough sectors to make F and/or G drive(s).
+                    if(tsaHarddiskInfo[i].m_dwCountSectorsTotal >= (SECTOR_EXTEND + SECTORS_SYSTEM))
+                    {
+                        debugSPIPrint(DEBUG_BOOT_LOG, "Show user extended partitions format options.\n");
+                        DrawLargeHDDTextMenu(i);//Launch LargeHDDMenuInit textmenu.
+                    }
 
+                    if(tsaHarddiskInfo[i].m_fHasMbr == 0)       //No MBR
+                    {
+                        FATXSetInitMBR(i); // Since I'm such a nice program, I will integrate the partition table to the MBR.
+                    }
+                    debugSPIPrint(DEBUG_BOOT_LOG, "HDD format done.\n");
+                }
+                memcpy((void*)FB_START,videosavepage,FB_SIZE);
+                //free(videosavepage);
+            }
+        }
+    }
+    
+    
 //    printk("i2C=%d SMC=%d, IDE=%d, tick=%d una=%d unb=%d\n", nCountI2cinterrupts, nCountInterruptsSmc, nCountInterruptsIde, BIOS_TICK_COUNT, nCountUnusedInterrupts, nCountUnusedInterruptsPic2);
     IconMenuInit();
-    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Starting IconMenu.");
+    debugSPIPrint(DEBUG_BOOT_LOG, "Starting IconMenu.\n");
     while(IconMenu())
     {
         ClearScreen();

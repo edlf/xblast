@@ -13,20 +13,19 @@
 #include "lib/LPCMod/BootLCD.h"
 #include "TextMenu.h"
 #include "string.h"
-#include "stdio.h"
 #include "xblast/settings/xblastSettingsDefs.h"
 #include "menu/misc/OnScreenKeyboard.h"
 
 void LCDToggleEN5V(void * itemStr){
     LPCmodSettings.LCDsettings.enable5V = LPCmodSettings.LCDsettings.enable5V? 0 : 1;
-    strcpy(itemStr, LPCmodSettings.LCDsettings.enable5V? "Yes" : "No");
+    sprintf(itemStr,"%s", LPCmodSettings.LCDsettings.enable5V? "Yes" : "No");
     assertInitLCD();
 }
 
 void LCDChangeLCDType(void * itemStr){
     BootLCDSwitchType();
     LPCmodSettings.LCDsettings.lcdType = LPCmodSettings.LCDsettings.lcdType? LCDTYPE_HD44780 : LCDTYPE_KS0073;
-    strcpy(itemStr, LPCmodSettings.LCDsettings.lcdType? "KS0073" : "HD44780");
+    sprintf(itemStr,"%s", LPCmodSettings.LCDsettings.lcdType? "KS0073" : "HD44780");
 }
 
 void LCDIncrementBacklight(void * itemStr){
@@ -63,17 +62,17 @@ void LCDDecrementContrast(void * itemStr){
 
 void LCDToggleDisplayBootMsg(void * itemStr){
     LPCmodSettings.LCDsettings.displayMsgBoot = LPCmodSettings.LCDsettings.displayMsgBoot? 0 : 1;
-    strcpy(itemStr, LPCmodSettings.LCDsettings.displayMsgBoot? "Yes" : "No");
+    sprintf(itemStr,"%s", LPCmodSettings.LCDsettings.displayMsgBoot? "Yes" : "No");
 }
 
 void LCDToggledisplayBIOSNameBoot(void * itemStr){
     LPCmodSettings.LCDsettings.displayBIOSNameBoot = LPCmodSettings.LCDsettings.displayBIOSNameBoot? 0 : 1;
-    strcpy(itemStr, LPCmodSettings.LCDsettings.displayBIOSNameBoot? "Yes" : "No");
+    sprintf(itemStr,"%s", LPCmodSettings.LCDsettings.displayBIOSNameBoot? "Yes" : "No");
 }
 
 void LCDToggledisplayCustomTextBoot(void * itemStr){
     LPCmodSettings.LCDsettings.customTextBoot = LPCmodSettings.LCDsettings.customTextBoot? 0 : 1;
-    strcpy(itemStr, LPCmodSettings.LCDsettings.customTextBoot? "Yes" : "No");
+    sprintf(itemStr,"%s", LPCmodSettings.LCDsettings.customTextBoot? "Yes" : "No");
     initialLCDPrint();
 }
 

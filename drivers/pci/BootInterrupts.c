@@ -466,79 +466,79 @@ void IntHandler15C(void)
 //void IntHandlerException0C(void) {    debugSPIPrintInt("CPU Exc: Divide by Zero\n");    while(1) ; }
 void IntHandlerException0C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Divide by Zero");
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Divide by Zero\n");
 }
 void IntHandlerException1C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Single Step");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Single Step\n");    while(1) ;
 }
 
 void IntHandlerException2C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: NMI");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: NMI\n");    while(1) ;
 }
 void IntHandlerException3C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Breakpoint");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Breakpoint\n");    while(1) ;
 }
 void IntHandlerException4C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Overflow Trap");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Overflow Trap\n");    while(1) ;
 }
 void IntHandlerException5C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: BOUND exceeded");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: BOUND exceeded\n");    while(1) ;
 }
 void IntHandlerException6C(void)
 {
     unsigned int dwEbp = 0;
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Invalid Opcode");
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Invalid Opcode\n");
     __asm__ __volatile__ ( " mov %%esp, %%eax\n " : "=a" (dwEbp) );
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "   %08X:%08X", *((volatile unsigned int *)(dwEbp+0x48)), *((volatile unsigned int *)(dwEbp+0x44)));
+    debugSPIPrint(DEBUG_EXCEPTIONS,"   %08lX:%08lX\n", *((volatile unsigned int *)(dwEbp+0x48)), *((volatile unsigned int *)(dwEbp+0x44)));
     while(1) ;
 }
 
 //void IntHandlerException7C(void) {    debugSPIPrintInt("CPU Exc: Coprocessor Absent\n");    while(1) ; }
 void IntHandlerException7C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Coprocessor Absent");
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Coprocessor Absent\n");
 }
 void IntHandlerException8C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Double Fault");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Double Fault\n");    while(1) ;
 }
-//void IntHandlerException9C(void) {    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Copro Seg Overrun\n");    while(1) ; }
+//void IntHandlerException9C(void) {    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Copro Seg Overrun\n");    while(1) ; }
 void IntHandlerException9C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Copro Seg Overrun");
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Copro Seg Overrun\n");
 }
 void IntHandlerExceptionAC(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Invalid TSS");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Invalid TSS\n");    while(1) ;
 }
 void IntHandlerExceptionBC(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Segment not present");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Segment not present\n");    while(1) ;
 }
 void IntHandlerExceptionCC(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Stack Exception");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Stack Exception\n");    while(1) ;
 }
 void IntHandlerExceptionDC(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: General Protection Fault");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: General Protection Fault\n");    while(1) ;
 }
 void IntHandlerExceptionEC(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Page Fault");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Page Fault\n");    while(1) ;
 }
 void IntHandlerExceptionFC(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Reserved");    while(1) ;
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Reserved\n");    while(1) ;
 }
-//void IntHandlerException10C(void) {    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Copro Error\n");    while(1) ; }
+//void IntHandlerException10C(void) {    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Copro Error\n");    while(1) ; }
 void IntHandlerException10C(void)
 {
-    XBlastLogger(DEBUG_EXCEPTIONS, DBG_LVL_FATAL, "CPU Exc: Copro Error");
+    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Copro Error\n");
 }
 

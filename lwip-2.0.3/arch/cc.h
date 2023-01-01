@@ -48,7 +48,6 @@ typedef signed     long    s32_t;
 
 typedef u32_t mem_ptr_t;
 #endif
-#include "ctype.h"
 
 /* For LWIP_RAND */
 extern int rand (void);
@@ -62,23 +61,18 @@ extern int rand (void);
 #define S32_F "d"
 #define X32_F "x"
 
-/* Define functions available in Cromwell */
-#define lwip_strnstr strnstr
-#define lwip_stricmp stricmp
-#define lwip_strnicmp strnicmp
-
 /* Compiler hints for packing structures */
 #define PACK_STRUCT_FIELD(x) x//__attribute__((packed))
 #define PACK_STRUCT_STRUCT __attribute__((packed))
 
 /* Plaform specific diagnostic output */
 #ifdef LWIP_DEBUG
-#define LWIP_PLATFORM_DIAG(categoryString, activate, ...)	do { lwipXBlastPrint(categoryString, activate, __func__, __VA_ARGS__); } while(0) //Replaced printf
+#define LWIP_PLATFORM_DIAG(x)	do {lwipSPIPrint x;} while(0) //Replaced printf
 
-#define LWIP_PLATFORM_ASSERT(x) do {lwipXBlastPrint("LwIP ASSERT", LWIP_DBG_LEVEL_SEVERE, __func__, "Assertion \"%s\" failed at line %d in %s", \
+#define LWIP_PLATFORM_ASSERT(x) do {lwipSPIPrint("Assertion \"%s\" failed at line %d in %s\n", \
                                      x, __LINE__, __FILE__); /*fflush(NULL); abort();*/} while(0)
 #else
-#define LWIP_PLATFORM_DIAG(activate, x)
+#define LWIP_PLATFORM_DIAG(x)
 #define LWIP_PLATFORM_ASSERT(x)
 #endif
 

@@ -11,7 +11,6 @@
 #include "i2c.h"
 #include "video.h"
 #include "string.h"
-#include "stdio.h"
 #include "xblast/settings/xblastSettingsDefs.h"
 #include "menu/misc/ConfirmDialog.h"
 
@@ -44,7 +43,7 @@ void bgColorString(char * stringOut)
 		return;
 	}
 
-	strcpy(stringOut, BackgroundColor[LPCmodSettings.OSsettings.backgroundColorPreset]);
+	sprintf(stringOut, "%s", BackgroundColor[LPCmodSettings.OSsettings.backgroundColorPreset]);
 }
 
 void incrementFanSpeed(void * itemStr){
@@ -83,7 +82,7 @@ void incrementGameRegion(void * itemStr){
             gameRegion = setGameRegionValue(EEPROM_XBERegionNorthAmerica);
             break;
         }
-    strcpy(itemStr, getGameRegionText(gameRegion));
+    sprintf(itemStr, "%s",getGameRegionText(gameRegion));
 }
 
 void decrementGameRegion(void * itemStr){
@@ -104,19 +103,19 @@ void decrementGameRegion(void * itemStr){
             gameRegion = setGameRegionValue(EEPROM_XBERegionNorthAmerica);
             break;
         }
-    strcpy(itemStr, getGameRegionText(gameRegion));
+    sprintf(itemStr, "%s",getGameRegionText(gameRegion));
 }
 
 void incrementDVDRegion(void * itemStr){
     if(eeprom.DVDPlaybackKitZone[0] < 8)
         eeprom.DVDPlaybackKitZone[0] += 1;
-    strcpy(itemStr, getDVDRegionText(eeprom.DVDPlaybackKitZone[0]));
+    sprintf(itemStr, "%s",getDVDRegionText(eeprom.DVDPlaybackKitZone[0]));
     EepromCRC(eeprom.Checksum3,eeprom.TimeZoneBias,0x5b);
 }
 
 void decrementDVDRegion(void * itemStr){
     if(eeprom.DVDPlaybackKitZone[0]  > 0)
         eeprom.DVDPlaybackKitZone[0] -= 1;
-    strcpy(itemStr, getDVDRegionText(eeprom.DVDPlaybackKitZone[0]));
+    sprintf(itemStr, "%s",getDVDRegionText(eeprom.DVDPlaybackKitZone[0]));
     EepromCRC(eeprom.Checksum3,eeprom.TimeZoneBias,0x5b);
 }

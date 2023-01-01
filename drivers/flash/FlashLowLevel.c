@@ -8,7 +8,6 @@
 #include "FlashLowLevel.h"
 #include "memory_layout.h"
 #include "string.h"
-#include "stdio.h"
 #include "lib/time/timeManagement.h"
 #include "lib/LPCMod/xblastDebug.h"
 
@@ -45,7 +44,7 @@ void FlashLowLevel_Init(void)
     is28xxxProtocol = false;
     memset(&flashDevice, 0x00, sizeof(flashDevice));
 	flashDevice.m_pbMemoryMappedStartAddress = (unsigned char *)LPCFlashadress;
-	XBlastLogger(DEBUG_FLASH_LOWLEVEL, DBG_LVL_DEBUG, "Setting LPC address to 0x%08X", LPCFlashadress);
+	debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Setting LPC address to 0x%08X\n", LPCFlashadress);
 }
 
 bool FlashLowLevel_ReadDevice(void)
@@ -60,14 +59,14 @@ bool FlashLowLevel_ReadDevice(void)
         _ResetFlashICStateMachine();
         _ReadDeviceIDBytes(&flashRead);
 
-        XBlastLogger(DEBUG_FLASH_LOWLEVEL, DBG_LVL_DEBUG, "Read device ID. manf=0x%02X  dev=0x%02X", flashRead.m_bManufacturerId, flashRead.m_bDeviceId);
+        debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Read device ID. manf=0x%02X  dev=0x%02X\n", flashRead.m_bManufacturerId, flashRead.m_bDeviceId);
 
         if(_MatchDevice(&flashRead))
         {
             // Found Device.
-            XBlastLogger(DEBUG_FLASH_LOWLEVEL, DBG_LVL_DEBUG, "Found matching device: %s", flashDevice.flashType.m_szFlashDescription);
-            XBlastLogger(DEBUG_FLASH_LOWLEVEL, DBG_LVL_DEBUG, "Additional info: %s", flashDevice.m_szAdditionalErrorInfo);
-            XBlastLogger(DEBUG_FLASH_LOWLEVEL, DBG_LVL_DEBUG, "Can Erase/Write: %s", flashDevice.m_fIsBelievedCapableOfWriteAndErase ? "Yes" : "No");
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Found matching device: %s\n", flashDevice.flashType.m_szFlashDescription);
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Additional info: %s\n", flashDevice.m_szAdditionalErrorInfo);
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Can Erase/Write: %s\n", flashDevice.m_fIsBelievedCapableOfWriteAndErase ? "Yes" : "No");
             return true;
         }
 
@@ -75,13 +74,13 @@ bool FlashLowLevel_ReadDevice(void)
         {
             // Device not found, try other method.
             is28xxxProtocol = !is28xxxProtocol;
-            XBlastLogger(DEBUG_FLASH_LOWLEVEL, DBG_LVL_WARN, "is28xxxProtocol: %s", is28xxxProtocol ? "true" : "false");
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"is28xxxProtocol: %s\n", is28xxxProtocol ? "true" : "false");
             retry = false;
         }
         else
         {
             // Tried both method. No device found.
-            XBlastLogger(DEBUG_FLASH_LOWLEVEL, DBG_LVL_WARN, "Device not found...");
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Device not found...\n");
             return false;
         }
     }
@@ -115,7 +114,7 @@ static inline bool _28xxxDeviceIsBusy(void)
         flashDevice.m_fIsBelievedCapableOfWriteAndErase = false;
         if(lastStatusRegisterState & 0x08)
         {
-            strcpy(flashDevice.m_szAdditionalErrorInfo, "This chip requires +5V on pin 11 (Vpp).");
+            sprintf(flashDevice.m_szAdditionalErrorInfo, "%s", "This chip requires +5V on pin 11 (Vpp).");
         }
         else
         {
@@ -220,7 +219,7 @@ static bool _MatchDevice(const KNOWN_FLASH_TYPE* output)
                     i = sprintf(flashDevice.m_szAdditionalErrorInfo, "%s","Master Lock SET  "); // reuse 'i'
                     flashDevice.m_fIsBelievedCapableOfWriteAndErase = false;
 
-                    i += sprintf(&flashDevice.m_szAdditionalErrorInfo[i],"Block(64KB) Locks: ");
+                    i += sprintf(&flashDevice.m_szAdditionalErrorInfo[i], "%s","Block(64KB) Locks: ");
 
                     while(n < flashDevice.flashType.m_dwLengthInBytes)
                     {

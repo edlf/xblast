@@ -15,67 +15,45 @@
 #include "boot.h"
 #include "video.h"
 #include "memory_layout.h"
-#include "FatFSAccessor.h"
+#include "BootFATX.h"
 #include "FlashDriver.h"
 #include "Gentoox.h"
 #include "string.h"
-#include "stdio.h"
 #include "lib/LPCMod/BootLPCMod.h"
 #include "lib/cromwell/cromString.h"
 #include "lib/cromwell/cromSystem.h"
+#include "LEDMenuActions.h"
 #include "WebServerOps.h"
 
 extern int etherboot(void);
 extern int BootLoadFlashCD(int cdromId);
 
-static const char* const biosDirectoryLocation = PathSep"MASTER_C"PathSep"BIOS";
-
-const char* const getBIOSDirectoryLocation(void)
-{
-    return biosDirectoryLocation;
-}
-
 void FlashBiosFromHDD (void *fname) {
 #ifdef FLASH
-    int res = 0;
-    unsigned char fileBuf[1024 * 1024];
-    unsigned int size;
-    const char* filename = (const char *)fname;
-    char fullPathName[255 + sizeof('\0')];
-    FILEX fileHandle;
+    int res;
+    unsigned char * fileBuf;
+    FATXFILEINFO fileinfo;
+    FATXPartition *partition;
 
-    if(255 < (strlen(getBIOSDirectoryLocation()) + sizeof(cPathSep) + strlen(filename)))
-    {
-        return;
-    }
-
-    sprintf(fullPathName, "%s"PathSep"%s", getBIOSDirectoryLocation(), filename);
-
+    partition = OpenFATXPartition (0, SECTOR_SYSTEM, SYSTEM_SIZE);
+    fileBuf = (unsigned char *) malloc (1024 * 1024);  //1MB buffer(max BIOS size)
     memset (fileBuf, 0x00, 1024 * 1024);   //Fill with 0.
-    fileHandle = fatxopen(fullPathName, FileOpenMode_OpenExistingOnly | FileOpenMode_Read);
-    if(fileHandle)
-    {
-        size = fatxsize(fileHandle);
-        if((1024 * 1024) >= size)
-        {
-            if(size == fatxread(fileHandle, fileBuf, size))
-            {
-                res = 1;
-            }
-        }
-        fatxclose(fileHandle);
-    }
     
-    if (0 == res)
-    {
+    //res = LoadFATXFilefixed(partition, fname, &fileinfo, (char*)0x100000);
+    res = LoadFATXFile(partition, fname, &fileinfo);
+    if (!res) {
         printk ("\n\n\n\n\n           Loading BIOS failed");
         dots ();
         cromwellError ();
+        goto jumpToEnd;
     }
-    else
-    {
-        FlashFileFromBuffer(fileBuf, size, 1); //1 to display confirmDialog
-    }
+    memcpy(fileBuf, fileinfo.buffer, fileinfo.fileSize);
+    free(fileinfo.buffer);
+    fileinfo.buffer = fileBuf;
+    FlashFileFromBuffer(fileinfo.buffer, fileinfo.fileSize, 1); //1 to display confirmDialog
+    free(fileinfo.buffer);
+jumpToEnd:
+    CloseFATXPartition (partition);
     
     return;
 #endif
@@ -99,13 +77,13 @@ void enableNetflash (void *flashType) {
     {
         nicInit = true;
         cromwellSuccess();
-        XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_INFO, "Starting network service");
+        debugSPIPrint(DEBUG_GENERAL_UI, "Starting network service\n");
         startNetFlash(*(WebServerOps *)flashType);
         while(cromwellLoop())
         {
             if(netflashPostProcess())
             {
-                XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_INFO, "Killing network service");
+                debugSPIPrint(DEBUG_GENERAL_UI, "Killing network service\n");
                 break;
             }
         }
@@ -128,4 +106,5 @@ void enableWebupdate (void *whatever) {
 void FlashFooter(void)
 {
     UIFooter();
+    initialSetLED (LPCmodSettings.OSsettings.LEDColor);
 }

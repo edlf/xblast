@@ -1,6 +1,4 @@
 subdir +=  cdrom
-#subdir +=  fatx
-subdir +=  ff13b
-subdir +=  VirtualRoot
+subdir +=  fatx
 
 include $(TOPDIR)/Rules.make

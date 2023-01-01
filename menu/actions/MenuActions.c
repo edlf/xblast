@@ -14,8 +14,6 @@
 #include "lib/cromwell/cromSystem.h"
 #include "lib/time/timeManagement.h"
 #include "lib/LPCMod/xblastDebug.h"
-#include "LEDMenuActions.h"
-#include "xblast/settings/xblastSettings.h"
 #include <stddef.h>
 
 void AdvancedMenu(void *textmenu)
@@ -32,24 +30,9 @@ void DrawChildTextMenu(void* menu)
 
 void ResetDrawChildTextMenu(TEXTMENU* menu)
 {
-    XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "Drawing menu %s", menu->szCaption);
     TextMenu(menu, menu->firstMenuItem);
-    XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "Exiting menu %s", menu->szCaption);
     freeTextMenuAllocMem(menu);
-    XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "Returning to previous menu");
-}
-
-void dynamicDrawChildTextMenu(void* menuInitFct)
-{
-    TEXTMENU* (*fctPtr)(void) = menuInitFct;
-    if(NULL == menuInitFct)
-    {
-        return;
-    }
-
-    TEXTMENU* menu = (*fctPtr)();
-    XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "Generated menu %s", menu->szCaption);
-    ResetDrawChildTextMenu(menu);
+    debugSPIPrint(DEBUG_GENERAL_UI, "Returning to previous menu\n");
 }
 
 void DrawLargeHDDTextMenu(unsigned char drive)
@@ -67,14 +50,14 @@ void freeTextMenuAllocMem(TEXTMENU* menu)
 
     if(menu != NULL)
     {
-        XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "freeing menu %s", menu->szCaption);
+        debugSPIPrint(DEBUG_GENERAL_UI, "freeing menu %s\n", menu->szCaption);
         while(currentItem != NULL)
         {
             nextItem = currentItem->nextMenuItem;
-            XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "free menu item : %s", currentItem->szCaption);
+            debugSPIPrint(DEBUG_GENERAL_UI, "free menu item : %s\n", currentItem->szCaption);
             if(currentItem->functionDataPtr != NULL && currentItem->dataPtrAlloc)
             {
-                XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "free alloc param");
+                debugSPIPrint(DEBUG_GENERAL_UI, "free alloc param\n");
                 free(currentItem->functionDataPtr);
             }
             free(currentItem);
@@ -105,5 +88,4 @@ void UIFooter(void)
             break;
         }
     }
-    initialSetLED(LPCmodSettings.OSsettings.LEDColor);
 }

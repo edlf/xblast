@@ -62,7 +62,6 @@ typedef struct TEXTMENU {
 extern char bypassConfirmDialog[50];
 
 void TextMenuAddItem(TEXTMENU *menu, TEXTMENUITEM *newMenuItem);
-void TextMenuAddItemInOrder(TEXTMENU *menu, TEXTMENUITEM *newMenuItem);
 void textMenuLCDPrint(TEXTMENU *menu, TEXTMENUITEM *selectedItem);
 void TextMenu(TEXTMENU *menu, TEXTMENUITEM *selectedItem);
 #endif

@@ -114,9 +114,9 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     xbox_video_mode encoder_mode;
     
     tv_encoding = DetectVideoStd();
-    XBlastLogger(DEBUG_VIDEO_DRIVER, DBG_LVL_INFO, "Detected Video Standard:%s", tv_encoding == TV_ENC_NTSC ? "NTSC" : "PAL");
+    debugSPIPrint(DEBUG_VIDEO_DRIVER, "Detected Video Standard:%s\n", tv_encoding == TV_ENC_NTSC ? "NTSC" : "PAL");
     DetectVideoEncoder();
-    XBlastLogger(DEBUG_VIDEO_DRIVER, DBG_LVL_INFO, "Detected Video Encoder: %s", VideoEncoderName());
+    debugSPIPrint(DEBUG_VIDEO_DRIVER, "Detected Video Encoder: %s\n", VideoEncoderName());
     
     if(isFrostySupport() == false)
     {
@@ -128,19 +128,19 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     av_type = DetectAvType();
     gpu.av_type = av_type;
 
-    XBlastLogger(DEBUG_VIDEO_DRIVER, DBG_LVL_INFO, "Detected Video Cable: %s", AvCableName());
+    debugSPIPrint(DEBUG_VIDEO_DRIVER, "Detected Video Cable: %s\n", AvCableName());
 
     memset((void *)pvmode,0,sizeof(CURRENT_VIDEO_MODE_DETAILS));
 
     //Focus driver (presumably XLB also) doesnt do widescreen yet - only blackscreens otherwise.
     if((((unsigned char *)&eeprom)[0x96]&0x01) && video_encoder == ENCODER_CONEXANT) // 16:9 widescreen TV
     {
-        XBlastLogger(DEBUG_VIDEO_DRIVER, DBG_LVL_INFO, "Screen format set to 16:9");
+        debugSPIPrint(DEBUG_VIDEO_DRIVER, "Screen format set to 16:9\n");
         pvmode->m_nVideoModeIndex=VIDEO_MODE_1024x576;
     }
     else // 4:3 TV
     {
-        XBlastLogger(DEBUG_VIDEO_DRIVER, DBG_LVL_INFO, "Screen format set to 4:3");
+        debugSPIPrint(DEBUG_VIDEO_DRIVER, "Screen format set to 4:3\n");
         pvmode->m_nVideoModeIndex=VIDEO_PREFERRED_MODE;
     }
 

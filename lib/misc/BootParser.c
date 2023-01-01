@@ -55,7 +55,7 @@ CONFIGENTRY *ParseConfig(char *szBuffer, unsigned int fileLen, char *szPath) {
             }
             else {
                 //Add a leading slash, if the path name does not already contain one
-                if (*paramdata=='/') strcpy(currentEntry->szKernel, paramdata);
+                if (*paramdata=='/') sprintf(currentEntry->szKernel,"%s", paramdata);
                 else sprintf(currentEntry->szKernel,"/%s", paramdata);
             }
         }
@@ -74,7 +74,7 @@ CONFIGENTRY *ParseConfig(char *szBuffer, unsigned int fileLen, char *szPath) {
             }
             else {
                 //Add a leading slash, if the path name does not already contain one
-                if (*paramdata=='/') strcpy(currentEntry->szInitrd, paramdata);
+                if (*paramdata=='/') sprintf(currentEntry->szInitrd,"%s", paramdata);
                 else sprintf(currentEntry->szInitrd,"/%s", paramdata);
             }
         }

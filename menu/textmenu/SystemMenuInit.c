@@ -13,7 +13,6 @@
 #include "SystemMenuActions.h"
 #include "lpcmod_v1.h"
 #include "string.h"
-#include "stdio.h"
 #include "lib/LPCMod/BootLPCMod.h"
 #include "xblast/HardwareIdentifier.h"
 
@@ -42,10 +41,10 @@ TEXTMENU *SystemMenuInit(void) {
 
     //LED SETTINGS MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption,"LED");
+    sprintf(itemPtr->szCaption,"LED");
     itemPtr->szParameter[0]=0;
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = LEDMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = LEDMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
     
     //FAN SPEED
@@ -68,22 +67,22 @@ TEXTMENU *SystemMenuInit(void) {
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Video settings");
     itemPtr->szParameter[0]=0;
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = VideoMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = VideoMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
 
     //VIDEO SETTINGS MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Network settings");
     itemPtr->szParameter[0]=0;
-    itemPtr->functionPtr=dynamicDrawChildTextMenu;
-    itemPtr->functionDataPtr = NetworkMenuInit;
+    itemPtr->functionPtr=DrawChildTextMenu;
+    itemPtr->functionDataPtr = NetworkMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
 
     //DVD REGION SETTINGS MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "DVD region : ");
-    strcpy(itemPtr->szParameter, getDVDRegionText(eeprom.DVDPlaybackKitZone[0]));
+    sprintf(itemPtr->szParameter, "%s", getDVDRegionText(eeprom.DVDPlaybackKitZone[0]));
     itemPtr->functionPtr = NULL;
     itemPtr->functionDataPtr = NULL;
     itemPtr->functionLeftPtr=decrementDVDRegion;
@@ -95,7 +94,7 @@ TEXTMENU *SystemMenuInit(void) {
     //GAME REGION SETTINGS MENU
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Game region : ");
-    strcpy(itemPtr->szParameter, getGameRegionText(getGameRegionValue(&eeprom)));
+    sprintf(itemPtr->szParameter, "%s", getGameRegionText(getGameRegionValue(&eeprom)));
     itemPtr->functionPtr = NULL;
     itemPtr->functionDataPtr = NULL;
     itemPtr->functionLeftPtr=decrementGameRegion;

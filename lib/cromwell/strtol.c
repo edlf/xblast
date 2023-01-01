@@ -71,8 +71,7 @@
  * SUCH DAMAGE.
  */
 
-#include "include/stdlib.h"
-#include "ctype.h"
+#include "stdlib.h"
 #include <limits.h>
 
 /*

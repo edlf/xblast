@@ -18,7 +18,6 @@
 #include "xblastScriptEngine.h"
 #include "string.h"
 #include "stdlib.h"
-#include "stdio.h"
 #include "xblast/settings/xblastSettingsDefs.h"
 #include "MenuActions.h"
 #endif
@@ -745,7 +744,7 @@ bool variableFunction(char * name, int initValue, _variableList * variableList, 
     newEntry->name = (char *)malloc(strlen(tempName) + 1);
     if(newEntry->name == NULL)
         return false;
-    strcpy(newEntry->name, tempName);
+    sprintf(newEntry->name, "%s", tempName);
     newEntry->readOnly = readOnly;
 
     variableList->last = newEntry;

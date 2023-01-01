@@ -17,7 +17,6 @@
 #include "xblast/HardwareIdentifier.h"
 #include "lib/LPCMod/BootLPCMod.h"
 #include "WebServerOps.h"
-#include "BootIde.h"
 
 
 TEXTMENU* BankSelectMenuInit(void)
@@ -94,7 +93,6 @@ void BankSelectDynamic(void* bank)
     int i = 0;
     FlashBank target = *(FlashBank *)bank;
 
-    XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_TRACE, "Generating menu.");
     menuPtr = calloc(1, sizeof(TEXTMENU));
 
     if(TSOPRecoveryMode)
@@ -176,7 +174,7 @@ void BankSelectDynamic(void* bank)
     
 #ifdef LWIP
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Net Flash");
+    sprintf(itemPtr->szCaption, "Net Flash");
     itemPtr->functionPtr = enableNetflash;
     itemPtr->functionDataPtr = malloc(sizeof(WebServerOps));
     *(WebServerOps *)itemPtr->functionDataPtr = WebServerOps_BIOSFlash;
@@ -185,7 +183,7 @@ void BankSelectDynamic(void* bank)
 #ifdef DEV_FEATURES
     itemPtr = malloc(sizeof(TEXTMENUITEM));
     memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Web Update");
+    sprintf(itemPtr->szCaption,"Web Update");
     itemPtr->functionPtr = enableWebupdate;
     itemPtr->functionDataPtr= NULL;
     TextMenuAddItem(menuPtr, itemPtr);
@@ -194,10 +192,10 @@ void BankSelectDynamic(void* bank)
 
     for (i = 0; i < 2; ++i)
     {
-        if(BootIdeDeviceConnected(i) && BootIdeDeviceIsATAPI(i))
+        if(tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi)
         {
             itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-            strcpy(itemPtr->szCaption, "CD Flash (image.bin)");// (hd%c)",i ? 'b':'a');
+            sprintf(itemPtr->szCaption, "CD Flash (image.bin)");// (hd%c)",i ? 'b':'a');
             itemPtr->functionPtr = FlashBiosFromCD;
             itemPtr->functionDataPtr = malloc(sizeof(int));
             *(int*)itemPtr->functionDataPtr = i;
@@ -207,16 +205,14 @@ void BankSelectDynamic(void* bank)
     }
 
     //Only Master HDD will be supported here.
-    if(BootIdeDeviceConnected(0) && 0 == BootIdeDeviceIsATAPI(0))
+    if(tsaHarddiskInfo[0].m_fDriveExists && tsaHarddiskInfo[0].m_fAtapi == 0)
     {
-        XBlastLogger(DEBUG_GENERAL_UI, DBG_LVL_DEBUG, "Generating menu for HDD%u", 0);
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "HDD Flash");
+        sprintf(itemPtr->szCaption, "HDD Flash");
         itemPtr->functionPtr = HDDFlashMenuDynamic;
         TextMenuAddItem(menuPtr, itemPtr);
     }
 
     ResetDrawChildTextMenu(menuPtr);
-    switchOSBank(FlashBank_OSBank);
 }
 

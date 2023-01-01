@@ -10,11 +10,10 @@
 #include "boot.h"
 #include "BootIde.h"
 #include "video.h"
-#include "FatFSAccessor.h"
+#include "BootFATX.h"
 #include "TextMenu.h"
 #include "lpcmod_v1.h"
 #include "string.h"
-#include "stdio.h"
 #include "MenuActions.h"
 #include "lib/time/timeManagement.h"
 #include "lib/cromwell/cromString.h"
@@ -22,8 +21,6 @@
 #include "Gentoox.h"
 #include "menu/misc/ConfirmDialog.h"
 #include "WebServerOps.h"
-
-static const char* formatCommonStr = "\n           Format ";
 
 void AssertLockUnlock(void* customStructPtr)
 {
@@ -230,6 +227,12 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
             
     if(result == 0)
     {
+        //Unlock successful, read if there's a MBR, only if FATX formatted drive.
+        if(FATXCheckFATXMagic(nIndexDrive))
+        {
+            // report on the MBR-ness of the drive contents
+            tsaHarddiskInfo[nIndexDrive].m_fHasMbr = FATXCheckMBR(nIndexDrive);
+        }
         if(verbose)
         {
             printk("\n\n\n           This drive is now unlocked.\n\n");
@@ -329,39 +332,7 @@ void FormatCacheDrives(void* driveId)
     }
 
     UiHeader("Format cache drives");
-    if(fatxmkfs(nIndexDrive, Part_X))
-    {
-        cromwellError();
-        printk("%s X: failed.\n", formatCommonStr);
-    }
-    else
-    {
-        cromwellSuccess();
-        printk("%s X: success.\n", formatCommonStr);
-    }
-
-    if(fatxmkfs(nIndexDrive, Part_Y))
-    {
-        cromwellError();
-        printk("%s Y: failed.\n", formatCommonStr);
-    }
-    else
-    {
-        cromwellSuccess();
-        printk("%s Y: success.\n", formatCommonStr);
-    }
-
-    if(fatxmkfs(nIndexDrive, Part_Z))
-    {
-        cromwellError();
-        printk("%s Z: failed.\n", formatCommonStr);
-    }
-    else
-    {
-        cromwellSuccess();
-        printk("%s Z: success.\n", formatCommonStr);
-    }
-
+    FATXFormatCacheDrives(nIndexDrive, 1);      //'1' for verbose
     UIFooter();
 }
 
@@ -374,18 +345,8 @@ void FormatDriveC(void* driveId)
         return;                                 //Cancel operation.
     }
         
-    UiHeader("Format C: drive");
-    if(fatxmkfs(nIndexDrive, Part_C))
-    {
-        cromwellError();
-        printk("%s C: failed.\n", formatCommonStr);
-    }
-    else
-    {
-        cromwellSuccess();
-        printk("%s C: success.\n", formatCommonStr);
-    }
-
+    UiHeader("Format C: drive");      //'1' for verbose
+    FATXFormatDriveC(nIndexDrive, 1);
     UIFooter();
 }
 
@@ -398,25 +359,17 @@ void FormatDriveE(void* driveId)
         return;                                 //Cancel operation.
     }
 
-    UiHeader("Format E: drive");
-    if(fatxmkfs(nIndexDrive, Part_E))
-    {
-        cromwellError();
-        printk("%s E: failed.\n", formatCommonStr);
-    }
-    else
-    {
-        cromwellSuccess();
-        printk("%s E: success.\n", formatCommonStr);
-    }
+    UiHeader("Format E: drive");      //'1' for verbose
+    FATXFormatDriveE(nIndexDrive, 1);
     UIFooter();
 }
 
 void DisplayHDDInfo(void* driveId)
 {
     unsigned char nIndexDrive = *(unsigned char *)driveId;
+    unsigned char MBRBuffer[512];
     unsigned char i;
-    XboxPartitionTable mbr;
+    XboxPartitionTable* mbr = (XboxPartitionTable *)MBRBuffer;
     unsigned char clusterSize;
     unsigned int partSize;
 
@@ -430,35 +383,44 @@ void DisplayHDDInfo(void* driveId)
     printk("\n           Sectors : %u ", tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal);
     printk("\n           # conductors : %u ", tsaHarddiskInfo[nIndexDrive].m_bCableConductors);
     printk("\n           Lock Status : %s ", ((tsaHarddiskInfo[nIndexDrive].m_securitySettings &0x0002)==0x0002) ? "Locked" : "Unlocked");
-    printk("\n           FATX Formatted? : %s ", isFATXFormattedDrive(nIndexDrive) ? "Yes" : "No");
+    printk("\n           FATX Formatted? : %s ", tsaHarddiskInfo[nIndexDrive].m_enumDriveType==EDT_XBOXFS ? "Yes" : "No");
+    printk("\n           Xbox MBR on HDD? : %s", tsaHarddiskInfo[nIndexDrive].m_fHasMbr ? "Yes" : "No");
 
-    if(0 == fatx_getmbr(nIndexDrive, &mbr))
+    if(tsaHarddiskInfo[nIndexDrive].m_fHasMbr)
     {
-        for(i = 0; i < 7; i++)     //Print only info for C, E, F, G, X, Y and Z
+        if(BootIdeReadSector(nIndexDrive, MBRBuffer, 0x00, 0, 512))
         {
-            if(mbr.TableEntries[i].Name[0] != ' ' && mbr.TableEntries[i].LBAStart != 0)    //Valid partition entry only
+            //VIDEO_ATTR=0xffff0000;
+            printk("\n                Unable to read MBR sector...\n");
+        }
+        else
+        {
+            for(i = 0; i < 7; i++)     //Print only info for C, E, F, G, X, Y and Z
             {
-                printk("\n                 %s", mbr.TableEntries[i].Name);
-                printk("\n                     Active: %s", mbr.TableEntries[i].Flags == FATX_PE_PARTFLAGS_IN_USE ? "Yes" : "No");
+                if(mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0)    //Valid partition entry only
+                {
+                    printk("\n                 %s", mbr->TableEntries[i].Name);
+                    printk("\n                     Active: %s", mbr->TableEntries[i].Flags == PE_PARTFLAGS_IN_USE ? "Yes" : "No");
 
-                if(mbr.TableEntries[i].LBASize >= LBASIZE_512GB)           //Need 64K clusters
-                {
-                    clusterSize = 64;                                      //Clustersize in number of 512-byte sectors
+                    if(mbr->TableEntries[i].LBASize >= LBASIZE_512GB)           //Need 64K clusters
+                    {
+                        clusterSize = 64;                                      //Clustersize in number of 512-byte sectors
+                    }
+                    else if(mbr->TableEntries[i].LBASize >= LBASIZE_256GB)
+                    {
+                        clusterSize = 32;
+                    }
+                    else if(mbr->TableEntries[i].LBASize >= 1)
+                    {
+                        clusterSize = 16;
+                    }
+                    else
+                    {
+                    	clusterSize = 0;
+                    }
+                    partSize = mbr->TableEntries[i].LBASize / 2048;      //in MB
+                    printk("    Size: %uMB   Cluster: %uKB", partSize, clusterSize);
                 }
-                else if(mbr.TableEntries[i].LBASize >= LBASIZE_256GB)
-                {
-                    clusterSize = 32;
-                }
-                else if(mbr.TableEntries[i].LBASize >= 1)
-                {
-                    clusterSize = 16;
-                }
-                else
-                {
-                    clusterSize = 0;
-                }
-                partSize = mbr.TableEntries[i].LBASize / 2048;      //in MB
-                printk("    Size: %uMB   Cluster: %uKB", partSize, clusterSize);
             }
         }
     }
@@ -470,72 +432,86 @@ void FormatDriveFG(void* driveId)
 {
     unsigned char nDriveIndex = (*(unsigned char *)driveId) & 0x0f;
     unsigned char formatOption = (*(unsigned char *)driveId) & 0xf0;
-    const char* string;
-    XboxDiskLayout selectedLayout = XboxDiskLayout_Base;
+    unsigned int fsize,gstart = SECTOR_EXTEND,gsize = 0;
+    unsigned char buffer[512];                                  //Multi purpose
+    XboxPartitionTable* mbr = (XboxPartitionTable *)buffer;
+
+    unsigned int nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
 
     switch(formatOption)
     {
         case F_GEQUAL:                                  //Split amount of sectors evenly on 2 partitions
-            string =  "Confirm format:\n\2F:, G: Split evenly?";
-            selectedLayout = XboxDiskLayout_FGSplit;
+            if(nExtendSectors % 2)                      //Odd number of sectors
+            {                                           //F: will be 1 sector bigger than G:            //Sorry G:
+                fsize = (nExtendSectors + 1) >> 1;
+            }
+            else
+            {
+                fsize = nExtendSectors >> 1;
+            }
+
+            if(fsize >= LBASIZE_1024GB)
+            {
+                fsize = LBASIZE_1024GB - 1;
+            }
+
+            sprintf(buffer, "%s", "Confirm format:\n\2F:, G: Split evenly?");
             break;
         case FMAX_G:            //F = LBASIZE_1024GB - 1 and G: takes the rest
-            string =  "Confirm format:\n\2Max F:, G: takes the rest?";
-            selectedLayout = XboxDiskLayout_FMaxGRest;
+            fsize = LBASIZE_1024GB - 1;
+            sprintf(buffer, "%s", "Confirm format:\n\2Max F:, G: takes the rest?");
             break;
         case F137_G:            //F = LBASIZE_137GB and G takes the rest
-            string =  "Confirm format:\n\2F: = 120GB, G: takes the rest?";
-            selectedLayout = XboxDiskLayout_F120GRest;
+            fsize = LBASIZE_137GB;
+            sprintf(buffer, "%s", "Confirm format:\n\2F: = 120GB, G: takes the rest?");
             break;
         case F_NOG:             //F < LBASIZE_1024GB - 1.
-            string =  "Confirm format:\n\2F: take all, no G:?";
-            selectedLayout = XboxDiskLayout_FOnly;
+            fsize = nExtendSectors;
+            sprintf(buffer, "%s", "Confirm format:\n\2F: take all, no G:?");
             break;
         default:
             return;
             break;
     }
 
+    gstart = SECTOR_EXTEND + fsize;
+    gsize = nExtendSectors - fsize;
 
-    if(ConfirmDialog(string, 1) == false)
+    if(gsize >= LBASIZE_1024GB)
     {
-        if(fdisk(nDriveIndex, selectedLayout))
+        gsize = LBASIZE_1024GB - 1;
+    }
+
+    if(ConfirmDialog(buffer, 1) == false)
+    {
+        UiHeader("Format F: drive");
+        FATXFormatExtendedDrive(nDriveIndex, 5, SECTOR_EXTEND, fsize);          //F: drive is partition 5 in table
+        UIFooter();
+
+        if(formatOption != F_NOG)
         {
-            UiHeader("Error!!");
-            //fail
-            cromwellError();
-            printk("\n           Partitionning failed.");
+            UiHeader("Format G: drive");
+            FATXFormatExtendedDrive(nDriveIndex, 6, gstart, gsize);             //G: drive is partition 6 in table
             UIFooter();
         }
-        else
+        else       //Print G drive entry in partition table being inactive and of null size.
         {
-            UiHeader("Format F: drive");
-            if(fatxmkfs(nDriveIndex, Part_F))
+            if(tsaHarddiskInfo[nDriveIndex].m_fHasMbr == 1)        //No need to do anything if no MBR is on disk.
             {
-                cromwellError();
-                printk("%sfailed.", formatCommonStr);
-            }
-            else
-            {
-                cromwellSuccess();
-                printk("%ssuccess.", formatCommonStr);
-            }
-            UIFooter();
-
-            if(formatOption != F_NOG)
-            {
-                UiHeader("Format G: drive");
-                if(fatxmkfs(nDriveIndex, Part_G))
-                {
-                    cromwellError();
-                    printk("%sfailed.", formatCommonStr);
+               if(BootIdeReadSector(nDriveIndex, &buffer[0], 0x00, 0, 512))
+               {
+                    VIDEO_ATTR=0xffff0000;
+                    printk("\n\1                Unable to read MBR sector...\n");
+                    UIFooter();
+                    return;
                 }
                 else
                 {
-                    cromwellSuccess();
-                    printk("%ssuccess.", formatCommonStr);
+                    mbr->TableEntries[6].Flags = 0;
+                    mbr->TableEntries[6].LBAStart = SECTOR_EXTEND;
+                    mbr->TableEntries[6].LBASize = 0;
+                    FATXSetMBR(nDriveIndex, mbr);
                 }
-                UIFooter();
             }
         }
     }
@@ -556,11 +532,11 @@ void AssertSMARTEnableDisable(void* customString)
     }
     if(tsaHarddiskInfo[nIndexDrive].m_fSMARTEnabled)
     {
-        strcpy(tempItemPtr->string1, "Disable");
+        sprintf(tempItemPtr->string1, "%s", "Disable");
     }
     else
     {
-        strcpy(tempItemPtr->string1, "Enable");
+        sprintf(tempItemPtr->string1, "%s", "Enable");
     }
 }
 

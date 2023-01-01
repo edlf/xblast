@@ -44,8 +44,6 @@ struct _GenPurposeIOs{
 unsigned short LPCMod_HW_rev(void);
 void LPCMod_ReadIO(struct _GenPurposeIOs *GPIOstruct);
 int LPCMod_ReadJPGFromHDD(const char *jpgFilename);
-void formatNewDrives(void);
-
 void LPCMod_WriteIO(unsigned char port, unsigned char value);
 void LPCMod_FastWriteIO(unsigned char port, unsigned char value);
 void LPCMod_WriteGenPurposeIOs(void);
@@ -57,10 +55,6 @@ void switchBootBank(FlashBank bank);
 
 void WriteToIO(unsigned short address, unsigned char data);
 unsigned char ReadFromIO(unsigned short address);
-
-#ifdef SPITRACE
-void printTextSPI(const char* buffer);
-#endif
 
 /**
  * USB_DEVICE - macro used to describe a specific usb device

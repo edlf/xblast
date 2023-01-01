@@ -15,7 +15,6 @@
 #include "i2c.h"
 #include "cromwell.h"
 #include "string.h"
-#include "stdio.h"
 #include "lib/LPCMod/BootLPCMod.h"
 #include "lib/cromwell/cromSystem.h"
 #include "Gentoox.h"
@@ -39,7 +38,7 @@ static unsigned char previousPercent = 0;
 //Selects which function should be called for flashing.
 void FlashFileFromBuffer(unsigned char *fileBuf, unsigned int fileSize, bool askConfirm)
 {
-    XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_INFO, "New image to flash. size=%u", fileSize);
+    debugSPIPrint(DEBUG_FLASH_UI,"New image to flash. size=%u\n", fileSize);
 
     if(Flash_getProgress().currentFlashOp == FlashOp_Idle)
     {
@@ -118,7 +117,7 @@ static bool FlashPrintResult(void)
 {
     bool isError = false;
     bool isCritical = false;
-    const char* string;
+    char string[100];
 
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
     VIDEO_ATTR=0xffef37;
@@ -126,7 +125,7 @@ static bool FlashPrintResult(void)
 #ifndef DEV_FEATURES
     if(mustRestart == true)
     {
-        XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_INFO, "Flash update sequence restart system");
+        debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence restart system\n");
         // Set LED to oxox.
         inputLED();
         Flash_freeFlashFSM();
@@ -152,40 +151,40 @@ static bool FlashPrintResult(void)
         switch (res)
         {
         case FlashErrorcodes_UserAbort:
-            string = "Flashing aborted.";
+            sprintf(string, "%s", "Flashing aborted.");
             break;
         case FlashErrorcodes_MD5Mismatch:
-            string = "MD5 mismatch.";
+            sprintf(string, "%s", "MD5 mismatch.");
             break;
         case FlashErrorcodes_InvalidUpdateFile:
-            string = "Invalid XBlast OS update file.";
+            sprintf(string, "%s", "Invalid XBlast OS update file.");
             break;
         case FlashErrorcodes_UnknownFlash:
-            string = "Unknown flash device.\n           Write-Protect is enabled?";
+            sprintf(string, "%s", "Unknown flash device.\n           Write-Protect is enabled?");
             break;
         case FlashErrorcodes_WriteProtect:
-            string = "Cannot write to device.";
+            sprintf(string, "%s", "Cannot write to device.");
             break;
         case FlashErrorcodes_FileSizeError:
-            string = "File size error.";
+            sprintf(string, "File size error.");
             break;
         case FlashErrorcodes_FailedErase:
-            string = "Erasing failed, please reflash.";
+            sprintf(string, "%s", "Erasing failed, please reflash.");
             isError = true;
             isCritical = true;
             break;
         case FlashErrorcodes_FailedProgram:
-            string = "Programming failed, please reflash.";
+            sprintf(string, "%s", "Programming failed, please reflash.");
             isError = true;
             isCritical = true;
             break;
         case FlashErrorcodes_FlashContentError:
-            string = "Active flash bank does not contain XBlast OS image.\n           Not saving.";
+            sprintf(string, "%s", "Active flash bank does not contain XBlast OS image.\n           Not saving.");
             isError = true;
             break;
         case FlashErrorcodes_UndefinedError:
         default:
-            string = "Unknown error! Congrats, you're not supposed to be here.";
+            sprintf(string, "%s", "Unknown error! Congrats, you're not supposed to be here.");
             isError = true;
             break;
         }
@@ -213,19 +212,19 @@ bool SaveXBlastOSSettings(void)
 
     if(memcmp(&LPCmodSettings, &LPCmodSettingsOrigFromFlash, sizeof(_LPCmodSettings)) == 0)
     {
-        XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_INFO, "No setting changed since last boot. Skipping save to flash.");
+        debugSPIPrint(DEBUG_FLASH_UI,"No setting changed since last boot. Skipping save to flash.\n");
         return true;
     }
 
     if(isXBlastOnTSOP())
     {
-        XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_INFO, "XBlast detected but running from TSOP. Can't save to LPC flash.");
+        debugSPIPrint(DEBUG_FLASH_UI,"XBlast detected but running from TSOP. Can't save to LPC flash.\n");
         return true;
     }
 
     if(isXBlastCompatible() == false && isXBE())
     {
-        XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_INFO, "No XBlast HW detected.Came from XBE. Assume no flash to same to.");
+        debugSPIPrint(DEBUG_FLASH_UI,"No XBlast HW detected.Came from XBE. Assume no flash to same to.\n");
         return true;
     }
 
@@ -368,7 +367,7 @@ bool executeFlashDriverUI(void)
     case FlashTask_WriteBios:
         if(flashProgress.currentFlashOp == FlashOp_PendingOp)
         {
-            XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_DEBUG, "Flash update sequence pending op");
+            debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence pending op\n");
             VIDEO_ATTR=0xffef37;
 
             if(mustRestart)
@@ -392,13 +391,13 @@ bool executeFlashDriverUI(void)
         }
         else if(flashProgress.currentFlashOp == FlashOp_Completed)
         {
-            XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_DEBUG, "Flash update sequence completed");
+            debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence completed\n");
             FlashPrintResult();
             Flash_freeFlashFSM();
         }
         else if(flashProgress.currentFlashOp == FlashOp_Error)
         {
-            XBlastLogger(DEBUG_FLASH_UI, DBG_LVL_ERROR, "!!Flash update sequence error!! errorCode=%u", flashProgress.flashErrorCode);
+            debugSPIPrint(DEBUG_FLASH_UI,"!!Flash update sequence error!! errorCode=%u\n", flashProgress.flashErrorCode);
             FlashPrintResult();
             Flash_freeFlashFSM();
         }

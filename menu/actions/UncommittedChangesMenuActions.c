@@ -13,7 +13,6 @@
 #include "BootEEPROM.h"
 #include "lib/LPCMod/xblastDebug.h"
 #include "string.h"
-#include "stdio.h"
 #include "stdlib.h"
 #include <stdbool.h>
 
@@ -53,7 +52,7 @@ TEXTMENU* generateMenuEntries(void)
     if(totalChangesCount == 0)
     {
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "No uncommitted change.");
+        sprintf(itemPtr->szCaption, "%s", "No uncommitted change.");
         TextMenuAddItem(menuPtr, itemPtr);
     }
     else
@@ -66,10 +65,11 @@ TEXTMENU* generateMenuEntries(void)
             {
               if(currentOSChangeEntry != NULL)
               {
-                  XBlastLogger(DEBUG_SETTINGS, DBG_LVL_DEBUG, "%s%s", currentOSChangeEntry->label, currentOSChangeEntry->changeString);
-                  itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+                  debugSPIPrint(DEBUG_GENERAL_UI, "%s%s\n", currentOSChangeEntry->label, currentOSChangeEntry->changeString);
+                  itemPtr = malloc(sizeof(TEXTMENUITEM));
+                  memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
                   sprintf(itemPtr->szCaption, "%s ", currentOSChangeEntry->label);
-                  strcpy(itemPtr->szParameter, currentOSChangeEntry->changeString);
+                  sprintf(itemPtr->szParameter, "%s", currentOSChangeEntry->changeString);
 #ifdef DEV_FEATURES
                   itemPtr->functionPtr = revertOSChange;
                   OSChangeRevert_t* param = malloc(sizeof(OSChangeRevert_t));
@@ -85,8 +85,9 @@ TEXTMENU* generateMenuEntries(void)
             }
             else if(i < (uncommittedChanges + bootScriptChange))
             {
-                XBlastLogger(DEBUG_SETTINGS, DBG_LVL_DEBUG, "Boot script in flash change");
-                itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+                debugSPIPrint(DEBUG_GENERAL_UI, "Boot script in flash change\n");
+                itemPtr = malloc(sizeof(TEXTMENUITEM));
+                memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "Boot script in flash modified");
 #ifdef DEV_FEATURES
                 itemPtr->functionPtr = revertBootScriptChange;
@@ -96,8 +97,9 @@ TEXTMENU* generateMenuEntries(void)
             }
             else if(i < (uncommittedChanges + bootScriptChange + backupEEPROMChange))
             {
-                XBlastLogger(DEBUG_SETTINGS, DBG_LVL_DEBUG, "Backup EEPROM modified");
-                itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+                debugSPIPrint(DEBUG_GENERAL_UI, "Backup EEPROM modified\n");
+                itemPtr = malloc(sizeof(TEXTMENUITEM));
+                memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "Backup EEPROM modified");
 #ifdef DEV_FEATURES
                 itemPtr->functionPtr = revertBackupEEPROMChange;
@@ -107,13 +109,14 @@ TEXTMENU* generateMenuEntries(void)
             }
             else if(i < (uncommittedChanges + bootScriptChange + backupEEPROMChange + eepromChanges))
             {
-                XBlastLogger(DEBUG_SETTINGS, DBG_LVL_DEBUG, "New EEPROM change #%u", i);
+                debugSPIPrint(DEBUG_GENERAL_UI, "New EEPROM change #%u\n", i);
                 if(currentEEPROMChangeEntry != NULL)
                 {
-                    XBlastLogger(DEBUG_SETTINGS, DBG_LVL_DEBUG, "%s%s", currentEEPROMChangeEntry->label, currentEEPROMChangeEntry->changeString);
-                    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-                    strcpy(itemPtr->szCaption, currentEEPROMChangeEntry->label);
-                    strcpy(itemPtr->szParameter, currentEEPROMChangeEntry->changeString);
+                    debugSPIPrint(DEBUG_GENERAL_UI, "%s%s\n", currentEEPROMChangeEntry->label, currentEEPROMChangeEntry->changeString);
+                    itemPtr = malloc(sizeof(TEXTMENUITEM));
+                    memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
+                    sprintf(itemPtr->szCaption,"%s", currentEEPROMChangeEntry->label);
+                    sprintf(itemPtr->szParameter,"%s", currentEEPROMChangeEntry->changeString);
 #ifdef DEV_FEATURES
                     itemPtr->functionPtr = revertEEPROMChange;
                     EEPROMChangeRevert_t* param = malloc(sizeof(EEPROMChangeRevert_t));

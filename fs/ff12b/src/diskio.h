@@ -24,11 +24,12 @@ typedef enum {
 	RES_PARERR		/* 4: Invalid Parameter */
 } DRESULT;
 
+
 /*---------------------------------------*/
 /* Prototypes for disk control functions */
 
 
-DRESULT disk_initialize (BYTE pdrv);
+DSTATUS disk_initialize (BYTE pdrv);
 DSTATUS disk_status (BYTE pdrv);
 DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
 DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);
@@ -71,11 +72,6 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
 #define ATA_GET_REV			20	/* Get F/W revision */
 #define ATA_GET_MODEL		21	/* Get model name */
 #define ATA_GET_SN			22	/* Get serial number */
-
-
-#define SECTOR_SIZE 512
-/* Block size for HDD is a single sector */
-#define SZ_BLOCK 1
 
 #ifdef __cplusplus
 }

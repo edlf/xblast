@@ -37,10 +37,6 @@
 #ifndef LWIP_HDR_DEBUG_H
 #define LWIP_HDR_DEBUG_H
 
-#if DEBUG_LWIP >= 1
-#define LWIP_DEBUG
-#endif
-
 #include "lwip/arch.h"
 #include "lwip/opt.h"
 
@@ -50,6 +46,9 @@
  * @{
  */
 
+#if DEBUG_LWIP >= 1
+#define LWIP_DEBUG
+#endif
 
 /** @name Debug level (LWIP_DBG_MIN_LEVEL)
  * @{
@@ -150,19 +149,16 @@
 #endif
 
 #ifdef LWIP_DEBUG
-#include "lib/LPCMod/xblastDebug.h"
+#include "lib/LPCMod/BootLPCMod.h"
 #ifndef LWIP_PLATFORM_DIAG
 #error "If you want to use LWIP_DEBUG, LWIP_PLATFORM_DIAG(message) needs to be defined in your arch/cc.h"
 #endif
-#define _Args(format, ...) format, ##__VA_ARGS__
-#define STRIP_PARENS(X) X
-#define PASS_PARAMETERS(X) STRIP_PARENS( _Args X )
 #define LWIP_DEBUGF(debug, message) do { \
                                if ( \
                                    ((debug) & LWIP_DBG_ON) && \
                                    ((debug) & LWIP_DBG_TYPES_ON) && \
                                    ((s16_t)((debug) & LWIP_DBG_MASK_LEVEL) >= LWIP_DBG_MIN_LEVEL)) { \
-                                 LWIP_PLATFORM_DIAG(#debug, debug, PASS_PARAMETERS(message)); \
+                                 LWIP_PLATFORM_DIAG(message); \
                                  if ((debug) & LWIP_DBG_HALT) { \
                                    while(1); \
                                  } \

@@ -9,21 +9,19 @@ GCC_4.2 := $(shell expr `$(CC) -dumpversion` \>= 4.2)
 GCC_6.2 := $(shell expr `$(CC) -dumpversion` \>= 6.2)
 
 DEBUG ?= 0 #run make with "DEBUG=1" argument to enable extra debug
-SPITRACE ?= 0 #run make with "SPITRACE=1" argument to enable debig strings prints on SPI. Must have "DEBUG" = 1
-TSOPCTRL ?= 0 #Override TSOP controd availability based on Xbox Revision
+TSOPCTRL ?= 0 #Override TSOP control availability based on Xbox Revision
 VGA ?= 0 #Generates VGA enabled by default image. Does not override existing setting in flash.
 ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
 
 INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/cdrom \
-	-I$(TOPDIR)/fs/ff13b/source -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/eeprom -I$(TOPDIR)/lib/crypt \
+	-I$(TOPDIR)/fs/fatx -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/eeprom -I$(TOPDIR)/lib/crypt \
 	-I$(TOPDIR)/drivers/video -I$(TOPDIR)/drivers/ide -I$(TOPDIR)/drivers/flash -I$(TOPDIR)/lib/misc \
 	-I$(TOPDIR)/boot_xbe/ -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/cromwell/font \
 	-I$(TOPDIR)/startuploader -I$(TOPDIR)/drivers/cpu -I$(TOPDIR)/menu \
 	-I$(TOPDIR)/lib/jpeg/ -I$(TOPDIR)/menu/actions -I$(TOPDIR)/menu/textmenu \
 	-I$(TOPDIR)/menu/iconmenu -I$(TOPDIR)/$(LWIPFOLDER) -I$(TOPDIR)/$(LWIPFOLDER)/src/include \
-	-I$(TOPDIR)/$(LWIPFOLDER)/src/include/ipv4 -I$(TOPDIR)/$(LWIPFOLDER)/src/include/lwip/apps \
-	-I$(TOPDIR)/fs/VirtualRoot -I$(TOPDIR)/lib/lwip-ftpd
+	-I$(TOPDIR)/$(LWIPFOLDER)/src/include/ipv4 -I$(TOPDIR)/$(LWIPFOLDER)/src/include/lwip/apps
 
 #These are intended to be non-overridable.
 CROM_CFLAGS=$(INCLUDE)
@@ -66,10 +64,7 @@ ETH_CFLAGS += -fno-stack-protector -U_FORTIFY_SOURCE
 endif
 
 ifeq ($(DEBUG), 1)
-DEBUG_FLAGS = -DDEV_FEATURES
-ifeq ($(SPITRACE), 1)
-DEBUG_FLAGS += -DSPITRACE
-endif
+DEBUG_FLAGS = -DDEV_FEATURES -DSPITRACE
 CROM_CFLAGS += $(DEBUG_FLAGS)
 ETH_CFLAGS += $(DEBUG_FLAGS)
 endif
@@ -83,9 +78,6 @@ ifeq ($(VGA), 1)
 CROM_CFLAGS += -DDEFAULT_ENABLE_VGA
 endif
 endif
-
-#DebugLogger always enabled. Make sure to properly set it in xblastDebug.h
-CROM_CFLAGS += -DDEBUGLOGGER
 
 LDFLAGS-ROM     = -s -S -T $(TOPDIR)/scripts/ldscript-crom.ld
 LDFLAGS-XBEBOOT = -s -S -T $(TOPDIR)/scripts/xbeboot.ld
@@ -195,26 +187,16 @@ OBJECTS-CROM += $(TOPDIR)/obj/FlashDriver.o
 OBJECTS-CROM += $(TOPDIR)/obj/FlashUi.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootEEPROM.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootLPCMod.o
-OBJECTS-CROM += $(TOPDIR)/obj/DebugLogger.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootLCD.o
 OBJECTS-CROM += $(TOPDIR)/obj/LCDRingBuffer.o
-#OBJECTS-CROM += $(TOPDIR)/obj/BootFATX.o
-OBJECTS-CROM += $(TOPDIR)/obj/ff.o
-OBJECTS-CROM += $(TOPDIR)/obj/diskio.o
-OBJECTS-CROM += $(TOPDIR)/obj/FatFSAccessor.o
-OBJECTS-CROM += $(TOPDIR)/obj/VirtualRoot.o
-OBJECTS-CROM += $(TOPDIR)/obj/minIni.o
+OBJECTS-CROM += $(TOPDIR)/obj/BootFATX.o
+#OBJECTS-CROM += $(TOPDIR)/obj/ff.o
 OBJECTS-CROM += $(TOPDIR)/obj/ProgressBar.o
 OBJECTS-CROM += $(TOPDIR)/obj/ConfirmDialog.o
 OBJECTS-CROM += $(TOPDIR)/obj/md5.o
 OBJECTS-CROM += $(TOPDIR)/obj/crc32.o
 OBJECTS-CROM += $(TOPDIR)/obj/strtol.o
-OBJECTS-CROM += $(TOPDIR)/obj/strnstr.o
-OBJECTS-CROM += $(TOPDIR)/obj/strcasecmp.o
-OBJECTS-CROM += $(TOPDIR)/obj/memrchr.o
-OBJECTS-CROM += $(TOPDIR)/obj/strrchr.o
 OBJECTS-CROM += $(TOPDIR)/obj/cromSystem.o
-OBJECTS-CROM += $(TOPDIR)/obj/CallbackTimer.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastScriptEngine.o
 OBJECTS-CROM += $(TOPDIR)/obj/functionsAccessor.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastSettings.o
@@ -249,7 +231,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xbox_pci.o
 OBJECTS-CROM += $(TOPDIR)/obj/etherboot_config.o
 endif
 
-OBJECTS-LWIP = $(addprefix $(TOPDIR)/obj/,def.o err.o ethernetif.o inet_chksum.o init.o mem.o memp.o netif.o pbuf.o raw.o stats.o sys.o tcp.o tcp_in.o tcp_out.o timeouts.o udp.o dhcp.o icmp.o ip4.o ip4_addr.o ip4_frag.o etharp.o fs.o httpd.o ethernet.o ip.o vfs.o ftpd.o)
+OBJECTS-LWIP = $(addprefix $(TOPDIR)/obj/,def.o err.o ethernetif.o inet_chksum.o init.o mem.o memp.o netif.o pbuf.o raw.o stats.o sys.o tcp.o tcp_in.o tcp_out.o timeouts.o udp.o dhcp.o icmp.o ip4.o ip4_addr.o ip4_frag.o etharp.o fs.o httpd.o ethernet.o ip.o)
 
 
 OBJECTS-CROM += $(OBJECTS-LWIP)

@@ -7,23 +7,18 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "FatFSAccessor.h"
+#include "BootFATX.h"
 #include "video.h"
 #include "BootLPCMod.h"
 #include "lpcmod_v1.h"
 #include "LEDMenuActions.h"
+#include "lib/time/timeManagement.h"
 #include "xblast/HardwareIdentifier.h"
 #include "string.h"
 #include "stdlib.h"
 #include "i2c.h"
 #include "boot.h"
 #include "stdio.h"
-#include "BootIde.h"
-#include "MenuActions.h"
-#include "misc/ConfirmDialog.h"
-#include "Gentoox.h"
-#include "lib/cromwell/cromString.h"
-#include "lib/time/timeManagement.h"
 
 //Probes CPLD for chip revision and return a single byte ID.
 //SmartXX compliant but need to mask out upper nibble
@@ -102,12 +97,12 @@ void quickboot(unsigned char bank)
 {
     if(bank > BOOTFROMTSOP)
     {
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Booting XBlast flash bank");
+        debugSPIPrint(DEBUG_BOOT_LOG, "Booting XBlast flash bank\n");
         switchBootBank(bank);
     }
     else
     {
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Booting TSOP flash bank");
+        debugSPIPrint(DEBUG_BOOT_LOG, "Booting TSOP flash bank\n");
         //If booting from TSOP, use of the XODUS_CONTROL register is fine.
         if(getMotherboardRevision() == XboxMotherboardRevision_1_6 || getMotherboardRevision() == XboxMotherboardRevision_UNKNOWN)
         {
@@ -121,108 +116,41 @@ void quickboot(unsigned char bank)
     }
     I2CTransmitWord(0x10, 0x1b00 + ( I2CTransmitByteGetReturn(0x10, 0x1b) & 0xfb )); // clear noani-bit
     BootStopUSB();
-    forceFlushLog();
     I2CRebootQuick();
     while(1);
 }
 
 int LPCMod_ReadJPGFromHDD(const char *jpgFilename)
 {
-    unsigned char* fileBuff;
+    FATXFILEINFO fileinfo;
+    FATXPartition *partition;
+    int res = false;
+    int dcluster;
     
-    FILEX handle = fatxopen(jpgFilename, FileOpenMode_OpenExistingOnly | FileOpenMode_Read);
 
-    if(0 == handle)
-    {
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "No jpg file.");
+    partition = OpenFATXPartition(0, SECTOR_SYSTEM, SYSTEM_SIZE);
+    if(partition != NULL){
+        dcluster = FATXFindDir(partition, FATX_ROOT_FAT_CLUSTER, "XBlast");
+        if((dcluster != -1) && (dcluster != 1)) {
+            res = FATXFindFile(partition, (char *)jpgFilename, FATX_ROOT_FAT_CLUSTER, &fileinfo);
+        }
+        if(LoadFATXFile(partition, (char *)jpgFilename, &fileinfo)){
+		if(res && fileinfo.fileSize){        //File exist and is loaded.
+		    BootVideoJpegUnpackAsRgb(fileinfo.buffer, &jpegBackdrop, fileinfo.fileSize);
+		    free(fileinfo.buffer);
+		}
+		else{
+		    return -1;
+		}
+	}
+	else
+	    return -1;
+        CloseFATXPartition(partition);
+    }
+    else
         return -1;
-    }
-
-    unsigned int size = fatxsize(handle);
-    fileBuff = malloc(size * sizeof(unsigned char));
-
-    if(NULL == fileBuff)
-    {
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_FATAL, "malloc failed.");
-        return -1;
-    }
-
-    if(fatxread(handle, fileBuff, size) != size)
-    {
-        free(fileBuff);
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_ERROR, "Read incomplete.");
-        return -1;
-    }
-
-    BootVideoJpegUnpackAsRgb(fileBuff, &jpegBackdrop, size);
-    free(fileBuff);
-
-    if(fatxclose(handle))
-    {
-        XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_ERROR, "Error close jpg file.");
-    }
 
     return 0;
-}
-
-void formatNewDrives(void)
-{
-    const char* failureString = "\n           Could not format ";
-    unsigned char i;
-    memcpy(videosavepage,(void*)FB_START,FB_SIZE);
-
-    for (i = 0; i < NbDrivesSupported; ++i)
-    {
-        if(BootIdeDeviceConnected(i) && 0 == BootIdeDeviceIsATAPI(i) && XBOX_EXTEND_STARTLBA <= BootIdeGetSectorCount(i) &&  0 == BootIdeDeviceIsLocked(i) && 0 == isFATXFormattedDrive(i))
-        {
-            XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "No FATX detected on %s HDD.", i ? "Slave" : "Master");
-            char ConfirmDialogString[50];
-            sprintf(ConfirmDialogString, "Format new drive (%s)?", i ? "slave":"master");
-            if(ConfirmDialog(ConfirmDialogString, 1) == false)
-            {
-                XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "Formatting base partitions.");
-                fdisk(i, XboxDiskLayout_Base);
-                if(fatxmkfs(i, Part_C))
-                {
-                    cromwellError();
-                    printk("%sC:\\", failureString);
-                    break;
-                }
-                if(fatxmkfs(i, Part_E))
-                {
-                    cromwellError();
-                    printk("%sE:\\", failureString);
-                    break;
-                }
-                if(fatxmkfs(i, Part_X))
-                {
-                    cromwellError();
-                    printk("%sX:\\", failureString);
-                    break;
-                }
-                if(fatxmkfs(i, Part_Y))
-                {
-                    cromwellError();
-                    printk("%sY:\\", failureString);
-                    break;
-                }
-                if(fatxmkfs(i, Part_Z))
-                {
-                    cromwellError();
-                    printk("%sZ:\\", failureString);
-                    break;
-                }
-
-                if((XBOX_EXTEND_STARTLBA + SYSTEM_LBASIZE) <= BootIdeGetSectorCount(i))
-                {
-                    XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_DEBUG, "Show user extended partitions format options.");
-                    DrawLargeHDDTextMenu(i);//Launch LargeHDDMenuInit textmenu.
-                }
-                XBlastLogger(DEBUG_BOOT_LOG, DBG_LVL_INFO, "HDD format done.");
-            }
-        }
-    }
-    memcpy((void*)FB_START,videosavepage,FB_SIZE);
 }
 
 //Use this function only for in OS operations.
@@ -266,29 +194,41 @@ unsigned char ReadFromIO(unsigned short address)
 }
 
 #ifdef SPITRACE
-void printTextSPI(const char* buffer)
+void printTextSPI(const char * functionName, char * buffer, ...)
 {
+    unsigned char pos;
     char i;
+    int stringLength;
+    char tempBuf[200];
+    char outputBuf[200];
 
+    va_list args;
     LPCMod_FastWriteIO(0x2, 0); //CLK to '0'
+    if(buffer != NULL){
+        va_start(args, buffer);
+        vsprintf(tempBuf,buffer,args);
+        sprintf(outputBuf, "[%s] %s", functionName, tempBuf);
+    }
+    else{
+        sprintf(outputBuf, "[%s]\n", functionName);
+    }
 
+    stringLength = strlen(outputBuf);
+    if(stringLength > 200)
+        stringLength = 200;
 
     //Will NOT send null terminating character at the end.
-    while('\0' != *buffer)
-    {
+    for(pos = 0; pos < stringLength; pos++){
         LPCMod_FastWriteIO(0x4, 0); // /CS to '0'
         for(i = 7; i >= 0; i--){
-            LPCMod_FastWriteIO(0x3, (*buffer >> i)&0x01); //CLK to '0' + MOSI data bit set
+            LPCMod_FastWriteIO(0x3, (outputBuf[pos] >> i)&0x01); //CLK to '0' + MOSI data bit set
             LPCMod_FastWriteIO(0x2, 0x2); //CLK to '1'
         }
         LPCMod_FastWriteIO(0x2, 0); //CLK to '0'.
         LPCMod_FastWriteIO(0x4, 0x4); // /CS to '1'
-        buffer++;
     }
-
     //If you miss characters, add delay function here (wait_us()). A couple microseconds should give enough time for the Arduino to catchup.
     wait_us_blocking(50);
 }
-
 #endif
 

@@ -79,7 +79,6 @@ return dest;
 #include "../lib/cromwell/cromString.h"
 #include "lib/time/timeManagement.h"
 #include "string.h"
-#include "stdio.h"
 #include "config.h"
 #endif
 #else
@@ -529,13 +528,13 @@ void my_wait_for_completion(struct completion*);
 //#define DEBUG_MODE
 #include "lib/LPCMod/xblastDebug.h"
 #ifdef DEBUG_MODE
-#define dev_printk(lvl,x,f,arg...) USBDebugLogger(DBG_LVL_INFO, DEBUG_USB, f, ## arg)
-#define dev_dbg(x,f,arg...) USBDebugLogger(DBG_LVL_DEBUG, DEBUG_USB, f, ## arg)
-#define dev_info(x,f,arg...) USBDebugLogger(DBG_LVL_INFO, DEBUG_USB, f, ## arg)
-#define dev_warn(x,f,arg...) USBDebugLogger(DBG_LVL_WARN, DEBUG_USB, f, ## arg)
-#define dev_err(x,f,arg...) USBDebugLogger(DBG_LVL_ERROR, DEBUG_USB, f, ## arg)
-#define pr_debug(f,arg...) USBDebugLogger(DBG_LVL_DEBUG, DEBUG_USB, f,## arg)
-#define usbprintk(f, arg...) USBDebugLogger(DBG_LVL_DEBUG, DEBUG_USB, f, ## arg)
+#define dev_printk(lvl,x,f,arg...) usbSPIPrint(f, ## arg)
+#define dev_dbg(x,f,arg...) usbSPIPrint(f, ## arg)
+#define dev_info(x,f,arg...) usbSPIPrint(f,## arg)
+#define dev_warn(x,f,arg...) usbSPIPrint(f,## arg)
+#define dev_err(x,f,arg...) usbSPIPrint(f,## arg)
+#define pr_debug(f,arg...) usbSPIPrint(f,## arg)
+#define usbprintk usbSPIPrint
 #endif
 
 #ifndef DEBUG_MODE

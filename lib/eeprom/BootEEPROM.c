@@ -16,7 +16,6 @@
 #include "lib/LPCMod/xblastDebug.h"
 #include "xblast/HardwareIdentifier.h"
 #include "string.h"
-#include "stdio.h"
 #include "stdlib.h"
 #include "RecoveryImages.h"
 #include "EEPROMStrings.h"
@@ -239,11 +238,11 @@ EEPROM_EncryptVersion EepromSanityCheck(EEPROMDATA * eepromPtr)
 {
     EEPROMDATA decryptBuf;
     EEPROM_EncryptVersion version = decryptEEPROMData((unsigned char *)eepromPtr, (unsigned char *)&decryptBuf);
-    XBlastLogger(DEBUG_EEPROM_DRIVER, DBG_LVL_DEBUG, "Encrypt version = %u", version);
+    debugSPIPrint(DEBUG_EEPROM_DRIVER, "Encrypt version = %u\n", version);
     if(version >= EEPROM_EncryptV1_0 && version <= EEPROM_EncryptV1_6)
     {
         unsigned int fourBytesParam = *(unsigned int *)(decryptBuf.XBERegion);
-        XBlastLogger(DEBUG_EEPROM_DRIVER, DBG_LVL_DEBUG, "XBE Region = %u", fourBytesParam);
+        debugSPIPrint(DEBUG_EEPROM_DRIVER, "XBE Region = %u\n", fourBytesParam);
         if(fourBytesParam != EEPROM_XBERegionEuropeAustralia &&
            fourBytesParam != EEPROM_XBERegionJapan &&
            fourBytesParam != EEPROM_XBERegionNorthAmerica)
@@ -252,7 +251,7 @@ EEPROM_EncryptVersion EepromSanityCheck(EEPROMDATA * eepromPtr)
         }
 
         fourBytesParam = *(unsigned int *)(eepromPtr->VideoStandard);
-        XBlastLogger(DEBUG_EEPROM_DRIVER, DBG_LVL_DEBUG, "Video Standard = %08X", fourBytesParam);
+        debugSPIPrint(DEBUG_EEPROM_DRIVER, "Video Standard = %08X\n", fourBytesParam);
         if(fourBytesParam != EEPROM_VideoStandardNTSC_J &&
            fourBytesParam != EEPROM_VideoStandardNTSC_M &&
            fourBytesParam != EEPROM_VideoStandardPAL_I)
@@ -260,7 +259,7 @@ EEPROM_EncryptVersion EepromSanityCheck(EEPROMDATA * eepromPtr)
             return EEPROM_EncryptInvalid;
         }
 
-        XBlastLogger(DEBUG_EEPROM_DRIVER, DBG_LVL_DEBUG, "Video flags = %02X %02X %02X %02X", eepromPtr->VideoFlags[0],
+        debugSPIPrint(DEBUG_EEPROM_DRIVER, "Video flags = %02X %02X %02X %02X\n", eepromPtr->VideoFlags[0],
                                                              eepromPtr->VideoFlags[1],
                                                              eepromPtr->VideoFlags[2],
                                                              eepromPtr->VideoFlags[3]);
@@ -275,7 +274,7 @@ EEPROM_EncryptVersion EepromSanityCheck(EEPROMDATA * eepromPtr)
             return EEPROM_EncryptInvalid;
         }
 
-        XBlastLogger(DEBUG_EEPROM_DRIVER, DBG_LVL_DEBUG, "DVD playback zone = %02X %02X %02X %02X", eepromPtr->DVDPlaybackKitZone[0],
+        debugSPIPrint(DEBUG_EEPROM_DRIVER, "DVD playback zone = %02X %02X %02X %02X\n", eepromPtr->DVDPlaybackKitZone[0],
                                                                    eepromPtr->DVDPlaybackKitZone[1],
                                                                    eepromPtr->DVDPlaybackKitZone[2],
                                                                    eepromPtr->DVDPlaybackKitZone[3]);
@@ -340,7 +339,7 @@ EEPROM_EncryptVersion decryptEEPROMData(unsigned char* eepromPtr, unsigned char*
         memcpy(decryptedBuf, baEepromDataLocalCopy, 0x30);
     }
 
-    XBlastLogger(DEBUG_EEPROM_DRIVER, DBG_LVL_INFO, "EEPROM decrypt %s!!   Version value : %u", counter > EEPROM_EncryptV1_6 ? "failure" : "success", version);
+    debugSPIPrint(DEBUG_EEPROM_DRIVER, "EEPROM decrypt %s!!   Version value : %u\n", counter > EEPROM_EncryptV1_6 ? "failure" : "success", version);
 
     return version;
 }

@@ -12,7 +12,6 @@
 #include "BootIde.h"
 #include "CDMenuActions.h"
 #include "string.h"
-#include "stdio.h"
 
 TEXTMENU* CDMenuInit(void)
 {

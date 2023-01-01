@@ -9,13 +9,12 @@
 #include "NetworkMenuActions.h"
 #include "boot.h"
 #include "string.h"
-#include "stdio.h"
 #include "xblast/settings/xblastSettingsDefs.h"
 #include "menu/misc/OnScreenKeyboard.h"
 
 void toggleUseDHCP(void * itemStr) {
     (LPCmodSettings.OSsettings.useDHCP) = (LPCmodSettings.OSsettings.useDHCP)? 0 : 1;
-    strcpy(itemStr,LPCmodSettings.OSsettings.useDHCP? "Yes" : "No");
+    sprintf(itemStr,"%s",LPCmodSettings.OSsettings.useDHCP? "Yes" : "No");
 }
 
 void editStaticIP(void * itemStr){
@@ -79,7 +78,7 @@ bool editIPfield(unsigned char * addr) {
     return result;
 }
 
-unsigned short myAtoi(const char *str)
+unsigned short myAtoi(char *str)
 {
     unsigned char i;
     unsigned short res = 0;
@@ -90,35 +89,28 @@ unsigned short myAtoi(const char *str)
     return res;
 }
 
-bool assertCorrectIPString(unsigned char *out, const char *in){
+bool assertCorrectIPString(unsigned char *out, char *in){
     unsigned char byteOffset = 0, cursorPos = 0, tempAddr[4], countDots = 0, lastDotPos;
     bool result = false;        //Assume not OK.
-    while(in[cursorPos] != '\0')
-    {
-        if(cursorPos == 0 && in[cursorPos] != '.')      //First byte doesn't have a '.' in before.
-        {
-            tempAddr[byteOffset++] = (unsigned char)myAtoi(in);
-        }
-        else if(in[cursorPos] == '.' && in[cursorPos + 1] != '.' && in[cursorPos + 1] != '\0')        //Others do.
-        {
-            tempAddr[byteOffset++] = (unsigned char)myAtoi(&in[cursorPos + 1]);
-            countDots += 1;
-            lastDotPos = cursorPos;
-        }
-        cursorPos += 1; //First character cannot be a '.'
-    }
+    while(in[cursorPos] != '\0') {
 
-    if(countDots == 3 && in[lastDotPos + 1] != '\0')
-    {
-        out[0] = tempAddr[0];
-        out[1] = tempAddr[1];
-        out[2] = tempAddr[2];
-        out[3] = tempAddr[3];
-        result = true;
-    }
-    else
-    {
-        result = false;
-    }
+            if(cursorPos == 0 && in[cursorPos] != '.')      //First byte doesn't have a '.' in before.
+                tempAddr[byteOffset++] = (unsigned char)myAtoi(in);
+            else if(in[cursorPos] == '.' && in[cursorPos + 1] != '.' && in[cursorPos + 1] != '\0') {       //Others do.
+                tempAddr[byteOffset++] = (unsigned char)myAtoi(&in[cursorPos + 1]);
+                countDots += 1;
+                lastDotPos = cursorPos;
+            }
+            cursorPos += 1; //First character cannot be a '.'
+        }
+        if(countDots == 3 && in[lastDotPos + 1] != '\0'){
+            out[0] = tempAddr[0];
+            out[1] = tempAddr[1];
+            out[2] = tempAddr[2];
+            out[3] = tempAddr[3];
+            result = true;
+        }
+        else
+            result = false;
     return result;
 }
