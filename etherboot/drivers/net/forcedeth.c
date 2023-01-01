@@ -1109,6 +1109,7 @@ static void forcedeth_transmit(struct nic *nic, const char *d,	/* Destination */
 
 	writel(NVREG_TXRXCTL_KICK, base + NvRegTxRxControl);
 	pci_push(base);
+	pci_push(base); //Duplicated to force a delay necessary for the hardware
 	np->next_tx++;
 
 
