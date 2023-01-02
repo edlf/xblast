@@ -11,3 +11,4 @@
 /boot_eth/ethboot
 !/bin/2blimage.bin
 !/bin/*.script
+/lwip-2.0.3/src/apps/httpd/fsdata.c
