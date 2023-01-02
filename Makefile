@@ -8,9 +8,12 @@ GCC_4.2 := $(shell expr `$(CC) -dumpversion` \>= 4.2)
 
 GCC_6.2 := $(shell expr `$(CC) -dumpversion` \>= 6.2)
 
-DEBUG ?= 0 #run make with "DEBUG=1" argument to enable extra debug
-TSOPCTRL ?= 0 #Override TSOP control availability based on Xbox Revision
-VGA ?= 0 #Generates VGA enabled by default image. Does not override existing setting in flash.
+#run make with "DEBUG=1" argument to enable extra debug
+DEBUG := 0
+#Override TSOP control availability based on Xbox Revision
+TSOPCTRL := 0 
+#Generates VGA enabled by default image. Does not override existing setting in flash.
+VGA := 0
 ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
 
@@ -27,7 +30,7 @@ INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/
 CROM_CFLAGS=$(INCLUDE)
 
 #You can override these if you wish.
-CFLAGS= -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding
+CFLAGS= -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member
 2BL_CFLAGS= -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding
 # add the option for gcc 3.3 only, again, non-overridable
 ifeq ($(GCC_3.3), 1)
@@ -39,7 +42,7 @@ ifeq ($(GCC_4.2), 1)
 CFLAGS += -fno-stack-protector -U_FORTIFY_SOURCE
 endif
 
-# add the option for gcc 4.2 only, again, non-overridable
+# add the option for gcc 6.2 only, again, non-overridable
 ifeq ($(GCC_6.2), 1)
 CFLAGS += -fno-PIC
 2BL_CFLAGS += -fno-PIC
@@ -58,6 +61,8 @@ ETH_SUBDIRS = etherboot
 CROM_CFLAGS	+= -DETHERBOOT
 ETH_INCLUDE = 	-I$(TOPDIR)/etherboot/include -I$(TOPDIR)/etherboot/arch/i386/include -I$(TOPDIR)
 ETH_CFLAGS  = 	-Os -march=pentium -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding
+endif
+
 # add the option for gcc 4.2 only, again, non-overridable
 ifeq ($(GCC_4.2), 1)
 ETH_CFLAGS += -fno-stack-protector -U_FORTIFY_SOURCE
@@ -76,7 +81,6 @@ endif
 
 ifeq ($(VGA), 1)
 CROM_CFLAGS += -DDEFAULT_ENABLE_VGA
-endif
 endif
 
 LDFLAGS-ROM     = -s -S -T $(TOPDIR)/scripts/ldscript-crom.ld
