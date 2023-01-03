@@ -253,6 +253,45 @@ static void setBiosJob(const unsigned char *data, unsigned int size, bool askCon
     flashProgress.flashErrorCode = FlashErrorcodes_UserAbort;
     flashProgress.currentFlashOp = FlashOp_Error;
     char * stringTemp;
+    
+    //Check bios data for obvious issues
+    bool pass = true;
+    printk("\n\n\n\n");
+    if ((data[0] & 1) == 0) {
+        printk("\n               ERROR: This BIOS will not work on a TSOP chip!");
+        pass = false;
+    }
+    if ((data[0] & 0xFE) == 0) {
+        printk("\n               ERROR: This BIOS has an invalid MCPX init table pointer!");
+        pass = false;
+    }
+    if (data[3] != 0xFF) {
+        printk("\n               ERROR: This BIOS has an invalid MCPX init table pointer (2)!");
+        pass = false;
+    }
+    if (pass == false) {
+        printk("\n");
+        printk("\n               First 16 bytes of the BIOS image:");
+        for (int i = 0; i < 16; i++) {
+            if ((i % 8) == 0) {
+                printk("\n               ");
+            }
+            printk("%02X ", data[i]);
+        }
+        
+        printk("\n");
+        printk("\n               Press X, Y, and A to ignore and continue (NOT RECOMMENDED).");
+        printk("\n               Press B to quit.");
+        while(cromwellLoop()) {
+            if (XPAD_current[0].keys[0] /*A key*/ && XPAD_current[0].keys[2] /*X key*/ && XPAD_current[0].keys[3] /*Y key*/) {
+                break; //Continue with flashing
+            }
+            if(risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_B) == 1 || risefall_xpad_STATE(XPAD_STATE_BACK) == 1) {
+                Flash_forceUserAbort();
+                return;
+            }
+        }
+    }
 
     if(isXBlastOnLPC())
     {
