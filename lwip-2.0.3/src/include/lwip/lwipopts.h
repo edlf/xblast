@@ -47,7 +47,18 @@
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
-#define MEM_SIZE                1024
+#define MEM_SIZE                0 //MEM_SIZE is only used if memory management is done by LWIP
+
+/**
+ * MEMP_MEM_MALLOC==1: Use mem_malloc/mem_free instead of the lwip pool allocator.
+ * Especially useful with MEM_LIBC_MALLOC but handle with care regarding execution
+ * speed (heap alloc can be much slower than pool alloc) and usage from interrupts
+ * (especially if your netif driver allocates PBUF_POOL pbufs for received frames
+ * from interrupt)!
+ * ATTENTION: Currently, this uses the heap for ALL pools (also for private pools,
+ * not only for internal pools defined in memp_std.h)!
+ */
+#define MEMP_MEM_MALLOC                 1
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
