@@ -543,11 +543,18 @@ void run_lwip(void)
 
         httpd_init();
 
+        printk("\n\n            Press B or Back to quit net flash.");
+
         currentNetworkState = NetworkState_ServerRunning;
         debugSPIPrint(DEBUG_LWIP, "currentNetworkState == NetworkState_ServerRunning\n");
         break;
     case NetworkState_ServerRunning:
         ethernetif_input(netif);
+
+        if(risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_B) == 1 || risefall_xpad_STATE(XPAD_STATE_BACK) == 1) {
+            netFlashOver = true;
+            currentWebServerOp = WebServerOps_NoOp; //Don't attempt to flash anything
+        }
 
         if (netFlashOver == true)
         {
