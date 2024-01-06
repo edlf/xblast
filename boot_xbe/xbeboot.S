@@ -641,5 +641,5 @@ phys_bootloaderram:
 #include "font.S"
 
 //.align 4096.
-.org 0x3000
+.org BL_END_ADDR
 kernel:
