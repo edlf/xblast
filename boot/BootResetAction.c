@@ -262,9 +262,9 @@ extern void BootResetAction ( void )
     debugSPIPrint(DEBUG_BOOT_LOG, "Read persistent OS settings from flash.\n");
     if(bootReadXBlastOSSettings() == false)
     {
-            debugSPIPrint(DEBUG_BOOT_LOG, "No persistent OS settings found on flash. Created default settings.\n");
-            fFirstBoot = true;
-            LEDFirstBoot(NULL);
+        debugSPIPrint(DEBUG_BOOT_LOG, "No persistent OS settings found on flash. Created default settings.\n");
+        fFirstBoot = true;
+        LEDFirstBoot(NULL);
     }
 
 #if 0
@@ -323,9 +323,9 @@ extern void BootResetAction ( void )
     {
         if(emergencyRecoverSettings())
         {
-                debugSPIPrint(DEBUG_BOOT_LOG, "Emergency recover triggered. Resetting settings.\n");
-                fFirstBoot = true;
-                LEDFirstBoot(NULL);
+            debugSPIPrint(DEBUG_BOOT_LOG, "Emergency recover triggered. Resetting settings.\n");
+            fFirstBoot = true;
+            LEDFirstBoot(NULL);
         }
 
         if(isLCDSupported())
@@ -432,7 +432,7 @@ extern void BootResetAction ( void )
         BootVideoJpegUnpackAsRgb(
             (unsigned char *)&_start_backdrop,
              &jpegBackdrop,
-        _end_backdrop - _start_backdrop
+            _end_backdrop - _start_backdrop
         );
     }
     // paint the backdrop
