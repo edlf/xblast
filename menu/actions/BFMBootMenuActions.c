@@ -140,7 +140,7 @@ nobfm:
 }
 
 int evoxrom_detect(void *rom, unsigned long rom_size){
-    if (strncmp(rom + rom_size - 0x3000 + 0x2e58, "$EvoxRom$", 10) != 0)
+    if (strncmp(rom + rom_size - BL_END_ADDR + 0x2e58, "$EvoxRom$", 10) != 0)
         return false;
 
     return true;
@@ -156,9 +156,9 @@ void *evoxrom_prepare(void *rom, unsigned long rom_size){
 
     /* Copy the 2bl to the appropriate location */
 
-    copyptr = (void *)(rom + (rom_size - 0x3000));
+    copyptr = (void *)(rom + (rom_size - BL_END_ADDR));
     //dprintf("Copying 2bl\n");
-    memcpy(virt2bl, copyptr, 0x3000);
+    memcpy(virt2bl, copyptr, BL_END_ADDR);
 
     //dprintf("Calculating 2bl entry point\n");
 

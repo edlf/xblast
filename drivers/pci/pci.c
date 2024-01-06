@@ -179,11 +179,13 @@ void BootDetectMemorySize(void)
     unsigned char *fillstring;
     void *membasetop = (void*)((64*1024*1024));
     void *membaselow = (void*)((0));
+    void *membase_256MBtest = (void*)((128*1024*1024));
     
-    (*(unsigned int*)(0xFD000000 + 0x100200)) = 0x03070103 ;
-    (*(unsigned int*)(0xFD000000 + 0x100204)) = 0x11448000 ;
+    //Already set by xcodes
+    // (*(unsigned int*)(0xFD000000 + 0x100200)) = 0x03070103;
+    // (*(unsigned int*)(0xFD000000 + 0x100204)) = 0x11448000;
         
-        PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x7FFFFFF);  // 128 MB
+    PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0xFFFFFFF);  // 256 MB
         
     xbox_ram = 64;    
     fillstring = malloc(0x200);
@@ -191,30 +193,46 @@ void BootDetectMemorySize(void)
     memset(membasetop,0xAA,0x200);
     asm volatile ("wbinvd\n");
     
-    if (!memcmp(membasetop,fillstring,0x200)) {
+    if (memcmp(membasetop,fillstring,0x200) == 0) {
         // Looks like there is memory .. maybe a 128MB box 
         memset(fillstring,0x55,0x200);
         memset(membasetop,0x55,0x200);
         asm volatile ("wbinvd\n");
-        if (!memcmp(membasetop,fillstring,0x200)) {
+        if (memcmp(membasetop,fillstring,0x200) == 0) {
             // Looks like there is memory 
             // now we are sure, we set memory
-                        if (memcmp(membaselow,fillstring,0x200) == 0) {
-                                 // Hell, we find the Test-string at 0x0 too !
-                                 xbox_ram = 64;
-                        } else {
-                            xbox_ram = 128;
-                        }
+            if (memcmp(membaselow,fillstring,0x200) == 0) {
+                // Hell, we find the Test-string at 0x0 too !
+                xbox_ram = 64;
+            } else {
+                xbox_ram = 128;
+            }
         }        
-        
     }
+    
+    memset(fillstring,0xAA,0x200);
+    memset(membase_256MBtest,0xAA,0x200);
+    asm volatile ("wbinvd\n");
+    if (memcmp(membase_256MBtest,fillstring,0x200) == 0) {
+        //May be 256MB
+        memset(fillstring,0x55,0x200);
+        memset(membase_256MBtest,0x55,0x200);
+        asm volatile ("wbinvd\n");
+        if (memcmp(membase_256MBtest,fillstring,0x200) == 0) {
+            //Make sure it's not just mirroring
+            if (memcmp(membaselow,fillstring,0x200) != 0) {
+                xbox_ram = 256;
+            }
+        }
+    }
+    
     if (xbox_ram == 64) {
         PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x3FFFFFF);  // 64 MB
     }
     else if (xbox_ram == 128) {
         PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x7FFFFFF);  // 128 MB
     }
-        free(fillstring);
+    free(fillstring);
 }
 
 void BootPciPeripheralInitialization()
@@ -222,7 +240,7 @@ void BootPciPeripheralInitialization()
 
     __asm__ __volatile__ ( "cli" );
 
-    PciWriteDword(BUS_0, DEV_1, 0, 0x80, 2);  // v1.1 2BL kill ROM area
+    // PciWriteDword(BUS_0, DEV_1, 0, 0x80, 2);  // v1.1 2BL kill ROM area (pointless)
     if(PciReadByte(BUS_0, DEV_1, 0, 0x8)>=0xd1) { // check revision
         PciWriteDword(BUS_0, DEV_1, 0, 0xc8, 0x8f00);  // v1.1 2BL <-- death
     }

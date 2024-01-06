@@ -17,6 +17,9 @@ VGA := 0
 ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
 
+#Changed from the default of 0x3000 to allow for more xcodes
+INCLUDE_ALL = -DBL_END_ADDR=0x3040
+
 INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/cdrom \
 	-I$(TOPDIR)/fs/fatx -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/eeprom -I$(TOPDIR)/lib/crypt \
 	-I$(TOPDIR)/drivers/video -I$(TOPDIR)/drivers/ide -I$(TOPDIR)/drivers/flash -I$(TOPDIR)/lib/misc \
@@ -27,11 +30,11 @@ INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/
 	-I$(TOPDIR)/$(LWIPFOLDER)/src/include/ipv4 -I$(TOPDIR)/$(LWIPFOLDER)/src/include/lwip/apps
 
 #These are intended to be non-overridable.
-CROM_CFLAGS=$(INCLUDE)
+CROM_CFLAGS = $(INCLUDE) $(INCLUDE_ALL)
 
 #You can override these if you wish.
-CFLAGS= -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member
-2BL_CFLAGS= -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding
+CFLAGS = $(INCLUDE_ALL) -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member
+2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding
 # add the option for gcc 3.3 only, again, non-overridable
 ifeq ($(GCC_3.3), 1)
 CROM_CFLAGS += -fno-zero-initialized-in-bss
@@ -253,21 +256,21 @@ endif
 .PHONY: all clean
 
 all: makefsdata
-	@$(MAKE) --no-print-directory resources $(BOOT_ETH_SUBDIRS) cromsubdirs xbeboot xromwell.xbe vml_startup vmlboot $(BOOT_ETH_DIR) obj/image-crom.bin cromwell.bin imagecompress 256KBBinGen crcbin
+	@$(MAKE) --no-print-directory resources $(BOOT_ETH_SUBDIRS) cromsubdirs xbeboot xromwell.xbe vml_startup vmlboot $(BOOT_ETH_DIR) obj/image-crom.bin cromwell.bin imagecompress 256KBBinGen crcbin INCLUDE_ALL="$(INCLUDE_ALL)"
 
 ifeq ($(ETHERBOOT), yes)
 ethsubdirs: $(patsubst %, _dir_%, $(ETH_SUBDIRS))
 $(patsubst %, _dir_%, $(ETH_SUBDIRS)) : dummy
-	$(MAKE) CFLAGS="$(ETH_CFLAGS)" -C $(patsubst _dir_%, %, $@)
+	$(MAKE) CFLAGS="$(ETH_CFLAGS)" -C $(patsubst _dir_%, %, $@) INCLUDE_ALL="$(INCLUDE_ALL)"
 endif
 
 cromsubdirs: $(patsubst %, _dir_%, $(SUBDIRS))
 $(patsubst %, _dir_%, $(SUBDIRS)) : dummy
-	$(MAKE) CFLAGS="$(CFLAGS) $(CROM_CFLAGS)" -C $(patsubst _dir_%, %, $@)
+	$(MAKE) CFLAGS="$(CFLAGS) $(CROM_CFLAGS)" -C $(patsubst _dir_%, %, $@) INCLUDE_ALL="$(INCLUDE_ALL)"
 	
 2blsubdirs: $(patsubst %, _dir_%, boot_rom)
 $(patsubst %, _dir_%, boot_rom) : dummy
-	$(MAKE) CFLAGS="$(2BL_CFLAGS) $(INCLUDE)" -C $(patsubst _dir_%, %, $@)
+	$(MAKE) CFLAGS="$(2BL_CFLAGS) $(INCLUDE)" -C $(patsubst _dir_%, %, $@) INCLUDE_ALL="$(INCLUDE_ALL)"
 
 dummy:
 
@@ -333,10 +336,10 @@ cromwell.bin: cromsubdirs 2blsubdirs
 
 # This is a local executable, so don't use a cross compiler...
 bin/imagebld:
-	gcc -Ilib/crypt -o bin/sha1.o -c lib/crypt/sha1.c
-	gcc -Ilib/crypt -o bin/md5.o -c lib/crypt/md5.c
-	gcc -Ilib/crypt -o bin/imagebld.o -c pc_tools/imagebld/imagebld.c
-	gcc -o bin/imagebld bin/imagebld.o bin/sha1.o bin/md5.o
+	gcc $(INCLUDE_ALL) -Ilib/crypt -o bin/sha1.o -c lib/crypt/sha1.c
+	gcc $(INCLUDE_ALL) -Ilib/crypt -o bin/md5.o -c lib/crypt/md5.c
+	gcc $(INCLUDE_ALL) -Ilib/crypt -o bin/imagebld.o -c pc_tools/imagebld/imagebld.c
+	gcc $(INCLUDE_ALL) -o bin/imagebld bin/imagebld.o bin/sha1.o bin/md5.o
 
 # Same here.
 crcbin:
@@ -357,7 +360,7 @@ imagecompress: obj/image-crom.bin bin/imagebld
 	bin/imagebld -vml boot_vml/disk/vmlboot obj/image-crom.bin f
 
 256KBBinGen: imagecompress crcbin cromwell.bin
-	bin/imagebld -rom bin/2blimage.bin obj/c.gz image/cromwell.bin
+	bin/imagebld -rom obj/2blimage.bin obj/c.gz image/cromwell.bin
 	bin/crcbin image/cromwell.bin image/crcwell.bin
 	
 makefsdata: clean

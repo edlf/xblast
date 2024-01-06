@@ -37,7 +37,7 @@ extern int decompress_kernel(char*out, char *data, int len);
 #define CROMWELL_Memory_pos 	 	CODE_LOC_START
 #define PROGRAMM_Memory_2bl 	 	0x00100000
 #define CROMWELL_compress_temploc 	0x02000000
-#define compressed_image_start 0x3018 // invariable now. Start offset is just after 20 bytes SHA1 + binsize(unsigned int)
+#define compressed_image_start      (BL_END_ADDR + 0x18) //Start offset is just after 20 bytes SHA1 + binsize(unsigned int)
 
 #define SHA1Length 20
 
@@ -111,8 +111,8 @@ extern void BootStartBiosLoader ( void )
     {
         // Copy From Flash To RAM
         // Copy Kernel SHA-1 checksum
-        memcpy(&compressedKernelChecksum[0], (void*)(LPCFlashadress + 0x3000), SHA1Length); // Kernel data always starts at offset 0x3000 in flash.
-        memcpy(&compressed_image_size, (void*)(LPCFlashadress + 0x3000 + SHA1Length), sizeof(unsigned int));
+        memcpy(&compressedKernelChecksum[0], (void*)(LPCFlashadress + BL_END_ADDR), SHA1Length); // Kernel data always starts at offset BL_END_ADDR in flash.
+        memcpy(&compressed_image_size, (void*)(LPCFlashadress + BL_END_ADDR + SHA1Length), sizeof(unsigned int));
 
         // Arbitrary size validation
         if(compressed_image_size < 50000 || compressed_image_size > (256 * 1024 - compressed_image_start - (4 * 1024)))

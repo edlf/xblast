@@ -127,7 +127,7 @@ NtAllocateVirtualMemory:
 
 .org 0x1080
 cromwellstart:
-    .long 0x3000        // Start of the ROM image
+    .long BL_END_ADDR   // Start of the ROM image
 cromwellsize:    
     .long 0x00060000    // Size  of the ROM image   (this Value will be overwritten by Imagebld)
 

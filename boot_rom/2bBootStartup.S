@@ -31,8 +31,8 @@
 
 #define xcode_bittoggle(val1,val2) .byte 0x6; .long val1 ; .long val2 ;
 
-#define xcode_ifgoto(val1,val2) .byte 0x8; .long val1 ; .long (9*(val2-1)) ;
-#define xcode_ifgoto_label(val1,val2) .byte 0x8; .long val1 ; .long (val2-.-4) ;
+#define xcode_ifngoto(val1,val2) .byte 0x8; .long val1 ; .long (9*(val2-1)) ;
+#define xcode_ifngoto_label(val1,val2) .byte 0x8; .long val1 ; .long (val2-.-4) ;
 
 #define xcode_outb(val1,val2) .byte 0x11; .long val1 ; .long val2 ;			    
 #define xcode_inb(val1) .byte 0x12; .long val1 ; .long 0x0 ;			    
@@ -55,7 +55,7 @@
 			xcode_outb(SMBUS+6, val2); \
 			xcode_outb(SMBUS+2, 0x0000000a); \
 			xcode_inb(SMBUS); \
-			xcode_ifgoto(0x00000010,-1); \
+			xcode_ifngoto(0x00000010,-1); \
 			xcode_outb(SMBUS, 0x00000010); 
 
 .code32
@@ -125,7 +125,7 @@ xcode_poke(0x0f0010b0, 0x07633461);
 xcode_poke(0x0f0010cc, 0x66660000);
 xcode_peek(0x0f101000);
 xcode_bittoggle(0x000c0000, 0x00000000);
-xcode_ifgoto_label(0x00000000, common_init_alt1);
+xcode_ifngoto_label(0x00000000, common_init_alt1);
 xcode_peek(0x0f101000);
 xcode_bittoggle(0xe1f3ffff, 0x80000000);
 xcode_poke_a(0x0f101000);
@@ -133,7 +133,7 @@ xcode_poke(0x0f0010b8, 0xeeee0000);
 xcode_goto_label(common_init_ending);
 
 common_init_alt1:
-xcode_ifgoto_label(0x000c0000, common_init_alt2);
+xcode_ifngoto_label(0x000c0000, common_init_alt2);
 xcode_peek(0x0f101000);
 xcode_bittoggle(0xe1f3ffff, 0x860c0000);
 xcode_poke_a(0x0f101000);
@@ -177,10 +177,10 @@ xcode_outb(SMBUS+6, 0x00000000);
 xcode_outb(SMBUS+2, 0x0000000a);
 
 xcode_inb(SMBUS);
-xcode_ifgoto(0x00000010, 0x00000002);
+xcode_ifngoto(0x00000010, 0x00000002);
 xcode_goto_label(focus_init_part2);						//Success!
 xcode_bittoggle(0x00000008, 0x00000000); //Check fail status
-xcode_ifgoto(0x00000000, SMBUS_READ_RETRY);//No result yet, read again.
+xcode_ifngoto(0x00000000, SMBUS_READ_RETRY);//No result yet, read again.
 xcode_outb(SMBUS, 0x000000ff);
 xcode_goto_label(connexant_init);			//Abandon focus, go to connexant
 
@@ -196,10 +196,10 @@ xcode_outb(SMBUS+8, 0x000000ba);
 xcode_outb(SMBUS+6, 0x0000003f);
 xcode_outb(SMBUS+2, 0x0000000a);
 xcode_inb(SMBUS);
-xcode_ifgoto(0x00000010, 0x00000002); //Write failed, forward 2
+xcode_ifngoto(0x00000010, 0x00000002); //Write failed, forward 2
 xcode_goto_label(connexant_init_part2);						//Success!
 xcode_bittoggle(0x00000008, 0x00000000);//Check fail status
-xcode_ifgoto(0x00000000, SMBUS_READ_RETRY);//No result yet, read again.
+xcode_ifngoto(0x00000000, SMBUS_READ_RETRY);//No result yet, read again.
 xcode_outb(SMBUS, 0x000000ff);			//Abandon connexant.
 xcode_outb(SMBUS, 0x00000010);
 
@@ -232,7 +232,7 @@ xcode_outb(SMBUS+4, 0x00000021);
 xcode_outb(SMBUS+8, 0x00000001);
 xcode_outb(SMBUS+2, 0x0000000a);
 xcode_inb(SMBUS);
-xcode_ifgoto(0x00000010, -1);	//retry
+xcode_ifngoto(0x00000010, -1);	//retry
 xcode_outb(SMBUS, 0x00000010);
 
 // If SMC version does not match ... ?????
@@ -247,11 +247,11 @@ xcode_poke(0x0f001264, 0x00000000);
 xcode_poke(0x0f001210, 0x00000010);
 xcode_peek(0x0f101000);
 xcode_bittoggle(0x06000000, 0x00000000);
-xcode_ifgoto(0x00000000, 0x00000004);
+xcode_ifngoto(0x00000000, 0x00000004);
 xcode_poke(0x0f001214, 0x48480848);
 xcode_poke(0x0f00122c, 0x88888888);
 xcode_goto(0x00000007);
-xcode_ifgoto(0x06000000, 0x00000004);
+xcode_ifngoto(0x06000000, 0x00000004);
 xcode_poke(0x0f001214, 0x09090909);
 xcode_poke(0x0f00122c, 0xaaaaaaaa);
 xcode_goto(0x00000003);
@@ -320,10 +320,10 @@ xcode_outb(SMBUS+4, 0x00000021);
 xcode_outb(SMBUS+8, 0x00000001);
 xcode_outb(SMBUS+2, 0x0000000a);
 xcode_inb(SMBUS);
-xcode_ifgoto(0x00000010, -1);
+xcode_ifngoto(0x00000010, -1);
 xcode_outb(SMBUS, 0x00000010);
 xcode_inb(SMBUS+6);
-xcode_ifgoto(0x00000050, 0x00000002);
+xcode_ifngoto(0x00000050, 0x00000002);
 xcode_goto(0x00000002);
 xcode_pciout(0x8000036c, 0x01000000);
 xcode_poke(0x0f680500, 0x00011c01);
@@ -346,27 +346,27 @@ xcode_outb(SMBUS+2, 0x0000000a);
 xcode_inb(SMBUS);
 xcode_pciout_a(0x8000103c);
 xcode_bittoggle(0x00000008, 0x00000000);
-xcode_ifgoto(0x00000008, 0x00000002);
+xcode_ifngoto(0x00000008, 0x00000002);
 xcode_goto(SMBUS_READ_RETRY);
 xcode_pciin_a(0x8000103c);
 xcode_bittoggle(0x000000ff, 0x00000000);
-xcode_ifgoto_label(0x00000010, xcalibur_init_part3);
+xcode_ifngoto_label(0x00000010, xcalibur_init_part3);
 xcode_inb(SMBUS+6);
 xcode_bittoggle(0x000000ff, 0x00000000);
 xcode_poke_a(0x0f001248);
 xcode_pciin_a(0x8000183c);
 xcode_bittoggle(0x000000ff, 0x00000000);
-xcode_ifgoto_label(0x000000c3, label11);
+xcode_ifngoto_label(0x000000c3, label11);
 xcode_peek(0x0f001248);
-xcode_ifgoto(0x00000042, 0x00000004);
+xcode_ifngoto(0x00000042, 0x00000004);
 xcode_peek(0x0f101000);
 xcode_bittoggle(0xe1f3ffff, 0x800c0000);
 xcode_goto_label(label12);
-xcode_ifgoto(0x00000040, 0x00000004);
+xcode_ifngoto(0x00000040, 0x00000004);
 xcode_peek(0x0f101000);
 xcode_bittoggle(0xe1f3ffff, 0x80080000);
 xcode_goto_label(label12);
-xcode_ifgoto(0x00000002, 0x00000004);
+xcode_ifngoto(0x00000002, 0x00000004);
 xcode_peek(0x0f101000);
 xcode_bittoggle(0xe1f3ffff, 0x80040000);
 xcode_goto_label(label12);
@@ -381,49 +381,49 @@ xcode_goto_label(xcalibur_init_part3);
 label11:
 xcode_peek(0x0f001248);
 xcode_bittoggle(0x00000001, 0x00000000);
-xcode_ifgoto_label(0x00000000, label14);
+xcode_ifngoto_label(0x00000000, label14);
 xcode_peek(0x0f001248);
 
 label14_2:
 	xcode_bittoggle(0x00000002,0x00000000);
-	xcode_ifgoto_label(0x00000000,label15)
+	xcode_ifngoto_label(0x00000000,label15)
 	xcode_peek(0x0f001248);
 
 label15_2:
 	xcode_bittoggle(0x00000004,0x00000000);
-	xcode_ifgoto_label(0x00000000,label16)
+	xcode_ifngoto_label(0x00000000,label16)
 	xcode_peek(0x0f001248);
 
 label16_2:
 	xcode_bittoggle(0x00000008,0x00000000);
-	xcode_ifgoto_label(0x00000000,label17)
+	xcode_ifngoto_label(0x00000000,label17)
 	xcode_peek(0x0f001248);
 
 label17_2:
 	xcode_bittoggle(0x00000010,0x00000000);
-	xcode_ifgoto_label(0x00000000,label18)
+	xcode_ifngoto_label(0x00000000,label18)
 	xcode_peek(0x0f001248);
 
 label18_2:
 	xcode_bittoggle(0x00000020,0x00000000);
-	xcode_ifgoto_label(0x00000000,label19)
+	xcode_ifngoto_label(0x00000000,label19)
 	xcode_peek(0x0f001248);
 
 label19_2:
 	xcode_bittoggle(0x00000040,0x00000000);
-	xcode_ifgoto_label(0x00000000,label20)
+	xcode_ifngoto_label(0x00000000,label20)
 	xcode_peek(0x0f001248);
 
 label20_2:
 	xcode_bittoggle(0x00000080,0x00000000);
-	xcode_ifgoto_label(0x00000000,label21)
+	xcode_ifngoto_label(0x00000000,label21)
 
 label21_2:
 
 	xcode_pciin_a(0x8000183C);
 	xcode_bittoggle(0x000000ff,0x00000000);
 
-	xcode_ifgoto_label(0x000000c2,label22)
+	xcode_ifngoto_label(0x000000c2,label22)
 
 	xcode_peek(0x0f001248);
 	xcode_bittoggle(0xffff0000,0x00000000);
@@ -436,7 +436,7 @@ label22:
 
 	xcode_pciin_a(0x8000183C);
 	xcode_bittoggle(0x000000ff,0x00000000);
-	xcode_ifgoto_label(0x000000c1,label23)
+	xcode_ifngoto_label(0x000000c1,label23)
 	xcode_peek(0x0f001248);
 	xcode_poke_a(0x0f00122c);
 	xcode_pciout(0x8000183C, 0x000000c0);
@@ -541,12 +541,23 @@ extendedEndExec:
 	xcode_pciout(0x8000035c, 0x00000000);
 
 endExec:		//There is no going back now.
-xcode_pciout(0x8000036c, 0x00230801);
-xcode_pciout(0x8000036c, 0x01230801);
-xcode_goto(1);
-xcode_goto(1);
+xcode_pciout(0x8000036c, 0x00230801); //MPLL coefficient (for FSB) (MEM_PDIV = 2, FSB_PMULT = 3, NMULT = 8, MDIV = 1). Default 0x00230801
+xcode_pciout(0x8000036c, 0x01230801); //"override" version of above
+xcode_goto(1); //NOP
+xcode_goto(1); //NOP
+
+
+//Set up RAM configuration
 xcode_poke(0x0f100200, 0x03070103);
-xcode_poke(0x0f100204, 0x11448000);
+xcode_poke(0x0f100204, 0x11449010); //Assume 256MB (9 column bits + AP on 'A9')
+xcode_poke(0x0f001210, 0x00000110); //Assume 256Mb memory 0x10 = 1/4 clock delay, early CLK edge, early DQS
+xcode_poke(0x00001048, 0xCAFEBABE); //Write to a word that has the A8 column bit set. A standard Xbox won't care about A8 being set
+xcode_peek(0x00000048) //Read back to see if it was actually written to the same address with A8 = 0
+xcode_ifngoto_label(0xCAFEBABE, ram_setup_done);
+xcode_poke(0x0f100204, 0x11448000); //Use normal xbox config
+xcode_poke(0x0f001210, 0x00000010); //Use normal xbox config - probably won't work on 1.6 - probably won't need to
+ram_setup_done:
+
 xcode_pciout(0x8000103c, 0x00000000);
 xcode_pciout(0x8000183c, 0x00000000);
 xcode_outb(SMBUS, 0x00000010);
@@ -568,36 +579,31 @@ SMB_xcode_Write(0x00000012, 0x000000f0);
 xcode_pciout(0x8000f020, 0xfdf0fd00);
 xcode_pciout(0x80010010, 0xfd000000);
 
-// overflow trick
-xcode_poke(0x00000000, 0x000ED0ea);	//SmartXX uses bottom bank from flash. Make sure you change this in linker script too.
-xcode_poke(0x00000004, 0x000008ff);
+// Visor trick (EIP overflow)
+xcode_poke(0x00000000, 0x000F20B8); //Write a jump to flash into RAM address 0
+xcode_poke(0x00000004, 0x00E0FFFF);
 xcode_END(0x00000806);
 
 
-	// Note: never change this from offset 0x1000 ....
-	// This is the Main Entry point ....        
-	.org 0xED0	//Could be 0xECF
+	// This is the Main Entry point
+	.org 0xF20
         
 	// Good Morning CPU
 
 	// NOTE:
 	// We come here form the high rom section Jump
-	
+
 	// Clear Intel Interrupts in Processor Register
 	// Everytime very good, specially when comming out of a running envoronment
-		
+
 	movl	$0x1b, %ecx
 	xor	%eax, %eax
 	xor	%edx, %edx
 	wrmsr
-        
+
 	// Interrupts now Dead
 
-	xor	%eax, %eax
-	xor	%edx, %edx
-	xor	%ecx, %ecx
-	
-	// kill the cache  = Disable bit 30 + 29 = CD + NW 
+	// kill the cache  = Disable bit 30 + 29 = CD + NW
 	// CD = Cache Disable (disable = 1)
 	// NW Not write through (disable = 1)
 	mov 	%cr0, %eax
@@ -618,73 +624,57 @@ xcode_END(0x00000806);
 	//We are setting the Ram Init's now to set up the Regions in the Ram
 
 
+	movl	$0xf0000800, %esi //256MB range (0xf8000000 would be 128M)
+	movl	$0x0000000f, %edi
 	// MTRR for RAM
-	// from address 0, Writeback Caching, 128MB range
-	movl	$0x200, %ecx
-	movl	$0x00000000, %edx
+	// from address 0, Writeback Caching
+	movl	$0x200, %ecx //BASE0
+	//movl	$0x00000000, %edx
+	xor %edx, %edx
 	movl	$0x00000006, %eax 	// == WB_CACHE == 6
-	//movl	$0x00000004, %eax 	// Temporary, as USB development
-	wrmsr
+	wrmsr //Write the value in EDX:EAX to MSR specified by ECX
 
 	// MASK0 set to 0xf8000[000] == 128M
-        inc %ecx //movl	$0x201, %ecx
-	movl	$0x0000000f, %edx
-	movl	$0xf8000800, %eax
+	inc %ecx //movl	$0x201, %ecx
+	movl	%edi, %edx
+	movl	%esi, %eax //0x800 bit is just 'valid'
 	wrmsr
 
 	// MTRR for shadow RAM
 	// from address 0xf0000000, Write-combining Caching, 128MB range
-        inc %ecx //movl	$0x202, %ecx
-	movl	$0x00000000, %edx
+	inc %ecx //movl	$0x202, %ecx //BASE1
+	//movl	$0x00000000, %edx
+	xor %edx, %edx
 	movl	$0xf0000001, %eax 	// Write-Combining == 1
 	wrmsr
 
-	// MASK0 set to 0xf8000[000] == 128M
-        inc %ecx //movl	$0x203, %ecx
-	movl	$0x0000000f, %edx
-	movl	$0xf8000800, %eax
+	// MASK1 set to 0xf8000[000] == 128M
+	inc %ecx //movl	$0x203, %ecx
+	movl	%edi, %edx
+	movl	%esi, %eax
 	wrmsr
 
 	// MTRR for FLASH
-	inc %ecx //movl	$0x204, %ecx
-	movl	$0x00000000, %edx
-	movl	$0xFf000000, %eax 	    // We set to Uncacheable
+	inc %ecx //movl	$0x204, %ecx //BASE2
+	//movl	$0x00000000, %edx
+	xor %edx, %edx
+	movl	$0xFF000000, %eax 	    // We set to Uncacheable
 	wrmsr
 
-    inc %ecx //movl	$0x205, %ecx
-	movl	$0x0000000f, %edx
-	movl	$0xff000800, %eax
+    inc %ecx //movl	$0x205, %ecx //MASK2
+	movl	%edi, %edx
+	add	$0x800, %eax
 	wrmsr
+
+	xor %eax, %eax
+	xor %edx, %edx
 	
-
-	xor	%eax, %eax
-	xor	%edx, %edx
-
-	inc %ecx //movl	$0x206, %ecx		// IA32_MTRR_PHYS Base 3
-	wrmsr
-	inc %ecx //movl	$0x207, %ecx		// IA32_MTRR_PHYS_MASK 3
-	wrmsr
-
-	inc %ecx //movl	$0x208, %ecx		// IA32_MTRR_PHYS Base 4
-	wrmsr                                                   
-	inc %ecx //movl	$0x209, %ecx		// IA32_MTRR_PHYS_MASK 4
-	wrmsr                                                   
-
-	inc %ecx //movl	$0x20a, %ecx		// IA32_MTRR_PHYS Base 5
-	wrmsr                                                   
-	inc %ecx //movl	$0x20b, %ecx		// IA32_MTRR_PHYS_MASK 5
-	wrmsr                                                   
-
-	inc %ecx //movl	$0x20c, %ecx		// IA32_MTRR_PHYS Base 6
-	wrmsr                                                   
-	inc %ecx //movl	$0x20d, %ecx		// IA32_MTRR_PHYS_MASK 6
-	wrmsr
-
-	inc %ecx //movl	$0x20e, %ecx		// IA32_MTRR_PHYS Base 7
-	wrmsr
-	inc %ecx //movl	$0x20f, %ecx		// IA32_MTRR_PHYS_MASK 7
-	wrmsr                                                   
-                                              
+	mov $10, %bl
+	mtrr_loop:
+		inc %ecx // IA32_MTRR_PHYS Base and MASK 3 to 7
+		wrmsr
+		dec %bl
+		jnz mtrr_loop
 
 	// Define Memory in IA32_MTRR_DEF_TYPE
 	movl	$0x2ff, %ecx
@@ -693,7 +683,7 @@ xcode_END(0x00000806);
 	wrmsr
 
 	/* turn on normal cache */
-	//  bit 30 + 29 = CD + NW 
+	//  bit 30 + 29 = CD + NW
 	// CD = Cache Disable (disable = 1)
 	// NW Not write through (disable = 1)
 	movl	%cr0, %eax

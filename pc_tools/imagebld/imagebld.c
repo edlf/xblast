@@ -128,7 +128,7 @@ int xberepair (    uint8_t * xbeimage,
     XBE_SECTION *sechdr;
 
     crom = malloc(1024*1024);
-    xbe = malloc(1024*1024+0x3000);
+    xbe = malloc(1024*1024+BL_END_ADDR);
 
     printf("XBE Mode\n");
 
@@ -169,7 +169,7 @@ int xberepair (    uint8_t * xbeimage,
     fclose(f);
 
     // We copy the ROM image now into the Thing
-    memcpy(&xbe[0x3000],crom,romsize);
+    memcpy(&xbe[BL_END_ADDR],crom,romsize);
     memcpy(&xbe[0x1084],&romsize,4);    // We dump the ROM Size into the Image
 
     romsize = (romsize & 0xfffffff0) + 32;    // We fill it up with "spaces"
@@ -179,7 +179,7 @@ int xberepair (    uint8_t * xbeimage,
     sechdr = (XBE_SECTION *)(((char *)xbe) + (uint32_t)header->Sections - (uint32_t)header->BaseAddress);
             
     // Correcting overall size now
-    xbesize = 0x3000+romsize;
+    xbesize = BL_END_ADDR+romsize;
     header->ImageSize = xbesize;
     
     //printf("%08x",sechdr->FileSize);                    
@@ -240,7 +240,7 @@ int vmlbuild(uint8_t * vmlimage, uint8_t * cromimage)
     int unused;
     
     crom = malloc(1024*1024);
-    vml = malloc(1024*1024+0x3000);
+    vml = malloc(1024*1024+BL_END_ADDR);
          
     printf("VML Mode\n");
     
@@ -315,7 +315,7 @@ int romcopy (uint8_t * blbinname, uint8_t * cromimage, uint8_t * binname256)
     uint32_t temp;
     struct stat fileinfo;
     int unused;
-    const unsigned int compressed_image_start = 0x3018;
+    const unsigned int compressed_image_start = BL_END_ADDR + 0x18;
     
     loaderimage = malloc(256*1024);
     flash256 = malloc(256*1024);
@@ -404,17 +404,17 @@ int romcopy (uint8_t * blbinname, uint8_t * cromimage, uint8_t * binname256)
     temp = temp + 0x10;
 #endif
 
-    if(bootloaderpos + bootloaderstruct.Size_ramcopy > 0x3000)
+    if(bootloaderpos + bootloaderstruct.Size_ramcopy > BL_END_ADDR)
     {
         printf("!!!!!!!!WARNING!!!!!!!!\n");
         printf("2bl image cannot fit in specified maximum file size.\n");
         printf("Image generation was aborted.\n");
         printf("Total size required            : %08x (%d Byte)\n",bootloaderpos + bootloaderstruct.Size_ramcopy, bootloaderpos + bootloaderstruct.Size_ramcopy);
-        printf("Maximum size allowed           : %08x (%d Byte)\n\n",0x3000, 0x3000);
+        printf("Maximum size allowed           : %08x (%d Byte)\n\n",BL_END_ADDR, BL_END_ADDR);
 
         return 0;
     }
-    temp = 0x3000;
+    temp = BL_END_ADDR;
     
     CromwellChecksumStruct cromwellChecksumStruct;
 

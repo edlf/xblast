@@ -29,13 +29,13 @@ SUB_DIRS	:= $(subdir)
 #
 
 BootPerformPicChallengeResponseAction.o: BootPerformPicChallengeResponseAction.c
-	$(CC) $(CFLAGSBR) $(INCLUDE) -o $(TOPDIR)/obj/$@ -c $<
+	$(CC) $(INCLUDE_ALL) $(CFLAGSBR) $(INCLUDE) -o $(TOPDIR)/obj/$@ -c $<
 
 %.o     : %.c
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $(TOPDIR)/obj/$@ -c $<
+	$(CC) $(INCLUDE_ALL) $(CFLAGS) $(EXTRA_CFLAGS) -o $(TOPDIR)/obj/$@ -c $<
 
 %.o     : %.S
-	$(CC) -DASSEMBLER $(CFLAGS)  -o $(TOPDIR)/obj/$@ -c $<
+	$(CC) $(INCLUDE_ALL) -DASSEMBLER $(CFLAGS)  -o $(TOPDIR)/obj/$@ -c $<
 
 all_targets: $(O_TARGET)
 
