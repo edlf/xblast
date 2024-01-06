@@ -85,20 +85,7 @@ extern unsigned long getCPUFreq(void){
     Fcpu = (Tcpu_result - Tcpu_fsb);
     Fcpu /= (Twin_result - Twin_fsb);
     Fcpu *= 3.375;
-    finalResult = Fcpu;
-    
-    if(finalResult < 704)
-        finalResult = 700;     //Trusty half speed
-    else if(finalResult < 736)
-        finalResult = 733;     //Normal CPU
-    else if(finalResult < 750)
-        finalResult = 740;     //DreamX half sped
-    else if(finalResult < 1100)
-        finalResult = 1000;    //1GHz CPU
-    else if(finalResult < 1410)
-        finalResult = 1400;    //Trusty 1.4GHz
-    else
-        finalResult = 1480;    //DreamX 1.48GHz    
+    finalResult = Fcpu;  
 
     return finalResult;
 }
