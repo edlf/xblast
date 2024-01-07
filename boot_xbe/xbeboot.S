@@ -127,7 +127,7 @@ NtAllocateVirtualMemory:
 
 .org 0x1080
 cromwellstart:
-    .long BL_END_ADDR   // Start of the ROM image
+    .long 0x3000   // Start of the ROM image
 cromwellsize:    
     .long 0x00060000    // Size  of the ROM image   (this Value will be overwritten by Imagebld)
 
@@ -641,5 +641,5 @@ phys_bootloaderram:
 #include "font.S"
 
 //.align 4096.
-.org BL_END_ADDR
+.org 0x3000
 kernel:

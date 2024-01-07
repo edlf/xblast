@@ -128,7 +128,7 @@ int xberepair (    uint8_t * xbeimage,
     XBE_SECTION *sechdr;
 
     crom = malloc(1024*1024);
-    xbe = malloc(1024*1024+BL_END_ADDR);
+    xbe = malloc(1024*1024+0x3000);
 
     printf("XBE Mode\n");
 
@@ -169,7 +169,7 @@ int xberepair (    uint8_t * xbeimage,
     fclose(f);
 
     // We copy the ROM image now into the Thing
-    memcpy(&xbe[BL_END_ADDR],crom,romsize);
+    memcpy(&xbe[0x3000],crom,romsize);
     memcpy(&xbe[0x1084],&romsize,4);    // We dump the ROM Size into the Image
 
     romsize = (romsize & 0xfffffff0) + 32;    // We fill it up with "spaces"
@@ -179,7 +179,7 @@ int xberepair (    uint8_t * xbeimage,
     sechdr = (XBE_SECTION *)(((char *)xbe) + (uint32_t)header->Sections - (uint32_t)header->BaseAddress);
             
     // Correcting overall size now
-    xbesize = BL_END_ADDR+romsize;
+    xbesize = 0x3000+romsize;
     header->ImageSize = xbesize;
     
     //printf("%08x",sechdr->FileSize);                    
