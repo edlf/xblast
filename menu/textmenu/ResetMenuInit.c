@@ -57,5 +57,11 @@ TEXTMENU* ResetMenuInit(void) {
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 
+    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+    strcpy(itemPtr->szCaption, "Restart XBlast OS");
+    itemPtr->functionPtr=Restart_Xblast;
+    itemPtr->functionDataPtr = NULL;
+    TextMenuAddItem(menuPtr, itemPtr);
+
     return menuPtr;
 }

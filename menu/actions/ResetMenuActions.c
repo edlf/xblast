@@ -57,3 +57,8 @@ void PowerOffNoSave(void* ignored)
 {
     I2CPowerOff();
 }
+
+void Restart_Xblast(void* ignored) {
+    BootStopUSB();
+	BootResetAction();
+}

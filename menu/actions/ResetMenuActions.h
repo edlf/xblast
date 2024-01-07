@@ -16,5 +16,6 @@ void PowerOff(void* ignored);
 void SlowRebootNoSave(void* ignored);
 void QuickRebootNoSave(void* ignored);
 void PowerOffNoSave(void* ignored);
+void Restart_Xblast(void* ignored);
 
 #endif
