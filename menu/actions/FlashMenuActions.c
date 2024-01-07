@@ -70,7 +70,7 @@ void enableNetflash (void *flashType) {
 #ifdef FLASH
     static bool nicInit = false;
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
-    printk ("\n\n            Starting network interface. ");
+    printk ("\n\n            Starting network interface.");
     VIDEO_ATTR = 0xffc8c8c8;
 
     if(nicInit == true || etherboot() == 0)
@@ -88,6 +88,11 @@ void enableNetflash (void *flashType) {
             }
         }
 
+    } else {
+        printk("\n\n            Starting network interface failed. Press B or Back");
+        while (risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_B) != 1 && risefall_xpad_STATE(XPAD_STATE_BACK) != 1) {
+            cromwellLoop();
+        }
     }
 #endif
 }
