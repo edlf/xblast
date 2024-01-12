@@ -110,43 +110,7 @@ void wipeEEPromUserSettings(void* ignored)
     UIFooter();
 }
 
-void showMemTest(void* ignored)
-{
-    UiHeader("128MB  RAM test");
-    memtest();
-    UIFooter();
-}
-
-void memtest(void)
-{
-    unsigned char bank = 0;
-
-    if (xbox_ram == 64)
-    {
-        //Unknown why this is done but has to be executed
-        //It probably has to do with video memory allocation.
-        (*(unsigned int*)(0xFD000000 + 0x100200)) = 0x03070103 ;
-        (*(unsigned int*)(0xFD000000 + 0x100204)) = 0x11448000 ;
-
-        PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x7FFFFFF);  //Force 128 MB
-    }
-
-    DisplayProgressBar(0, 4, 0xffff00ff);                      //Draw ProgressBar frame.
-    for(bank = 0; bank < 4; bank++)
-    {
-        printk("\n           Ram chip %u : %s",bank+1, testBank(bank) ? "Failed" : "Success");
-        DisplayProgressBar(bank + 1, 4, 0xffff00ff);                   //Purple progress bar.
-    }
-
-    VIDEO_ATTR=0xffc8c8c8;
-
-    if (xbox_ram == 64)     //Revert to 64MB RAM if previously set.
-    {
-        PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x3FFFFFF);  // 64 MB
-    }
-}
-
-int testBank(int bank)
+static int testBank(int bank)
 {
     unsigned int counter, subCounter, lastValue;
     unsigned int *membasetop = (unsigned int*)((64*1024*1024));
@@ -178,6 +142,42 @@ int testBank(int bank)
         lastValue = lastValue << 1;    //Next data bit pin.
     }
     return result;
+}
+
+static void memtest(void)
+{
+    unsigned char bank = 0;
+
+    if (xbox_ram == 64)
+    {
+        //Unknown why this is done but has to be executed
+        //It probably has to do with video memory allocation.
+        (*(unsigned int*)(0xFD000000 + 0x100200)) = 0x03070103 ;
+        (*(unsigned int*)(0xFD000000 + 0x100204)) = 0x11448000 ;
+
+        PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x7FFFFFF);  //Force 128 MB
+    }
+
+    DisplayProgressBar(0, 4, 0xffff00ff);                      //Draw ProgressBar frame.
+    for(bank = 0; bank < 4; bank++)
+    {
+        printk("\n           Ram chip %u : %s",bank+1, testBank(bank) ? "Failed" : "Success");
+        DisplayProgressBar(bank + 1, 4, 0xffff00ff);                   //Purple progress bar.
+    }
+
+    VIDEO_ATTR=0xffc8c8c8;
+
+    if (xbox_ram == 64)     //Revert to 64MB RAM if previously set.
+    {
+        PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x3FFFFFF);  // 64 MB
+    }
+}
+
+void showMemTest(void* ignored)
+{
+    UiHeader("128MB  RAM test");
+    memtest();
+    UIFooter();
 }
 /*
 void TSOPRecoveryReboot(void *ignored){

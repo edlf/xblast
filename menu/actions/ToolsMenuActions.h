@@ -21,8 +21,6 @@ void warningDisplayEepromEditMenu(void* ignored);
 void wipeEEPromUserSettings(void* ignored);
 
 void showMemTest(void* ignored);
-void memtest(void);
-int testBank(int bank);
 
 //void TSOPRecoveryReboot(void *ignored);
 
