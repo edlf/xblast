@@ -75,6 +75,13 @@ TEXTMENU *ToolsMenuInit(void)
 	itemPtr->functionDataPtr = NULL;
 	TextMenuAddItem(menuPtr, itemPtr);
 
+	//256MB MEMORY TEST
+	itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+	strcpy(itemPtr->szCaption, "256MB RAM test");
+	itemPtr->functionPtr=showMemTest256;
+	itemPtr->functionDataPtr = NULL;
+	TextMenuAddItem(menuPtr, itemPtr);
+
     if(isTSOPSplitCapable() &&  //Don't show this when Xbox motherboard is not 1.0/1.1.
        LPCmodSettings.OSsettings.TSOPcontrol)          //Don't show if TSOP split is not enabled.
     {

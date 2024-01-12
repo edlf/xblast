@@ -114,32 +114,32 @@ static int testBank(int bank)
 {
     unsigned int counter, subCounter, lastValue;
     unsigned int *membasetop = (unsigned int*)((64*1024*1024));
-    unsigned char result=0;    //Start assuming everything is good.
+    unsigned char result=0; //Start assuming everything is good.
 
     lastValue = 1;
     //Clear Upper 64MB
     for (counter= 0; counter < (64*1024*1024/4);counter+=16)
     {
         for(subCounter = 0; subCounter < 3; subCounter++)
-            membasetop[counter+subCounter+bank*4] = lastValue;                         //Set it all to 0x1
+            membasetop[counter+subCounter+bank*4] = lastValue; //Set it all to 0x1
     }
 
-    while(lastValue < 0x80000000 && cromwellLoop())                                      //Test every data bit pins.
+    while(lastValue < 0x80000000 && cromwellLoop()) //Test every data bit pins.
     {
-        for (counter= 0; counter < (64*1024*1024/4);counter+=16)       //Test every address bit pin. 4194304 * 8 = 32MB
+        for (counter= 0; counter < (64*1024*1024/4);counter+=16) //Test every address bit pin. 4194304 * 8 = 32MB
         {
             for(subCounter = 0; subCounter < 3; subCounter++)
             {
                 if(membasetop[counter+subCounter+bank*4]!=lastValue)
                 {
-                    result = 1;    //1=no no
+                    result = 1; //1=no no
                     lastValue = 0x80000000;
-                    return result;        //No need to go further. Bank is broken.
+                    return result; //No need to go further. Bank is broken.
                 }
-                membasetop[counter+subCounter+bank*4] = lastValue<<1;        //Prepare for next read.
+                membasetop[counter+subCounter+bank*4] = lastValue<<1; //Prepare for next read.
             }
         }
-        lastValue = lastValue << 1;    //Next data bit pin.
+        lastValue = lastValue << 1; //Next data bit pin.
     }
     return result;
 }
@@ -148,17 +148,9 @@ static void memtest(void)
 {
     unsigned char bank = 0;
 
-    if (xbox_ram == 64)
-    {
-        //Unknown why this is done but has to be executed
-        //It probably has to do with video memory allocation.
-        (*(unsigned int*)(0xFD000000 + 0x100200)) = 0x03070103 ;
-        (*(unsigned int*)(0xFD000000 + 0x100204)) = 0x11448000 ;
+    PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x07FFFFFF);  //Force 128 MB
 
-        PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x7FFFFFF);  //Force 128 MB
-    }
-
-    DisplayProgressBar(0, 4, 0xffff00ff);                      //Draw ProgressBar frame.
+    DisplayProgressBar(0, 4, 0xffff00ff); //Draw ProgressBar frame.
     for(bank = 0; bank < 4; bank++)
     {
         printk("\n           Ram chip %u : %s",bank+1, testBank(bank) ? "Failed" : "Success");
@@ -166,19 +158,105 @@ static void memtest(void)
     }
 
     VIDEO_ATTR=0xffc8c8c8;
-
-    if (xbox_ram == 64)     //Revert to 64MB RAM if previously set.
-    {
-        PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x3FFFFFF);  // 64 MB
-    }
 }
 
 void showMemTest(void* ignored)
 {
-    UiHeader("128MB  RAM test");
+    UiHeader("128MB RAM test");
     memtest();
     UIFooter();
 }
+
+static uint32_t lfsr_value;
+static void LFSR(void) {
+    bool lsb = lfsr_value & 1;
+    lfsr_value >>= 1;
+    if (lsb) {
+        lfsr_value ^= ((1 << 31) | (1 << 21) | (1 << 1) | (1 << 0)); //Taps
+    }
+}
+
+static void printTestFailure(uint32_t addr, uint32_t expected, uint32_t actual) {
+    printk("\n               Fail at 0x%X. Expected 0x%08X. Actual 0x%08X", addr, expected, actual);
+}
+
+static uint32_t testBank256(uint32_t bank) {
+    uint32_t* base = (uint32_t*)(128 * 1024 * 1024);
+    uint32_t fails = 0;
+    
+    //Fill the memory with an LFSR pattern
+    lfsr_value = 0x5AFEb055;
+    for (uint32_t group = 0; group < (128 * 1024 * 1024 / 4); group += 16) { //Group size is 16 words
+        base[group + (bank * 4) + 0] = lfsr_value;
+        LFSR();
+        base[group + (bank * 4) + 1] = lfsr_value;
+        LFSR();
+        base[group + (bank * 4) + 2] = lfsr_value;
+        LFSR();
+        base[group + (bank * 4) + 3] = lfsr_value;
+        LFSR();
+    }
+    
+    DisplayProgressBar(bank * 2 + 1, 8, 0xFF00FF93);
+    
+    //Reset the LFSR and read the pattern back
+    lfsr_value = 0x5AFEb055;
+    for (uint32_t group = 0; group < (128 * 1024 * 1024 / 4); group += 16) { //Group size is 16 words
+        if (base[group + (bank * 4) + 0] != lfsr_value) {
+            printTestFailure((uint32_t)&base[group + (bank * 4) + 0], lfsr_value, base[group + (bank * 4) + 0]);
+            fails++;
+            if (fails > 7) {
+                break;
+            }
+        }
+        LFSR();
+        if (base[group + (bank * 4) + 1] != lfsr_value) {
+            printTestFailure((uint32_t)&base[group + (bank * 4) + 1], lfsr_value, base[group + (bank * 4) + 1]);
+            fails++;
+            if (fails > 7) {
+                break;
+            }
+        }
+        LFSR();
+        if (base[group + (bank * 4) + 2] != lfsr_value) {
+            printTestFailure((uint32_t)&base[group + (bank * 4) + 2], lfsr_value, base[group + (bank * 4) + 2]);
+            fails++;
+            if (fails > 7) {
+                break;
+            }
+        }
+        LFSR();
+        if (base[group + (bank * 4) + 3] != lfsr_value) {
+            printTestFailure((uint32_t)&base[group + (bank * 4) + 3], lfsr_value, base[group + (bank * 4) + 3]);
+            fails++;
+            if (fails > 7) {
+                break;
+            }
+        }
+        LFSR();
+    }
+    
+    DisplayProgressBar(bank * 2 + 2, 8, 0xFF00FF93);
+    return fails > 0;
+}
+
+static void memtest256(void) {
+    PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x0FFFFFFF); //Allow 256 MB
+    
+    DisplayProgressBar(0, 8, 0); //Empty ProgressBar frame
+    for(uint32_t bank = 0; bank < 4; bank++) {
+        printk("\n           RAM chip %u : %s", bank, testBank256(bank) ? "Failed" : "Success");
+    }
+
+    VIDEO_ATTR=0xffc8c8c8;
+}
+
+void showMemTest256(void* ignored) {
+    UiHeader("256MB RAM test");
+    memtest256();
+    UIFooter();
+}
+
 /*
 void TSOPRecoveryReboot(void *ignored){
     if(ConfirmDialog("       Confirm reboot in TSOP recovery mode?", 1))
