@@ -14,14 +14,15 @@ x86 or x86_64 Linux system with gcc installed
 
 ia32 compatiblity layer packages must also be installed on x86_64 systems
 
-Currently building successfully with gcc-4, gcc-5 and gcc-6.
+Currently building successfully with gcc-9.
 
-A Virtual Machine image is available for download. It is ready to go for building Cromwell-Based software.
+Windows users can use WSL.
 
-Link for dowwnload: [Google Drive](https://drive.google.com/open?id=0ByW8G3SxcyoNfnphaElDb3VoNFE1NWx1WnYzNHYyN2ZIVHM0QU55N0RnNzBlU2dNYXp6N00)
+Link for download: [bitbucket](https://bitbucket.org/prehistoricman/lpcmod_os/downloads/)
 
 ### Who do I talk to? ###
 
+* Prehistoricman on OGXbox forums
 * bennydiamond on AssemblerGames forums
 * psyko_chewbacca on XBMC4Xbox forums
 
@@ -52,4 +53,3 @@ Notable features only available on XBlast mod
 * Quickboot bank(bypass OS)
 * TSOP control for multiple BIOS banks (Xbox 1.0/1.1 only).
 
-Details on features will follow.
