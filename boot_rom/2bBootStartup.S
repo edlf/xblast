@@ -271,8 +271,8 @@ xcode_poke(0x0f1002c0, 0x00000011);
 xcode_poke(0x0f1002c8, 0x00000011);
 xcode_poke(0x0f1002c0, 0x00000032);
 xcode_poke(0x0f1002c8, 0x00000032);
-xcode_poke(0x0f1002c0, 0x00000132);
-xcode_poke(0x0f1002c8, 0x00000132);
+xcode_poke(0x0f1002c0, 0x00000232);
+xcode_poke(0x0f1002c8, 0x00000232);
 xcode_poke(0x0f1002d0, 0x00000001);
 xcode_poke(0x0f1002d0, 0x00000001);
 xcode_poke(0x0f100210, 0x80000000);
@@ -516,8 +516,8 @@ extendedEndExec:
 	xcode_poke(0x0f1002c8, 0x00000011);
 	xcode_poke(0x0f1002c0, 0x00000032);
 	xcode_poke(0x0f1002c8, 0x00000032);
-	xcode_poke(0x0f1002c0, 0x00000132);
-	xcode_poke(0x0f1002c8, 0x00000132);
+	xcode_poke(0x0f1002c0, 0x00000232);
+	xcode_poke(0x0f1002c8, 0x00000232);
 	xcode_poke(0x0f1002d0, 0x00000001);
 	xcode_poke(0x0f1002d0, 0x00000001);
 	xcode_poke(0x0f100210, 0x80000000);
@@ -550,13 +550,16 @@ xcode_goto(1); //NOP
 //Set up RAM configuration
 xcode_poke(0x0f100200, 0x03070103);
 xcode_poke(0x0f100204, 0x11449010); //Assume 256MB (9 column bits + AP on 'A9')
-xcode_poke(0x0f001210, 0x00000110); //Assume 256Mb memory 0x10 = 1/4 clock delay, early CLK edge, early DQS
 xcode_poke(0x00001048, 0xCAFEBABE); //Write to a word that has the A8 column bit set. A standard Xbox won't care about A8 being set
 xcode_peek(0x00000048) //Read back to see if it was actually written to the same address with A8 = 0
 xcode_ifngoto_label(0xCAFEBABE, ram_setup_done);
 xcode_poke(0x0f100204, 0x11448000); //Use normal xbox config
-xcode_poke(0x0f001210, 0x00000010); //Use normal xbox config - probably won't work on 1.6 - probably won't need to
+xcode_goto_label(ram_setup_exit);
 ram_setup_done:
+xcode_peek(0x0f001210)
+xcode_bittoggle(0xFFFFFFFF, 0x100);
+xcode_poke_a(0x0f001210); //Add early DQS
+ram_setup_exit:
 
 xcode_pciout(0x8000103c, 0x00000000);
 xcode_pciout(0x8000183c, 0x00000000);
