@@ -18,17 +18,6 @@
 #include "memory_layout.h"
 #include "lpcmod_v1.h"
 
-//Only for debug
-enum {
-    I2C_LED_RED0 = 0x80,
-    I2C_LED_RED1 = 0x40,
-    I2C_LED_RED2 = 0x20,
-    I2C_LED_RED3 = 0x10,
-    I2C_LED_GREEN0 = 0x08,
-    I2C_LED_GREEN1 = 0x04,
-    I2C_LED_GREEN2 = 0x02,
-    I2C_LED_GREEN3 = 0x01
-};
 extern int decompress_kernel(char*out, char *data, int len);
 
 /* -------------------------  Main Entry for after the ASM sequences ------------------------ */
@@ -62,21 +51,6 @@ extern void BootStartBiosLoader ( void )
 
     extern int _size_code_2bl;
     const unsigned int boot_ver = BootloaderVersion1;
-
-#if 0
-    // Use this to find bugs in boot sequence of 2bl.
-    BootPerformPicChallengeResponseAction();
-
-    const unsigned char ledState =
-            I2C_LED_GREEN0 | I2C_LED_GREEN1 | I2C_LED_GREEN2 | I2C_LED_GREEN3 |
-            I2C_LED_RED0 | I2C_LED_RED1 | I2C_LED_RED2 | I2C_LED_RED3;
-
-    I2CTransmitWord( 0x10, 0x800 | ledState);  // sequencing thanks to Jarin the Penguin!
-    I2CTransmitWord( 0x10, 0x701);
-    while(1);
-#else
-    BootPerformPicChallengeResponseAction();    // Must be done very quick. 1.0 boards have SMC with very strict timing.
-#endif
 
 
     // Get data put there by imagebld

@@ -17,8 +17,8 @@ VGA := 0
 ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
 
-#Changed from the default of 0x3000 to allow for more xcodes
-INCLUDE_ALL = -DBL_END_ADDR=0x3040
+#Changed from the default of 0x3000 to allow for more xcodes and flash code
+INCLUDE_ALL = -DBL_END_ADDR=0x3200
 
 INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/cdrom \
 	-I$(TOPDIR)/fs/fatx -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/eeprom -I$(TOPDIR)/lib/crypt \

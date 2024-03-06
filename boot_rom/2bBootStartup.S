@@ -695,6 +695,115 @@ xcode_END(0x00000806);
 	movl	%eax, %cr0
 
 	cld
+	
+#define SMCReadByte(addr) \
+	movl %edx, %ebp; /* Save edx */ \
+	2:; \
+	movb addr, %al; \
+	movw $(SMBUS+8), %dx; \
+	outb %al, %dx; \
+	movb $0xA, %al; /*control register */ \
+	movw $(SMBUS+2), %dx; \
+	outb %al, %dx; \
+	movw $SMBUS, %dx; \
+	1:; \
+	inb %dx, %al; /*Read status register */ \
+	and $0x36, %al; \
+	jz 1b; /*Wait for transaction done */ \
+	and $0x10, %al; \
+	jz 2b; /* Retry */ \
+	movb $0xFF, %al; /*Clear flags */ \
+	movw $SMBUS, %dx; \
+	outb %al, %dx; \
+	movw $(SMBUS+6), %dx; \
+	inb %dx, %al; /*Read status register */ \
+	movl %ebp, %edx; /* Restore edx */
+
+#define SMCWriteByte(addr, val); \
+	movl %edx, %ebp; /* Save edx */ \
+	2:; \
+	movb addr, %al; \
+	movw $(SMBUS+8), %dx; \
+	outb %al, %dx; \
+	movb val, %al; \
+	movw $(SMBUS+6), %dx; \
+	outb %al, %dx; \
+	movb $0xA, %al; /*control register */ \
+	movw $(SMBUS+2), %dx; \
+	outb %al, %dx; \
+	movw $SMBUS, %dx; \
+	1:; \
+	inb %dx, %al; /*Read status register */ \
+	and $0x36, %al; \
+	jz 1b; /*Wait for transaction done */ \
+	and $0x10, %al; \
+	jz 2b; /* Retry */ \
+	movb $0xFF, %al; /*Clear flags */ \
+	movw $SMBUS, %dx; \
+	outb %al, %dx; \
+	movl %ebp, %edx; /* Restore edx */
+	
+	
+	//SMC challenge (formerly BootPerformPicChallengeResponseAction)
+	//The challenge is done here rather than after loading RAM because it is quicker to stop the
+	//SMC from giving us any resets. Since the 1.0 SMC is particularly strict, it would time out
+	//in some conditions (such as when software bank switching on an Xecuter X3)
+	movb $0x21, %al //Select SMC in read mode
+	movw $(SMBUS+4), %dx
+	outb %al, %dx
+	
+	SMCReadByte($0x1D)
+	mov %al, %bl
+	SMCReadByte($0x1E)
+	mov %al, %cl
+	SMCReadByte($0x1F)
+	mov %al, %dl
+	SMCReadByte($0x1C)
+	
+	//b3 in ch
+	mov %al, %ch
+	shl $2, %ch
+	mov %bl, %ah
+	add $0x39, %ah
+	xor %ah, %ch
+	mov %cl, %ah
+	shr $2, %ah
+	xor %ah, %ch
+	mov %dl, %ah
+	add $0x63, %ah
+	xor %ah, %ch
+	//b4 in dh
+	mov %al, %dh
+	add $0x0B, %dh
+	mov %bl, %ah
+	shr $2, %ah
+	xor %ah, %dh
+	mov %cl, %ah
+	add $0x1B, %ah
+	xor %ah, %dh
+	
+	mov $0x33, %ah //b1
+	mov $0xED, %bh //b2
+	
+	mov $4, %bl
+	challenge_loop:
+	mov %bh, %al
+	xor %ch, %al
+	add %al, %ah
+	mov %ah, %al
+	xor %dh, %al
+	add %al, %bh
+	
+	dec %bl
+	jne challenge_loop
+	
+	//Send challenge response
+	movb $0x20, %al //Select SMC in write mode
+	movw $(SMBUS+4), %dx
+	outb %al, %dx
+	SMCWriteByte($0x20, %ah)
+	SMCWriteByte($0x21, %bh)
+	SMCWriteByte($0x01, $0x00)
 
 	// copy everything into RAM 
 
