@@ -548,32 +548,38 @@ xcode_goto(1); //NOP
 
 
 //Set up RAM configuration
-xcode_poke(0x0f100200, 0x03070103);
 xcode_poke(0x0f100204, 0x11449010); //Assume 256MB (9 column bits + AP on 'A9')
 xcode_poke(0x00001048, 0xCAFEBABE); //Write to a word that has the A8 column bit set. A standard Xbox won't care about A8 being set
+xcode_peek(0x0f001210); //Add early DQS
+xcode_bittoggle(0xFFFFFFFF, 0x100); //Add early DQS
+xcode_poke_a(0x0f001210); //Add early DQS - required to ensure accurate reading on 256Mbit RAM
 xcode_peek(0x00000048) //Read back to see if it was actually written to the same address with A8 = 0
-xcode_ifngoto_label(0xCAFEBABE, ram_setup_done);
+xcode_ifngoto_label(0xCAFEBABE, ram_256mbit_detected);
 xcode_poke(0x0f100204, 0x11448000); //Use normal xbox config
+xcode_peek(0x0f001210); //Remove early DQS
+xcode_bittoggle(0xFFFFFEFF, 0x0); //Remove early DQS
+xcode_poke_a(0x0f001210); //Remove early DQS - required to stabilise stock RAM
 xcode_goto_label(ram_setup_exit);
-ram_setup_done:
-xcode_peek(0x0f001210)
-xcode_bittoggle(0xFFFFFFFF, 0x100);
-xcode_poke_a(0x0f001210); //Add early DQS
+ram_256mbit_detected:
+xcode_pciout(0x80000084, 0x0FFFFFFF); //Set 256MB of RAM
+xcode_poke(0x0f100200, 0x03070103); //Enable the second rank to check for its presence
+xcode_poke(0x08001234, 0xDEADBEEF); //128MB/256MB check
+xcode_peek(0x08001234);
+xcode_ifngoto_label(0xDEADBEEF, only_128MB_ram);
+xcode_goto_label(ram_setup_exit);
+only_128MB_ram:
+xcode_pciout(0x80000084, 0x07FFFFFF); //Set 128MB of RAM
+xcode_poke(0x0f100200, 0x03070003); //required for booting MS BIOSes
 ram_setup_exit:
 
-xcode_pciout(0x8000103c, 0x00000000);
-xcode_pciout(0x8000183c, 0x00000000);
-xcode_outb(SMBUS, 0x00000010);
+//Set USB interrupts to IRQ 0
+xcode_pciout(0x8000103c, 0x00000000); //PCI bus 0, dev 2, func 0, offset 3C
+xcode_pciout(0x8000183c, 0x00000000); //PCI bus 0, dev 3, func 0, offset 3C
 
 /* ----  Report Memory Size to PIC scratch register ---- */
-
 // We emulate Good memory result to PIC
-//xcode_pciin_a(0x8000183c);
-//xcode_bittoggle(0x000000ff,0x00000000);
-//xcode_outb_a(SMBUS+6);
-
+xcode_outb(SMBUS, 0x00000010);
 xcode_outb(SMBUS+4, 0x00000020);
-
 SMB_xcode_Write(0x00000013, 0x0000000f);
 SMB_xcode_Write(0x00000012, 0x000000f0);
 
@@ -583,13 +589,14 @@ xcode_pciout(0x8000f020, 0xfdf0fd00);
 xcode_pciout(0x80010010, 0xfd000000);
 
 // Visor trick (EIP overflow)
-xcode_poke(0x00000000, 0x000F20B8); //Write a jump to flash into RAM address 0
+#define ASM_START 0xFF0
+xcode_poke(0x00000000, 0xB8 + (ASM_START << 8)); //Write a jump to flash into RAM address 0
 xcode_poke(0x00000004, 0x00E0FFFF);
 xcode_END(0x00000806);
 
 
 	// This is the Main Entry point
-	.org 0xF20
+	.org ASM_START
         
 	// Good Morning CPU
 
