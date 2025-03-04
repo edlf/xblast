@@ -8,6 +8,10 @@ GCC_4.2 := $(shell expr `$(CC) -dumpversion` \>= 4.2)
 
 GCC_6.2 := $(shell expr `$(CC) -dumpversion` \>= 6.2)
 
+#Make this a flash-based RAM test BIOS
+BUILD_RAMTEST := 0
+#Test lower half of 256MB of RAM (versus lower half of 128MB)
+RAMTEST_256MB := 1
 #run make with "DEBUG=1" argument to enable extra debug
 DEBUG := 0
 #Override TSOP control availability based on Xbox Revision
@@ -18,7 +22,7 @@ ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
 
 #Changed from the default of 0x3000 to allow for more xcodes and flash code
-INCLUDE_ALL = -DBL_END_ADDR=0x3200
+INCLUDE_ALL = -DBL_END_ADDR=0x3600 -DBUILD_RAMTEST=$(BUILD_RAMTEST) -DRAMTEST_256MB=$(RAMTEST_256MB)
 
 INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/cdrom \
 	-I$(TOPDIR)/fs/fatx -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/eeprom -I$(TOPDIR)/lib/crypt \

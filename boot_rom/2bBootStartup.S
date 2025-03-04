@@ -634,46 +634,41 @@ xcode_END(0x00000806);
 	//We are setting the Ram Init's now to set up the Regions in the Ram
 
 
-	movl	$0xf0000800, %esi //256MB range (0xf8000000 would be 128M)
-	movl	$0x0000000f, %edi
+	movl	$0xf0000800, %esi //Used for MASK. 256MB range (0xf8000000 would be 128M). 0x800 bit is just 'valid'
+	movl	$0x0000000f, %edi //Used for MASK
 	// MTRR for RAM
 	// from address 0, Writeback Caching
 	movl	$0x200, %ecx //BASE0
-	//movl	$0x00000000, %edx
-	xor %edx, %edx
+	xor %edx, %edx //EDX = 0
 	movl	$0x00000006, %eax 	// == WB_CACHE == 6
 	wrmsr //Write the value in EDX:EAX to MSR specified by ECX
-
 	// MASK0 set to 0xf8000[000] == 128M
-	inc %ecx //movl	$0x201, %ecx
+	inc %ecx //ECX = 0x201 (MASK0)
 	movl	%edi, %edx
-	movl	%esi, %eax //0x800 bit is just 'valid'
+	movl	%esi, %eax
 	wrmsr
 
 	// MTRR for shadow RAM
 	// from address 0xf0000000, Write-combining Caching, 128MB range
-	inc %ecx //movl	$0x202, %ecx //BASE1
-	//movl	$0x00000000, %edx
-	xor %edx, %edx
+	inc %ecx //ECX = 0x202 (BASE1)
+	xor %edx, %edx //EDX = 0
 	movl	$0xf0000001, %eax 	// Write-Combining == 1
 	wrmsr
-
 	// MASK1 set to 0xf8000[000] == 128M
-	inc %ecx //movl	$0x203, %ecx
+	inc %ecx //ECX = 0x203 (MASK1)
 	movl	%edi, %edx
 	movl	%esi, %eax
 	wrmsr
 
 	// MTRR for FLASH
-	inc %ecx //movl	$0x204, %ecx //BASE2
-	//movl	$0x00000000, %edx
-	xor %edx, %edx
+	inc %ecx //ECX = 0x204 (BASE2)
+	xor %edx, %edx //EDX = 0
 	movl	$0xFF000000, %eax 	    // We set to Uncacheable
 	wrmsr
 
-    inc %ecx //movl	$0x205, %ecx //MASK2
+    inc %ecx //ECX = 0x205 (MASK2)
 	movl	%edi, %edx
-	add	$0x800, %eax
+	movl	$0xFF000800, %eax
 	wrmsr
 
 	xor %eax, %eax
@@ -703,7 +698,7 @@ xcode_END(0x00000806);
 
 	cld
 	
-#define SMCReadByte(addr) \
+	#define SMCReadByte(addr) \
 	movl %edx, %ebp; /* Save edx */ \
 	2:; \
 	movb addr, %al; \
@@ -812,15 +807,417 @@ xcode_END(0x00000806);
 	SMCWriteByte($0x21, %bh)
 	SMCWriteByte($0x01, $0x00)
 
+#if BUILD_RAMTEST
+	//Boot to xblast or ram test? check DVD drive
+	movb $0x21, %al //Select SMC in read mode
+	movw $(SMBUS+4), %dx
+	outb %al, %dx
+	SMCReadByte($0x03)
+	cmp $0x01, %al
+	jne flash_code //Go to ram test
+#endif
+
 	// copy everything into RAM 
 
 	mov 	$_ram_location, %edi
 	mov 	$_start_ramcopy, %esi
 	mov 	$(_size_ramcopy + 6), %ecx
 	shr	$2,%ecx    // We dividy / 4, as we copy Dword oriented
-	rep 	movsl
+	rep 	movsl //Move ecx dwords from [esi] to [edi]
 	
 	jmp   initaftermemcpy
+
+
+
+//x86 asm equivalents of some useful xcodes
+//edi is the accumulator
+#define x86code_poke(val1,val2) movl $val1, %eax; \
+                              movl $val2, (%eax)
+
+#define x86code_pciout(val1,val2) movw $0xCF8, %dx; \
+                                movl $val1, %eax; \
+                                outl %eax, %dx; \
+                                add $4, %dx; \
+                                movl $val2, %eax; \
+                                outl %eax, %dx
+
+#define x86code_outb(val1,val2) movb $val2, %al; \
+                              movw $val1, %dx; \
+                              outb %al, %dx
+
+//Using ebp as the return address for function 'calls'. For when we can't trust RAM to hold a stack
+#define CALL_CUSTOM(addr) movl $3f, %ebp; \
+						  jmp addr; \
+						  3:
+
+//Seeded pseudo-random number generator
+#define LFSR_SEED 0x149E22C1
+#define TEST_MIN_ADDR 0x00000000
+#define TEST_MAX_ADDR 0x00080000 //Testing the whole of RAM would take an extremely long time. This still exercises all address pins
+#define LFSR_STEP() shr $1, %ecx; \
+                    jc 1f; \
+					xor $0x80200003, %ecx; \
+					1:;
+
+flash_code:
+	//This is the code that tests the lower half of RAM and reports back if it works or not
+	
+	x86code_pciout(0x80000084, 0x0FFFFFFF) //Allow the full 256MB
+	x86code_outb(SMBUS+4, 0x20) //Select SMC in write mode
+	
+	//25% flash LED orange
+	mov $0x0888, %ax
+	CALL_CUSTOM(smbus_send)
+	mov $0x0701, %ax
+	CALL_CUSTOM(smbus_send)
+	
+	//Use 9 column bits, AP select bit, and timing switch
+#if RAMTEST_256MB
+	wbinvd
+	x86code_poke(0xFD100204, 0x11449010)
+	x86code_poke(0xFD001210, 0x00000110)
+	wbinvd
+#endif
+	
+	//50% flash LED orange
+	mov $0x08CC, %ax
+	CALL_CUSTOM(smbus_send)
+	mov $0x0701, %ax
+	CALL_CUSTOM(smbus_send)
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//RAM test - bank 0
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	mov $LFSR_SEED+0, %ecx //ecx is the LFSR value
+	
+	////////////////////// Populate RAM //////////////////////
+	pop_loop:
+		mov %ecx, (%ebx)
+		LFSR_STEP()
+		mov %ecx, 4(%ebx)
+		LFSR_STEP()
+		mov %ecx, 8(%ebx)
+		LFSR_STEP()
+		mov %ecx, 12(%ebx)
+		LFSR_STEP()
+		
+		add $0x40, %ebx //Go to next group
+		cmp $TEST_MAX_ADDR, %ebx
+		jl pop_loop //jump if ebx < TEST_MAX_ADDR
+	
+	
+	////////////////////// Read back and test //////////////////////
+	wbinvd
+	
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	mov $LFSR_SEED+0, %ecx //ecx is the LFSR value
+		
+	//Test RAM
+	test_loop:
+		cmp %ecx, (%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 4(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 8(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 12(%ebx)
+		jne bad_result
+		LFSR_STEP()
+			
+		//next_addr:
+			add $0x40, %ebx
+			cmp $TEST_MAX_ADDR, %ebx
+			jl test_loop //jump if ebx < TEST_MAX_ADDR
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//LED = rxgx
+	mov $0x0882, %ax
+	CALL_CUSTOM(smbus_send)
+	mov $0x0701, %ax
+	CALL_CUSTOM(smbus_send)
+	//RAM test - bank 1
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	add $0x10, %ebx
+	mov $LFSR_SEED+5, %ecx //ecx is the LFSR value
+	
+	////////////////////// Populate RAM //////////////////////
+	pop_loop2:
+		mov %ecx, (%ebx)
+		LFSR_STEP()
+		mov %ecx, 4(%ebx)
+		LFSR_STEP()
+		mov %ecx, 8(%ebx)
+		LFSR_STEP()
+		mov %ecx, 12(%ebx)
+		LFSR_STEP()
+		
+		add $0x40, %ebx //Go to next group
+		cmp $TEST_MAX_ADDR, %ebx
+		jl pop_loop2 //jump if ebx < TEST_MAX_ADDR
+	
+	
+	////////////////////// Read back and test //////////////////////
+	wbinvd
+	
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	add $0x10, %ebx
+	mov $LFSR_SEED+5, %ecx //ecx is the LFSR value
+		
+	//Test RAM
+	test_loop2:
+		cmp %ecx, (%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 4(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 8(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 12(%ebx)
+		jne bad_result
+		LFSR_STEP()
+			
+		//next_addr:
+			add $0x40, %ebx
+			cmp $TEST_MAX_ADDR, %ebx
+			jl test_loop2 //jump if ebx < TEST_MAX_ADDR
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//LED = rrgg
+	mov $0x08C3, %ax
+	CALL_CUSTOM(smbus_send)
+	mov $0x0701, %ax
+	CALL_CUSTOM(smbus_send)
+	//RAM test - bank 2
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	add $0x20, %ebx
+	mov $LFSR_SEED+29, %ecx //ecx is the LFSR value
+	
+	////////////////////// Populate RAM //////////////////////
+	pop_loop3:
+		mov %ecx, (%ebx)
+		LFSR_STEP()
+		mov %ecx, 4(%ebx)
+		LFSR_STEP()
+		mov %ecx, 8(%ebx)
+		LFSR_STEP()
+		mov %ecx, 12(%ebx)
+		LFSR_STEP()
+		
+		add $0x40, %ebx //Go to next group
+		cmp $TEST_MAX_ADDR, %ebx
+		jl pop_loop3 //jump if ebx < TEST_MAX_ADDR
+	
+	
+	////////////////////// Read back and test //////////////////////
+	wbinvd
+	
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	add $0x20, %ebx
+	mov $LFSR_SEED+29, %ecx //ecx is the LFSR value
+		
+	//Test RAM
+	test_loop3:
+		cmp %ecx, (%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 4(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 8(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 12(%ebx)
+		jne bad_result
+		LFSR_STEP()
+			
+		//next_addr:
+			add $0x40, %ebx
+			cmp $TEST_MAX_ADDR, %ebx
+			jl test_loop3 //jump if ebx < TEST_MAX_ADDR
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//LED = ogog
+	mov $0x08AF, %ax
+	CALL_CUSTOM(smbus_send)
+	mov $0x0701, %ax
+	CALL_CUSTOM(smbus_send)
+	//RAM test - bank 3
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	add $0x30, %ebx
+	mov $LFSR_SEED+76, %ecx //ecx is the LFSR value
+	
+	////////////////////// Populate RAM //////////////////////
+	pop_loop4:
+		mov %ecx, (%ebx)
+		LFSR_STEP()
+		mov %ecx, 4(%ebx)
+		LFSR_STEP()
+		mov %ecx, 8(%ebx)
+		LFSR_STEP()
+		mov %ecx, 12(%ebx)
+		LFSR_STEP()
+		
+		add $0x40, %ebx //Go to next group
+		cmp $TEST_MAX_ADDR, %ebx
+		jl pop_loop4 //jump if ebx < TEST_MAX_ADDR
+	
+	
+	////////////////////// Read back and test //////////////////////
+	wbinvd
+	
+	mov $TEST_MIN_ADDR, %ebx //ebx is the pointer to the address under test
+	add $0x30, %ebx
+	mov $LFSR_SEED+76, %ecx //ecx is the LFSR value
+		
+	//Test RAM
+	test_loop4:
+		cmp %ecx, (%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 4(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 8(%ebx)
+		jne bad_result
+		LFSR_STEP()
+		
+		cmp %ecx, 12(%ebx)
+		jne bad_result
+		LFSR_STEP()
+			
+		//next_addr:
+			add $0x40, %ebx
+			cmp $TEST_MAX_ADDR, %ebx
+			jl test_loop4 //jump if ebx < TEST_MAX_ADDR
+	
+	//Done
+	//Fast flash LED green
+	mov $0x0805, %ax
+	CALL_CUSTOM(smbus_send)
+	mov $0x0701, %ax
+	CALL_CUSTOM(smbus_send)
+	jmp infloop
+	
+bad_result:
+	//Report error
+	//Save ebx
+	movl %ebx, %esp
+	
+	//Look at bits 5:4 of %ebx
+	and $0x30, %bl
+	shr $4, %bl
+	movzx %bl, %eax
+	
+	//Index ledcodes
+	mov $ledcodes, %ebx
+	add %eax, %ebx
+	mov (%ebx), %al
+	
+	//Set LED
+	mov $0x08, %ah
+	CALL_CUSTOM(smbus_send)
+	mov $0x0701, %ax
+	CALL_CUSTOM(smbus_send)
+	
+	
+	movl %esp, %ebx
+	
+	//Address of fault
+	mov $0x8F, %ah
+	mov %bl, %al
+	CALL_CUSTOM(smbus_send)
+	mov $0x8E, %ah
+	mov %bh, %al
+	CALL_CUSTOM(smbus_send)
+	shr $16, %ebx
+	mov $0x8E, %ah
+	mov %bl, %al
+	CALL_CUSTOM(smbus_send)
+	mov $0x8E, %ah
+	mov %bh, %al
+	CALL_CUSTOM(smbus_send)
+	
+	//Actual data
+	mov (%ebx), %ebx
+	mov $0x8F, %ah
+	mov %bl, %al
+	CALL_CUSTOM(smbus_send)
+	mov $0x8E, %ah
+	mov %bh, %al
+	CALL_CUSTOM(smbus_send)
+	shr $16, %ebx
+	mov $0x8E, %ah
+	mov %bl, %al
+	CALL_CUSTOM(smbus_send)
+	mov $0x8E, %ah
+	mov %bh, %al
+	CALL_CUSTOM(smbus_send)
+	
+	//Expected data
+	mov %ecx, %ebx //reuse ebx based code (laziness)
+	mov $0x8F, %ah
+	mov %bl, %al
+	CALL_CUSTOM(smbus_send)
+	mov $0x8E, %ah
+	mov %bh, %al
+	CALL_CUSTOM(smbus_send)
+	shr $16, %ebx
+	mov $0x8E, %ah
+	mov %bl, %al
+	CALL_CUSTOM(smbus_send)
+	mov $0x8E, %ah
+	mov %bh, %al
+	CALL_CUSTOM(smbus_send)
+	
+infloop:
+	jmp infloop
+	
+ledcodes:
+	.byte 0x00 //xxxx
+	.byte 0x10 //rxxx
+	.byte 0x12 //grxx
+	.byte 0x13 //goxx
+	
+smbus_send: //Sends ah then al over SMBus
+	mov %edx, %esi
+	
+	xchg %al, %ah //Send the upper byte first
+	movw $(SMBUS+8), %dx
+	outb %al, %dx //SMBus first byte (al)
+	
+	xchg %al, %ah //Send lower byte
+	movw $(SMBUS+6), %dx
+	outb %al, %dx //SMBus second byte (al)
+	
+	x86code_outb(SMBUS+2, 0x0000000a)
+	1:
+		// like xcode_inb(SMBUS)
+		movw $SMBUS, %dx
+		inb %dx, %al
+		// like xcode_ifngoto_label(0x00000010, 1b)
+		cmp $0x10, %al
+		jne 1b
+	x86code_outb(SMBUS, 0x00000010)
+	
+	mov %esi, %edx
+	//return
+	jmp *%ebp
 
 
 	// We leave Flash at this point, we never come back to it anymore.
