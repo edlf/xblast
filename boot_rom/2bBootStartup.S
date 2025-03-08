@@ -633,47 +633,47 @@ xcode_END(0x00000806);
 
 	//We are setting the Ram Init's now to set up the Regions in the Ram
 
-
-	movl	$0xf0000800, %esi //Used for MASK. 256MB range (0xf8000000 would be 128M). 0x800 bit is just 'valid'
-	movl	$0x0000000f, %edi //Used for MASK
 	// MTRR for RAM
-	// from address 0, Writeback Caching
+	// from address 0, Writeback Caching, 256MB range
 	movl	$0x200, %ecx //BASE0
-	xor %edx, %edx //EDX = 0
+	movl	$0x00000000, %edx
 	movl	$0x00000006, %eax 	// == WB_CACHE == 6
-	wrmsr //Write the value in EDX:EAX to MSR specified by ECX
-	// MASK0 set to 0xf8000[000] == 128M
-	inc %ecx //ECX = 0x201 (MASK0)
-	movl	%edi, %edx
-	movl	%esi, %eax
+	wrmsr
+	// MASK0 set to 0xf0000[000] == 256M
+	movl	$0x201, %ecx //MASK0
+	movl	$0x0000000f, %edx
+	movl	$0xf0000800, %eax
 	wrmsr
 
 	// MTRR for shadow RAM
 	// from address 0xf0000000, Write-combining Caching, 128MB range
-	inc %ecx //ECX = 0x202 (BASE1)
-	xor %edx, %edx //EDX = 0
+	// Even with 256MB RAM present, shadow RAM cannot be bigger than 128MB
+	movl	$0x202, %ecx //BASE1
+	movl	$0x00000000, %edx
 	movl	$0xf0000001, %eax 	// Write-Combining == 1
 	wrmsr
 	// MASK1 set to 0xf8000[000] == 128M
-	inc %ecx //ECX = 0x203 (MASK1)
-	movl	%edi, %edx
-	movl	%esi, %eax
+	movl	$0x203, %ecx //MASK1
+	movl	$0x0000000f, %edx
+	movl	$0xf8000800, %eax
+	wrmsr
+	
+	// MTRR for flash ROM
+	// from address 0xFF000000, uncacheable, 16MB range
+	// Caching flash stops xblast from booting properly, and would break flash chip identification and programming
+	movl $0x204, %ecx
+	movl $0x00000000, %edx
+	movl $0xFF000000, %eax
+	wrmsr
+	// MASK2 set to 0xFF000[000] = 16MB
+	movl $0x205, %ecx
+	movl $0x0000000F, %edx
+	movl $0xFF000800, %eax
 	wrmsr
 
-	// MTRR for FLASH
-	inc %ecx //ECX = 0x204 (BASE2)
-	xor %edx, %edx //EDX = 0
-	movl	$0xFF000000, %eax 	    // We set to Uncacheable
-	wrmsr
-
-    inc %ecx //ECX = 0x205 (MASK2)
-	movl	%edi, %edx
-	movl	$0xFF000800, %eax
-	wrmsr
-
+	//Clear the rest of the MTRRs
 	xor %eax, %eax
 	xor %edx, %edx
-	
 	mov $10, %bl
 	mtrr_loop:
 		inc %ecx // IA32_MTRR_PHYS Base and MASK 3 to 7
@@ -681,10 +681,10 @@ xcode_END(0x00000806);
 		dec %bl
 		jnz mtrr_loop
 
-	// Define Memory in IA32_MTRR_DEF_TYPE
+	// Default MTRR set to uncacheable
 	movl	$0x2ff, %ecx
 	xor	%edx, %edx
-	movl	$0x800, %eax //Enable MTRRs
+	movl	$0x800, %eax
 	wrmsr
 
 	/* turn on normal cache */
@@ -853,7 +853,7 @@ xcode_END(0x00000806);
 //Seeded pseudo-random number generator
 #define LFSR_SEED 0x149E22C1
 #define TEST_MIN_ADDR 0x00000000
-#define TEST_MAX_ADDR 0x00080000 //Testing the whole of RAM would take an extremely long time. This still exercises all address pins
+#define TEST_MAX_ADDR 0x00400000 //Testing the whole of RAM would take an extremely long time. This still exercises all address pins
 #define LFSR_STEP() shr $1, %ecx; \
                     jc 1f; \
 					xor $0x80200003, %ecx; \
@@ -870,6 +870,23 @@ flash_code:
 	CALL_CUSTOM(smbus_send)
 	mov $0x0701, %ax
 	CALL_CUSTOM(smbus_send)
+	
+	//Disable cache
+	mov 	%cr0, %eax
+	orl	$0x60000000, %eax
+	mov	%eax, %cr0
+	//Empty cache
+	wbinvd
+	// Set flash cache to be write-back cacheable
+	movl $0x204, %ecx
+	movl $0x00000000, %edx
+	movl $0xFF000006, %eax
+	wrmsr
+	//Enable cache
+	movl	%cr0, %eax
+	mov 	%eax, %ebx
+	andl	$0x9FFFFFFF,%eax
+	movl	%eax, %cr0
 	
 	//Use 9 column bits, AP select bit, and timing switch
 #if RAMTEST_256MB
