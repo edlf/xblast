@@ -1208,8 +1208,8 @@ infloop:
 ledcodes:
 	.byte 0x00 //xxxx
 	.byte 0x10 //rxxx
-	.byte 0x12 //grxx
-	.byte 0x13 //goxx
+	.byte 0x31 //roxx
+	.byte 0x53 //rgox
 	
 smbus_send: //Sends ah then al over SMBus
 	mov %edx, %esi
