@@ -245,7 +245,7 @@ static void memtest256(void) {
     
     DisplayProgressBar(0, 8, 0); //Empty ProgressBar frame
     for(uint32_t bank = 0; bank < 4; bank++) {
-        printk("\n           RAM chip %u : %s", bank, testBank256(bank) ? "Failed" : "Success");
+        printk("\n           RAM chip %u : %s", bank + 1, testBank256(bank) ? "Failed" : "Success");
     }
 
     VIDEO_ATTR=0xffc8c8c8;
