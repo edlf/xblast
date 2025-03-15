@@ -8,6 +8,38 @@ This code is based on the excellent Gentoox Loader software which is based on Cr
 #### This software contains no copyrighted code ####
 #### This software cannot circumvent security mechanism of an Xbox console ####
 
+## RAM testing
+
+256MB and 128MB RAM tests are supported within the BIOS menus. There is also a special **RAMTESTER** version of the BIOS which checks the original 4 RAM chips in either a `Stock` machine or an Xbox with `256Mbit` memory.
+
+### RAMTESTER version
+
+Press power button to start the test. Press eject to launch Xblast OS as usual.
+
+There is no video output - the test result is seen on the LED.
+
+If the Xbox reboots 3 times and then the LEDs blink red and green, then suspect RAM bank 1.
+
+If the Xbox shuts off super quickly (LEDs don't light, fan twitches) then you probably have a short circuit.
+
+LED codes:
+
+* Test completed, no failures = green blinking
+* RAM bank 1 test stuck = orange blinking
+* RAM bank 2 test stuck = red, off, green, off
+* RAM bank 3 test stuck = red and green slow
+* RAM bank 4 test stuck = orange and green fast
+* RAM bank 1 failed = LEDs off
+* RAM bank 2 failed = red blinking
+* RAM bank 3 failed = red, orange, off
+* RAM bank 4 failed = red, green, orange, off
+
+RAM chip bank locations can be found [here](RAM locations/Stock memory chip locations.jpg).
+
+### 128MB and 256MB tests
+
+These are the normal tests available via the Tools menu in Xblast OS. RAM chip bank locations can be found [here](RAM locations/Extended memory chip locations.jpg).
+
 ### Required setup to build ###
 
 x86 or x86_64 Linux system with gcc installed
@@ -18,7 +50,7 @@ Currently building successfully with gcc-9.
 
 Windows users can use WSL.
 
-Link for download: [bitbucket](https://bitbucket.org/prehistoricman/lpcmod_os/downloads/)
+Link for download: [bitbucket](../../downloads/)
 
 ### Who do I talk to? ###
 
@@ -36,7 +68,7 @@ Also note that this software can detect if a firmware replacement device is inse
 Notable feature available on both versions are:
 
 * Change video settings (includes DVD,Game and Video region).
-* 128MB RAM tester
+* 128MB and 256MB RAM tester
 * Reset user settings in Xbox EEPROM
 * Flash LPC/TSOP with image from HDD/CD/HTTP (limited to current bank on non XBlast mod)
 * Lock/Unlock HDD, Display HDD info, format drives (64KB clusters supported)
