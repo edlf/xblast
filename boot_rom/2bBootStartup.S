@@ -50,9 +50,9 @@
 
 #define SMBUS_READ_RETRY -4
 
-#define SMB_xcode_Write(val1,val2); \
-			xcode_outb(SMBUS+8, val1); \
-			xcode_outb(SMBUS+6, val2); \
+#define SMB_xcode_Write(addr, value); \
+			xcode_outb(SMBUS+8, addr); \
+			xcode_outb(SMBUS+6, value); \
 			xcode_outb(SMBUS+2, 0x0000000a); \
 			xcode_inb(SMBUS); \
 			xcode_ifngoto(0x00000010,-1); \
@@ -580,8 +580,8 @@ xcode_pciout(0x8000183c, 0x00000000); //PCI bus 0, dev 3, func 0, offset 3C
 // We emulate Good memory result to PIC
 xcode_outb(SMBUS, 0x00000010);
 xcode_outb(SMBUS+4, 0x00000020);
-SMB_xcode_Write(0x00000013, 0x0000000f);
-SMB_xcode_Write(0x00000012, 0x000000f0);
+SMB_xcode_Write(0x13, 0x0F);
+SMB_xcode_Write(0x12, 0xF0);
 
 /* ---- Reload Nvidia Registers  ------------------------*/
 
