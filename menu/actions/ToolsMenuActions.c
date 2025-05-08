@@ -242,6 +242,7 @@ static uint32_t testBank256(uint32_t bank) {
 
 static void memtest256(void) {
     PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0x0FFFFFFF); //Allow 256 MB
+    (*(uint32_t*)(0xFD000000 + 0x100200)) = 0x03070103; //Enable 2nd rank, if not enabled already
     
     DisplayProgressBar(0, 8, 0); //Empty ProgressBar frame
     for(uint32_t bank = 0; bank < 4; bank++) {
