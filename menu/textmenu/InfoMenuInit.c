@@ -42,6 +42,11 @@ TEXTMENU *InfoMenuInit(void) {
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+    sprintf(itemPtr->szCaption,"SMC");
+    itemPtr->functionPtr = ShowSMC;
+    TextMenuAddItem(menuPtr, itemPtr);
+
+    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     sprintf(itemPtr->szCaption,"Uncommitted change(s)");
     itemPtr->functionPtr = UncommittedChangesMenuDynamic;
     TextMenuAddItem(menuPtr, itemPtr);

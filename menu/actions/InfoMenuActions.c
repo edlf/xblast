@@ -69,3 +69,21 @@ void ShowFlashChip(void *whatever)
     BootShowFlashDevice();
     UIFooter();
 }
+
+void ShowSMC(void* unused) {
+    UiHeader("SMC");
+    VIDEO_ATTR=0xffc8c8c8;
+    
+    printk("           SMC version string: ");
+    WriteToSMBus(0x10, 1, 1, 0);
+    uint32_t data;
+    ReadfromSMBus(0x10, 1, 1, &data);
+    printk("%c", (char)data);
+    ReadfromSMBus(0x10, 1, 1, &data);
+    printk("%c", (char)data);
+    ReadfromSMBus(0x10, 1, 1, &data);
+    printk("%c", (char)data);
+    printk("\n");
+    
+    UIFooter();
+}
