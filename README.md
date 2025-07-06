@@ -1,3 +1,7 @@
+# Downloads
+
+Download from [releases directory](releases/)
+
 # README #
 
 This is the code repository for the XBlast's Xbox Legal "OS".
@@ -50,11 +54,9 @@ Currently building successfully with gcc-9.
 
 Windows users can use WSL.
 
-Link for download: [bitbucket](../../downloads/)
-
 ### Who do I talk to? ###
 
-* Prehistoricman on OGXbox forums
+* Prehistoricman on OGXbox/xbox-scene forums
 * bennydiamond on AssemblerGames forums
 * psyko_chewbacca on XBMC4Xbox forums
 
