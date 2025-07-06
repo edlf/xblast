@@ -140,7 +140,7 @@ void Flash_executeFlashFSM(void)
                         switch(eraseSequenceMethod)
                         {
                         case EraseSequenceMethod_Sector:
-                            if(flashDevice.flashType.m_support4KBErase)
+                            if(flashDevice.flashType.m_support4KBErase & 1)
                             {
                                 eraseSequenceMethod = EraseSequenceMethod_Block;
                                 debugSPIPrint(DEBUG_FLASH_DRIVER,"Switching to 64KB block erase.\n");
@@ -178,11 +178,11 @@ void Flash_executeFlashFSM(void)
                 switch(eraseSequenceMethod)
                 {
                 case EraseSequenceMethod_Sector:
-                    debugSPIPrint(DEBUG_FLASH_DRIVER,"Block erase on address: %u\n", startingOffset + currentAddr);
+                    debugSPIPrint(DEBUG_FLASH_DRIVER,"Sector erase on address: %u\n", startingOffset + currentAddr);
                     FlashLowLevel_InititiateSectorErase(startingOffset + currentAddr);
                     break;
                 case EraseSequenceMethod_Block:
-                    debugSPIPrint(DEBUG_FLASH_DRIVER,"Sector erase on address: %u\n", startingOffset + currentAddr);
+                    debugSPIPrint(DEBUG_FLASH_DRIVER,"Block erase on address: %u\n", startingOffset + currentAddr);
                     FlashLowLevel_InititiateBlockErase(startingOffset + currentAddr);
                     break;
                 case EraseSequenceMethod_Chip:
@@ -844,7 +844,7 @@ static bool canWrite(unsigned char flashByte, unsigned char bufferByte)
 
 static unsigned int getEraseMethodSize(void)
 {
-    if(flashDevice.flashType.m_support4KBErase)
+    if(flashDevice.flashType.m_support4KBErase & 1)
     {
         switch(eraseSequenceMethod)
         {

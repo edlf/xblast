@@ -15,7 +15,7 @@ typedef struct {
     unsigned char m_bDeviceId;
      char m_szFlashDescription[32];
     unsigned int m_dwLengthInBytes;
-    unsigned char m_support4KBErase;
+    unsigned char m_support4KBErase; //Bit 0 set when sector erase supported. Bit 1 set for 28xxx devices
 } KNOWN_FLASH_TYPE;
 
 typedef struct {

@@ -122,18 +122,6 @@ static bool FlashPrintResult(void)
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
     VIDEO_ATTR=0xffef37;
 
-#ifndef DEV_FEATURES
-    if(mustRestart == true)
-    {
-        debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence restart system\n");
-        // Set LED to oxox.
-        inputLED();
-        Flash_freeFlashFSM();
-        I2CRebootSlow();
-        while(1);
-    }
-#endif
-
     FlashErrorcodes res = Flash_getProgress().flashErrorCode;
 
     if(res == FlashErrorcodes_NoError)
@@ -143,6 +131,18 @@ static bool FlashPrintResult(void)
         printk("           ");
         cromwellSuccess();
         printk ("\n           Flashing successful!!!");
+
+#ifndef DEV_FEATURES
+        if(mustRestart == true) //Only restart if there were no errors
+        {
+            debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence restart system\n");
+            // Set LED to oxox.
+            inputLED();
+            Flash_freeFlashFSM();
+            I2CRebootSlow();
+            while(1);
+        }
+#endif
     }
     else
     {
@@ -178,13 +178,18 @@ static bool FlashPrintResult(void)
             isError = true;
             isCritical = true;
             break;
+        case FlashErrorcodes_FailedVerify:
+            sprintf(string, "%s", "Verification failed, please reflash.");
+            isError = true;
+            isCritical = true;
+            break;
         case FlashErrorcodes_FlashContentError:
             sprintf(string, "%s", "Active flash bank does not contain XBlast OS image.\n           Not saving.");
             isError = true;
             break;
         case FlashErrorcodes_UndefinedError:
         default:
-            sprintf(string, "%s", "Unknown error! Congrats, you're not supposed to be here.");
+            sprintf(string, "Unknown error! Congrats, you're not supposed to be here. code = %d\n", res);
             isError = true;
             break;
         }

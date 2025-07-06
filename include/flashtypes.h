@@ -18,9 +18,9 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-    // Please keep these in order of manID, prodID.
-
+#include "FlashHelpers.h"
+static const KNOWN_FLASH_TYPE aknownflashtypesDefault[] = {
+// ManufacturerId;  DeviceId;  FlashDescription[32];  LengthInBytes;  support4KBErase
     { 0x01, 0x0c, "AMD_Am29DL400BT", 0x80000, 0 },  //Does NOT support 4KB sector erase
     { 0x01, 0x0f, "AMD_Am29DL400BB", 0x80000, 0 },  //Does NOT support 4KB sector erase
     { 0x01, 0x23, "AMD_Am29F400BT", 0x80000, 0 },  //Does NOT support 4KB sector erase
@@ -104,8 +104,8 @@
     { 0x37, 0x9b, "AMIC_A29L008U/A29L800U", 0x100000, 0 },  //Does NOT support 4KB sector erase
     { 0x37, 0xb0, "AMIC_A29400T/294001T", 0x80000, 0 },  //Does NOT support 4KB sector erase
     { 0x37, 0xb5, "AMIC_A29L004U/A29L400U", 0x80000, 0 },  //Does NOT support 4KB sector erase
-    { 0x89, 0xa2, "Sharp_LH28F008SA_series", 0x100000, 0 },  //Does NOT support 4KB sector erase
-    { 0x89, 0xa6, "Sharp_LH28F008SC_series", 0x100000, 0 },  //Does NOT support 4KB sector erase
+    { 0x89, 0xa2, "Sharp_LH28F008SA_series", 0x100000, 2 },  //Does NOT support 4KB sector erase. Last item = 2 for 28xxx devices
+    { 0x89, 0xa6, "Sharp_LH28F008SC_series", 0x100000, 2 },  //Does NOT support 4KB sector erase. Last item = 2 for 28xxx devices
     { 0xad, 0x23, "Hynix_HY29F400T/AT", 0x80000, 0 },  //Does NOT support 4KB sector erase
     { 0xad, 0x58, "Hynix_HY29F800B/AB", 0x100000, 0 },  //Does NOT support 4KB sector erase
     { 0xad, 0x5b, "Hynix_HY29LV800B", 0x100000, 0 },  //Does NOT support 4KB sector erase
@@ -117,13 +117,13 @@
     { 0xad, 0xd5, "Hynix_HY29F080", 0x100000, 0 },  //Does NOT support 4KB sector erase
     { 0xad, 0xd6, "Hynix_HY29F800T/AT", 0x100000, 0 },  //Does NOT support 4KB sector erase
     { 0xad, 0xda, "Hynix_HY29LV800T", 0x100000, 0 },  //Does NOT support 4KB sector erase
-    { 0xb0, 0x4b, "Sharp_LH28F800BVxx-BTL_series", 0x100000, 0 },  //Does NOT support 4KB sector erase
-    { 0xb0, 0x4c, "Sharp_LH28F800BVxx-TV_series", 0x100000, 0 },  //Does NOT support 4KB sector erase
-    { 0xb0, 0x4d, "Sharp_LH28F800BVxx-BV_series", 0x100000, 0 },  //Does NOT support 4KB sector erase
+    { 0xb0, 0x4b, "Sharp_LH28F800BVxx-BTL_series", 0x100000, 2 },  //Does NOT support 4KB sector erase. Last item = 2 for 28xxx devices
+    { 0xb0, 0x4c, "Sharp_LH28F800BVxx-TV_series", 0x100000, 2 },  //Does NOT support 4KB sector erase. Last item = 2 for 28xxx devices
+    { 0xb0, 0x4d, "Sharp_LH28F800BVxx-BV_series", 0x100000, 2 },  //Does NOT support 4KB sector erase. Last item = 2 for 28xxx devices
     { 0xb0, 0xc9, "Sharp_LHF00L02/L06/L07", 0x100000, 0 },  //Does NOT support 4KB sector erase
     { 0xb0, 0xcf, "Sharp_LHF00L03/L04/L05", 0x100000, 0 },  //Does NOT support 4KB sector erase
-    { 0xb0, 0xec, "Sharp_LH28F008BJxx-PT_series", 0x100000, 0 },  //Does NOT support 4KB sector erase
-    { 0xb0, 0xed, "Sharp_LH28F008BJxx-PB_series", 0x100000, 0 },  //Does NOT support 4KB sector erase
+    { 0xb0, 0xec, "Sharp_LH28F008BJxx-PT_series", 0x100000, 2 },  //Does NOT support 4KB sector erase. Last item = 2 for 28xxx devices
+    { 0xb0, 0xed, "Sharp_LH28F008BJxx-PB_series", 0x100000, 2 },  //Does NOT support 4KB sector erase. Last item = 2 for 28xxx devices
     { 0xbf, 0x10, "SST_29EE020", 0x40000, 0 }, //EEPROM   //Does NOT support 4KB sector erase
     { 0xbf, 0x12, "SST_29LE020/29VE020", 0x40000, 0 }, //EEPROM   //Does NOT support 4KB sector erase
     { 0xbf, 0x13, "SST_29SF040", 0x80000, 0 },  //Smal sector... Will pickup block erase operations
@@ -176,3 +176,4 @@
     { 0xda, 0xb5, "Winbond_W39L020", 0x40000, 0 },  //Does NOT support 4KB sector erase
     { 0xda, 0xb6, "Winbond_W39L040", 0x80000, 0 },  //Does NOT support 4KB sector erase
     { 0,0, "", 0, 0 } // Terminator - dont remove.
+};
