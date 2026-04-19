@@ -150,7 +150,7 @@ int conexant_calc_hdtv_mode(
             }
             else
             {
-                regs[ADR(0x2e)] = 0xed; // HDTV_EN = 1, RGB2PRPB = 1, RPR_SYNC_DIS = 1, BPB_SYNC_DIS = 1, HD_SYNC_EDGE = 1, RASTER_SEL = 01
+                regs[ADR(0x2e)] = 0xED; // HDTV_EN = 1, RGB2PRPB = 0, RPR_SYNC_DIS = 1, BPB_SYNC_DIS = 1, HD_SYNC_EDGE = 1, RASTER_SEL = 01
                 regs[ADR(0x32)] = 0x48; // DRVS = 2, IN_MODE[3] = 1;
                 regs[ADR(0x3e)] = 0x45; // MCOMPU
                 regs[ADR(0x40)] = 0x51; // MCOMPV
@@ -167,7 +167,7 @@ int conexant_calc_hdtv_mode(
             }
             else
             {
-                regs[ADR(0x2e)] = 0xea; // HDTV_EN = 1, RGB2PRPB = 1, RPR_SYNC_DIS = 1, BPB_SYNC_DIS = 1, HD_SYNC_EDGE = 1, RASTER_SEL = 01
+                regs[ADR(0x2e)] = 0xAA; // HDTV_EN = 1, RGB2PRPB = 0, RPR_SYNC_DIS = 1, BPB_SYNC_DIS = 1, HD_SYNC_EDGE = 1, RASTER_SEL = 01
                 regs[ADR(0x32)] = 0x49; // DRVS = 2, IN_MODE[3] = 1, CSC_SEL=1;
                 regs[ADR(0x3e)] = 0x45; // MCOMPU
                 regs[ADR(0x40)] = 0x51; // MCOMPV
@@ -184,7 +184,7 @@ int conexant_calc_hdtv_mode(
             }
             else
             {
-                regs[ADR(0x2e)] = 0xeb; // HDTV_EN = 1, RGB2PRPB = 1, RPR_SYNC_DIS = 1, BPB_SYNC_DIS = 1, HD_SYNC_EDGE = 1, RASTER_SEL = 01
+                regs[ADR(0x2e)] = 0xAB; // HDTV_EN = 1, RGB2PRPB = 0, RPR_SYNC_DIS = 1, BPB_SYNC_DIS = 1, HD_SYNC_EDGE = 1, RASTER_SEL = 01
                 regs[ADR(0x32)] = 0x49; // DRVS = 2, IN_MODE[3] = 1, CSC_SEL=1;
                 regs[ADR(0x3e)] = 0x48; // MCOMPU
                 regs[ADR(0x40)] = 0x5b; // MCOMPV
@@ -193,7 +193,11 @@ int conexant_calc_hdtv_mode(
     }
     regs[ADR(0x3c)] = 0x80; // MCOMPY
     regs[ADR(0xa0)] = pll_int; // PLL_INT
-    regs[ADR(0xc6)] = 0x98; // IN_MODE = 24 bit RGB multiplexed
+    if (LPCmodSettings.OSsettings.enableVGA) {
+        regs[ADR(0xc6)] = 0x98; // IN_MODE = 24 bit RGB multiplexed
+    } else {
+        regs[ADR(0xc6)] = 0x9C; // IN_MODE = 24 bit YUV multiplexed
+    }
     regs[ADR(0x6c)] = 0x46; // FLD_MODE = 10, EACTIVE = 1, EN_SCART = 0, EN_REG_RD = 1
     regs[ADR(0x9c)] = 0x00; // PLL_FRACT
     regs[ADR(0x9e)] = 0x00; // PLL_FRACT
@@ -401,7 +405,7 @@ int conexant_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
         {
         case AV_COMPOSITE:
         case AV_SVIDEO:
-            regs[ADR(0x2e)] |= 0x40; // RGB2YPRPB = 1
+            regs[ADR(0x2e)] |= 0x00; // RGB2YPRPB = 0
             regs[ADR(0x6c)] = 0x46; // FLD_MODE = 10, EACTIVE = 1, EN_SCART = 0, EN_REG_RD = 1
             regs[ADR(0x5a)] = 0x00; // Y_OFF (Brightness)
             regs[ADR(0xa4)] = 0xe5; // SYNC_AMP

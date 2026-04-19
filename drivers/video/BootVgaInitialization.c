@@ -191,15 +191,20 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     if (video_encoder==ENCODER_XCALIBUR)
     {
         MMIO_H_OUT32(riva.PRAMDAC,0,0x880,0x21101100);
-        //Leave GPU in YUV for Xcalibur
-        MMIO_H_OUT32(riva.PRAMDAC,0,0x630,0x2);
-        MMIO_H_OUT32(riva.PRAMDAC,0,0x84c,0x00801080);
-        MMIO_H_OUT32(riva.PRAMDAC,0,0x8c4,0x40801080);
     }
     else
     {
         MMIO_H_OUT32(riva.PRAMDAC,0,0x880,0);
-        //Other encoders use RGB    
+    }
+
+    if (((av_type != AV_SCART_RGB) && (av_type != AV_VGA_SOG) && (av_type != AV_VGA))
+          || video_encoder==ENCODER_XCALIBUR) {
+        // Set GPU to YUV for non RGB modes or if the encoder is Xcalibur
+        MMIO_H_OUT32(riva.PRAMDAC,0,0x630,0x2);
+        MMIO_H_OUT32(riva.PRAMDAC,0,0x84c,0x00801080);
+        MMIO_H_OUT32(riva.PRAMDAC,0,0x8c4,0x40801080);
+    } else {
+        // Set GPU to RGB for VGA and SCART
         MMIO_H_OUT32(riva.PRAMDAC,0,0x630,0x0);
         MMIO_H_OUT32(riva.PRAMDAC,0,0x84c,0x0);
         MMIO_H_OUT32(riva.PRAMDAC,0,0x8c4,0x0);

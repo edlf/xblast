@@ -76,15 +76,14 @@ int focus_calc_hdtv_mode(
     regs[0x0a] |= 0x10;
     /* Turn on the HDTV clock, and turn off the SDTV one */    
     regs[0xa1] = 0x04;
-    
     /* HDTV Hor start */
     regs[0xb8] = 0xbe;
     
-    /*Set up video mode to HDTV, progressive, 
-     * and disable YUV matrix bypass */
-    regs[0x92] = 0x1a;    
-    regs[0x93] &= ~0x40;
-    
+    /* Set up video mode to HDTV, progressive */
+    regs[0x92] = 0x1a;
+    /* Enable YUV matrix bypass */
+    regs[0x92] |= 0x4;
+
     switch (hdtv_mode)
     {
     case HDTV_480p:
@@ -255,9 +254,17 @@ int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
     }
 
     /* Video control  - set to RGB input*/
-    b = (regs[0x92] &= ~0x04);
-    regs[0x92] = (b|= 0x01);
-    regs[0x93] &= ~0x40;
+    if (mode->av_type == AV_SCART_RGB || mode->av_type == AV_VGA_SOG || mode->av_type == AV_VGA) {
+        b = (regs[0x92] &= ~0x04);
+        regs[0x92] = (b|= 0x01);
+        /* disable YUV matrix bypass */
+        regs[0x93] &= ~0x4;
+    } else {
+        regs[0x92] |= 0x04;
+        /* enable YUV matrix bypass */
+        regs[0x93] |= 0x4;
+    }
+
     /* Colour scaling */
     regs[0xA2] = 0x4D;
     regs[0xA4] = 0x96;
@@ -271,7 +278,12 @@ int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
     case AV_SVIDEO:
         /* COMP_YUV - set to 1 to output YUV */
         regs[0x47] |= 0x04;
-        /* VID_MODE to 0 - SVIDEO */
+        /* VID_MODE to 0 - SVIDEO/COMPOSITE */
+        regs[0x92] &= ~0x01;
+        break;
+    case AV_COMPOSITE:
+        regs[0x47] |= 0x04;
+        /* VID_MODE to 0 - SVIDEO/COMPOSITE */
         regs[0x92] &= ~0x01;
         break;
     default:
