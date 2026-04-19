@@ -118,9 +118,9 @@ typedef struct {
    unsigned char UNKNOWN6[64];             // 0xC0 - 0xFF Unknown Codes / Memory timing data ?
 }__attribute__((packed)) EEPROMDATA;
 
-EEPROMDATA eeprom;
-EEPROMDATA origEeprom; //Populated at boot and nowhere else.
-EEPROMDATA *editeeprom;
+extern EEPROMDATA eeprom;
+extern EEPROMDATA origEeprom; //Populated at boot and nowhere else.
+extern EEPROMDATA *editeeprom;
 
 typedef enum {
     EEPROMModItem_HDDKkey = 0,
@@ -160,7 +160,7 @@ typedef struct
     EEPROMChangeEntry_t* firstChangeEntry;
 }EEPROMChangeList;
 
-EEPROMChangeList eepromChangeList;
+extern EEPROMChangeList eepromChangeList;
 
 void BootEepromReadEntireEEPROM(void);
 void eepromChangeTrackerInit(void);

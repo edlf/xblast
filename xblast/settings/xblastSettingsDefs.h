@@ -17,8 +17,8 @@ typedef _LPCmodSettings_V1 _LPCmodSettings;
 #define CurrentSettingsVersionNumber 1
 
 // Globals
-_LPCmodSettings LPCmodSettings;
-_LPCmodSettings LPCmodSettingsOrigFromFlash;
+extern _LPCmodSettings LPCmodSettings;
+extern _LPCmodSettings LPCmodSettingsOrigFromFlash;
 
 
 //Items below should always follow the current settings version
@@ -46,8 +46,8 @@ enum SpecialSettingsPtrArrayIndexName
     SpecialSettingsPtrArrayIndexName_LCDType
 };
 
-_settingsPtrStruct settingsPtrStruct;
+extern _settingsPtrStruct settingsPtrStruct;
 
-const char *xblastcfgstrings[NBTXTPARAMS];
+extern const char *xblastcfgstrings[NBTXTPARAMS];
 
 #endif /* XBLASTSETTINGSDEFS_H_ */

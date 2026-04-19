@@ -19,15 +19,15 @@
 
 
 //Globals to save value of LPC register
-unsigned char xF70ELPCRegister;
-unsigned char x00FFLPCRegister;
+extern unsigned char xF70ELPCRegister;
+extern unsigned char x00FFLPCRegister;
 
-bool TSOPRecoveryMode;
+extern bool TSOPRecoveryMode;
 
-FlashBank currentFlashBank;
-unsigned char A19controlModBoot;
+extern FlashBank currentFlashBank;
+extern unsigned char A19controlModBoot;
 
-struct _GenPurposeIOs{
+typedef struct __attribute__((packed)) _GenPurposeIOs{
     bool GPO3;
     bool GPO2;
     bool GPO1;
@@ -39,7 +39,9 @@ struct _GenPurposeIOs{
     bool A19BufEn;
 
     bool EN_5V;
-}__attribute__((packed))GenPurposeIOs;  //byte-long struct.
+} _GenPurposeIOs;  //byte-long struct.
+
+extern _GenPurposeIOs GenPurposeIOs;
 
 unsigned short LPCMod_HW_rev(void);
 void LPCMod_ReadIO(struct _GenPurposeIOs *GPIOstruct);

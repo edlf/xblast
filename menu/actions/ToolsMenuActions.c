@@ -26,6 +26,10 @@ TEXTMENUITEM* saveEEPROMPtr;
 TEXTMENUITEM* restoreEEPROMPtr;
 TEXTMENUITEM* editEEPROMPtr;
 
+#ifdef DEV_FEATURES
+TEXTMENUITEM* eraseEEPROMPtr;
+#endif
+
 void saveEEPromToFlash(void* ignored)
 {
     int version;

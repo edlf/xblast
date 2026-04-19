@@ -1,3 +1,3 @@
 
-O_TARGET := xblastSettings.o xblastSettingsChangeTracker.o xblastSettingsImportExport.o
+O_TARGET := xblastSettings.o xblastSettingsChangeTracker.o xblastSettingsDefs.o xblastSettingsImportExport.o
 include $(TOPDIR)/Rules.make

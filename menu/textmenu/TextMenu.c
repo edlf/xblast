@@ -25,8 +25,6 @@ int timeRemain = 0;
 int oldTimeRemain = 0;
 int visibleCount = 0;
 
-
-
 void TextMenuDraw(TEXTMENU *menu, TEXTMENUITEM *firstVisibleMenuItem, TEXTMENUITEM *selectedItem);
 
 void TextMenuAddItem(TEXTMENU *menu, TEXTMENUITEM *newMenuItem)

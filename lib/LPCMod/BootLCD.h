@@ -37,7 +37,7 @@ typedef struct _xLCD {
     void    (*ClearLine)(unsigned char line);
 }__attribute__((packed)) _xLCD;    //Will be know as xLCD from now on.
 
-_xLCD xLCD;
+extern _xLCD xLCD;
 
 //Various predefined values to write to LCD to init.
 //bit1 = RS

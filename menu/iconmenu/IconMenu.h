@@ -34,15 +34,15 @@ typedef struct ICON {
 } ICON;
 
 
-ICON* firstIcon;
-ICON* selectedIcon;
+extern ICON* firstIcon;
+extern ICON* selectedIcon;
 
-ICON* icon512BankIcon;
-ICON* icon256BankIcon;
-ICON* iconFullTSOPBankIcon;
-ICON* iconSplitTSOPBank0Icon;
-ICON* iconSplitTSOPBank1Icon;
-ICON* advancedMenuIcon;
+extern ICON* icon512BankIcon;
+extern ICON* icon256BankIcon;
+extern ICON* iconFullTSOPBankIcon;
+extern ICON* iconSplitTSOPBank0Icon;
+extern ICON* iconSplitTSOPBank1Icon;
+extern ICON* advancedMenuIcon;
 
 //Adds a new icon into the menu - they are displayed in the order added.
 void AddIcon(ICON *newIcon);

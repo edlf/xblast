@@ -33,12 +33,12 @@ void nextA19controlModBootValue(void* itemPtr);
 
 bool replaceEEPROMContentFromBuffer(EEPROMDATA* eepromPtr);
 
-TEXTMENUITEM* saveEEPROMPtr;
-TEXTMENUITEM* restoreEEPROMPtr;
-TEXTMENUITEM* editEEPROMPtr;
+extern TEXTMENUITEM* saveEEPROMPtr;
+extern TEXTMENUITEM* restoreEEPROMPtr;
+extern TEXTMENUITEM* editEEPROMPtr;
 
 #ifdef DEV_FEATURES
-TEXTMENUITEM* eraseEEPROMPtr;
+extern TEXTMENUITEM* eraseEEPROMPtr;
 #endif
 
 #endif

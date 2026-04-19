@@ -26,7 +26,7 @@ typedef struct
     OSSettingsChangeEntry_t* firstChangeEntry;
 }OSSettingsChangeList;
 
-OSSettingsChangeList osSettingsChangeList;
+extern OSSettingsChangeList osSettingsChangeList;
 
 void settingsTrackerInit(void);
 

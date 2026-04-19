@@ -26,12 +26,12 @@
 #include "memory_layout.h"
 
 
-unsigned int cromwell_config;
-unsigned int cromwell_retryload;
-unsigned int cromwell_2blversion;
-unsigned int cromwell_2blsize;
+extern unsigned int cromwell_config;
+extern unsigned int cromwell_retryload;
+extern unsigned int cromwell_2blversion;
+extern unsigned int cromwell_2blsize;
 
-unsigned int xbox_ram;
+extern unsigned int xbox_ram;
 
 #define XROMWELL    0
 #define CROMWELL    1
@@ -55,20 +55,20 @@ static inline double max (double a, double b)
 #define ASSERT(exp) { if(!(exp)) { bprintf("Assert failed file " __FILE__ " line %d\n", __LINE__); } }
 
 extern volatile CURRENT_VIDEO_MODE_DETAILS vmode;
-unsigned int video_encoder;
+extern unsigned int video_encoder;
 
-volatile unsigned int VIDEO_CURSOR_POSX;
-volatile unsigned int VIDEO_CURSOR_POSY;
-volatile unsigned int VIDEO_ATTR;
-volatile unsigned int VIDEO_LUMASCALING;
-volatile unsigned int VIDEO_RSCALING;
-volatile unsigned int VIDEO_BSCALING;
-volatile unsigned int BIOS_TICK_COUNT;
-volatile unsigned int VIDEO_VSYNC_POSITION;
-volatile unsigned int VIDEO_VSYNC_DIR;
-volatile unsigned int DVD_TRAY_STATE;
+extern volatile unsigned int VIDEO_CURSOR_POSX;
+extern volatile unsigned int VIDEO_CURSOR_POSY;
+extern volatile unsigned int VIDEO_ATTR;
+extern volatile unsigned int VIDEO_LUMASCALING;
+extern volatile unsigned int VIDEO_RSCALING;
+extern volatile unsigned int VIDEO_BSCALING;
+extern volatile unsigned int BIOS_TICK_COUNT;
+extern volatile unsigned int VIDEO_VSYNC_POSITION;
+extern volatile unsigned int VIDEO_VSYNC_DIR;
+extern volatile unsigned int DVD_TRAY_STATE;
 
-unsigned char VIDEO_AV_MODE ;
+extern unsigned char VIDEO_AV_MODE ;
 
 #define DVD_CLOSED         0
 #define DVD_CLOSING         1
@@ -311,7 +311,7 @@ void HMAC_SHA1( unsigned char *result,
 void setLED(char *pattern);
 
 //Global for convenience.
-unsigned char *videosavepage;
+extern unsigned char *videosavepage;
 //void * gobalGenericPtr;
 
 #endif // _Boot_H_

@@ -15,6 +15,11 @@
 #include "2bload.h"
 #include <stdbool.h>
 
+unsigned char *BufferIN;
+int BufferINlen;
+unsigned char *BufferOUT;
+int BufferOUTPos;
+
 // ----------------------------  I2C -----------------------------------------------------------
 
 // transmit a word, no returned data from I2C device

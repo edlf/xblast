@@ -100,6 +100,8 @@ const char * const szaSenseKeys[] = {
     "Miscompare", "Reserved 0xf"
 };
 
+tsHarddiskInfo tsaHarddiskInfo[2];
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //  Helper routines
 //

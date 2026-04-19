@@ -32,7 +32,7 @@ typedef struct
     uint32_t compressed_image_size;  // 20
 }CromwellChecksumStruct;
 
-void showUsage();
+void showUsage(const char *progname);
 
 void shax(uint8_t *result, uint8_t *data, uint32_t len)
 {
@@ -527,7 +527,7 @@ int main (int argc, const char * argv[])
     exit(EXIT_SUCCESS);
 }
 
-void showUsage(char *progname) {
+void showUsage(const char *progname) {
 //    printf("Usage:\n",progname);
     printf("Usage:\n");
 //    printf("%s -vml vmlname romname\n");

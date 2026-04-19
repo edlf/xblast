@@ -38,10 +38,20 @@
 #define TRANSPARENTNESS 0x30
 #define SELECTED 0xff
 
-int iconTimeRemain = 0;
-unsigned int temp = 1;
+static int iconTimeRemain = 0;
+static unsigned int temp = 1;
 
 static void generateIconMenuStructure(void);
+
+ICON* firstIcon;
+ICON* selectedIcon;
+
+ICON* icon512BankIcon;
+ICON* icon256BankIcon;
+ICON* iconFullTSOPBankIcon;
+ICON* iconSplitTSOPBank0Icon;
+ICON* iconSplitTSOPBank1Icon;
+ICON* advancedMenuIcon;
 
 void AddIcon(ICON *newIcon)
 {

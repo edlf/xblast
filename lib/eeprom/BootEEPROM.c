@@ -20,6 +20,12 @@
 #include "RecoveryImages.h"
 #include "EEPROMStrings.h"
 
+EEPROMDATA eeprom;
+EEPROMDATA origEeprom; //Populated at boot and nowhere else.
+EEPROMDATA *editeeprom;
+
+EEPROMChangeList eepromChangeList;
+
 static void putNewChangeInList(EEPROMChangeList* list, EEPROMChangeEntry_t* change);
 
 void BootEepromReadEntireEEPROM()

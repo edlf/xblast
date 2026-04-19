@@ -1,4 +1,4 @@
 
-O_TARGET := FlashUi.o FlashDriver.o FlashLowLevel.o
+O_TARGET := FlashUi.o FlashDriver.o FlashHelpers.o FlashLowLevel.o
 
 include $(TOPDIR)/Rules.make

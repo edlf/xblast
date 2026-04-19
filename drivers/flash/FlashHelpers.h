@@ -25,7 +25,7 @@ typedef struct {
     bool m_fIsBelievedCapableOfWriteAndErase;
 } OBJECT_FLASH;
 
-OBJECT_FLASH flashDevice;
+extern OBJECT_FLASH flashDevice;
 
 typedef enum
 {

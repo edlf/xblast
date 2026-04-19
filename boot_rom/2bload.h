@@ -74,7 +74,7 @@ void *memcpy (void *__restrict __dest, const void *__restrict __src, size_t __n)
 void *memset (void *__s, int __c, size_t __n);
 int memcmp(const void *pb, const void *pb1, size_t n);
 
-unsigned char *BufferIN;
-int BufferINlen;
-unsigned char *BufferOUT;
-int BufferOUTPos;
+extern unsigned char *BufferIN;
+extern int BufferINlen;
+extern unsigned char *BufferOUT;
+extern int BufferOUTPos;

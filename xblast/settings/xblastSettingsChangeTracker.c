@@ -17,6 +17,8 @@
 #include "stdlib.h"
 #include <stddef.h>
 
+OSSettingsChangeList osSettingsChangeList;
+
 static void putNewChangeInList(OSSettingsChangeList* list, OSSettingsChangeEntry_t* change);
 
 void settingsTrackerInit(void)

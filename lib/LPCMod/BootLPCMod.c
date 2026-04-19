@@ -20,6 +20,17 @@
 #include "boot.h"
 #include "stdio.h"
 
+//Globals to save value of LPC register
+unsigned char xF70ELPCRegister;
+unsigned char x00FFLPCRegister;
+
+bool TSOPRecoveryMode;
+
+FlashBank currentFlashBank;
+unsigned char A19controlModBoot;
+
+_GenPurposeIOs GenPurposeIOs;
+
 //Probes CPLD for chip revision and return a single byte ID.
 //SmartXX compliant but need to mask out upper nibble
 unsigned short LPCMod_HW_rev(void){

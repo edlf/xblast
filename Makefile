@@ -1,22 +1,19 @@
 PREFIX = #i686-linux-gnu-
 CC	= ${PREFIX}gcc
 
-# prepare check for gcc 3.3, $(GCC_3.3) will either be 0 or 1
-GCC_3.3 := $(shell expr `$(CC) -dumpversion` \>= 3.3)
-
-GCC_4.2 := $(shell expr `$(CC) -dumpversion` \>= 4.2)
-
-GCC_6.2 := $(shell expr `$(CC) -dumpversion` \>= 6.2)
-
-#Make this a flash-based RAM test BIOS
+# Make this a flash-based RAM test BIOS
 BUILD_RAMTEST := 0
-#Test lower half of 256MB of RAM (versus lower half of 128MB)
+
+# Test lower half of 256MB of RAM (versus lower half of 128MB)
 RAMTEST_256MB := 1
-#run make with "DEBUG=1" argument to enable extra debug
+
+# run make with "DEBUG=1" argument to enable extra debug
 DEBUG := 0
-#Override TSOP control availability based on Xbox Revision
+
+# Override TSOP control availability based on Xbox Revision
 TSOPCTRL := 0 
-#Generates VGA enabled by default image. Does not override existing setting in flash.
+
+# Generates VGA enabled by default image. Does not override existing setting in flash.
 VGA := 0
 ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
@@ -37,23 +34,8 @@ INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/
 CROM_CFLAGS = $(INCLUDE) $(INCLUDE_ALL)
 
 #You can override these if you wish.
-CFLAGS = $(INCLUDE_ALL) -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member
-2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding
-# add the option for gcc 3.3 only, again, non-overridable
-ifeq ($(GCC_3.3), 1)
-CROM_CFLAGS += -fno-zero-initialized-in-bss
-endif
-
-# add the option for gcc 4.2 only, again, non-overridable
-ifeq ($(GCC_4.2), 1)
-CFLAGS += -fno-stack-protector -U_FORTIFY_SOURCE
-endif
-
-# add the option for gcc 6.2 only, again, non-overridable
-ifeq ($(GCC_6.2), 1)
-CFLAGS += -fno-PIC
-2BL_CFLAGS += -fno-PIC
-endif
+CFLAGS = $(INCLUDE_ALL) -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member -fno-zero-initialized-in-bss -fno-stack-protector -U_FORTIFY_SOURCE -fno-PIC
+2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding -fno-zero-initialized-in-bss -fno-stack-protector -fno-PIC
 
 LD      = ${PREFIX}ld
 OBJCOPY = ${PREFIX}objcopy
@@ -67,12 +49,7 @@ ifeq ($(ETHERBOOT), yes)
 ETH_SUBDIRS = etherboot
 CROM_CFLAGS	+= -DETHERBOOT
 ETH_INCLUDE = 	-I$(TOPDIR)/etherboot/include -I$(TOPDIR)/etherboot/arch/i386/include -I$(TOPDIR)
-ETH_CFLAGS  = 	-Os -march=pentium -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding
-endif
-
-# add the option for gcc 4.2 only, again, non-overridable
-ifeq ($(GCC_4.2), 1)
-ETH_CFLAGS += -fno-stack-protector -U_FORTIFY_SOURCE
+ETH_CFLAGS  = 	-Os -march=pentium -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding -fno-stack-protector -U_FORTIFY_SOURCE -fno-zero-initialized-in-bss -fno-PIC
 endif
 
 ifeq ($(DEBUG), 1)
@@ -98,10 +75,6 @@ ifeq ($(ETHERBOOT), yes)
 LDFLAGS-ETHBOOT = -s -S -T $(TOPDIR)/boot_eth/eth_start.ld
 endif
 
-# add the option for gcc 3.3 only
-ifeq ($(GCC_3.3), 1)
-ETH_CFLAGS += -fno-zero-initialized-in-bss
-endif
 #### End Etherboot specific stuff
 
 OBJECTS-XBE = $(TOPDIR)/boot_xbe/xbeboot.o
@@ -118,8 +91,9 @@ OBJECTS-ROMBOOT += $(TOPDIR)/obj/sha1.o
 OBJECTS-ROMBOOT += $(TOPDIR)/obj/2bBootLibrary.o
 OBJECTS-ROMBOOT += $(TOPDIR)/obj/misc.o
 #OBJECTS-ROMBOOT += $(TOPDIR)/obj/LED.o
-                                             
-OBJECTS-CROM = $(TOPDIR)/obj/BootStartup.o
+
+OBJECTS-CROM = $(TOPDIR)/obj/Boot.o                                          
+OBJECTS-CROM += $(TOPDIR)/obj/BootStartup.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootResetAction.o
 OBJECTS-CROM += $(TOPDIR)/obj/i2cio.o
 OBJECTS-CROM += $(TOPDIR)/obj/pci.o
@@ -195,6 +169,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/BootInterrupts.o
 OBJECTS-CROM += $(TOPDIR)/obj/nanojpeg.o
 OBJECTS-CROM += $(TOPDIR)/obj/FlashLowLevel.o
 OBJECTS-CROM += $(TOPDIR)/obj/FlashDriver.o
+OBJECTS-CROM += $(TOPDIR)/obj/FlashHelpers.o
 OBJECTS-CROM += $(TOPDIR)/obj/FlashUi.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootEEPROM.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootLPCMod.o
@@ -212,6 +187,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xblastScriptEngine.o
 OBJECTS-CROM += $(TOPDIR)/obj/functionsAccessor.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastSettings.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsChangeTracker.o
+OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsDefs.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsImportExport.o
 OBJECTS-CROM += $(TOPDIR)/obj/PowerManagement.o
 OBJECTS-CROM += $(TOPDIR)/obj/HardwareIdentifier.o
@@ -313,7 +289,7 @@ obj/image-crom.bin: cromsubdirs resources
 vmlboot: vml_startup 
 	${LD} -o $(TOPDIR)/obj/vmlboot.elf ${OBJECTS-VML} ${LDFLAGS-VMLBOOT}
 	${OBJCOPY} --output-target=binary --strip-all $(TOPDIR)/obj/vmlboot.elf $(TOPDIR)/boot_vml/disk/$@
-	
+
 vml_startup:
 	$(CC) ${CFLAGS} -c -o ${OBJECTS-VML} boot_vml/vml_Startup.S
 
@@ -322,7 +298,7 @@ boot_eth/ethboot: ethboot obj/image-crom.bin
 	${LD} -o obj/ethboot.elf ${OBJECTS-ETH} -b binary obj/image-crom.bin ${LDFLAGS-ETHBOOT} -Map $(TOPDIR)/obj/ethboot.map
 	${OBJCOPY} --output-target=binary --strip-all obj/ethboot.elf obj/ethboot.bin
 	perl -I boot_eth boot_eth/mknbi.pl --output=$@ obj/ethboot.bin
-	
+
 ethboot:
 	$(CC) ${CFLAGS} -c -o ${OBJECTS-ETH} boot_eth/eth_Startup.S
 endif
@@ -350,13 +326,13 @@ crcbin:
 	gcc -o bin/crcbin.o -c pc_tools/crcbin/crcbin.c
 	gcc -o bin/crc32.o -c lib/misc/crc32.c
 	gcc -o bin/crcbin bin/crcbin.o bin/crc32.o
-	
+
 scriptchecker:
 	gcc -g -Iinclude -o pc_tools/scriptChecker/functionsAccessor.o -c pc_tools/scriptChecker/functionsAccessor.c
 	gcc -g -o pc_tools/scriptChecker/scriptChecker.o -c pc_tools/scriptChecker/scriptChecker.c
 	gcc -g -DSCRIPTCHECKER -Iinclude -Ipc_tools/scriptChecker -o pc_tools/scriptChecker/xblastScriptEngine.o -c xblast/scriptEngine/xblastScriptEngine.c
 	gcc -g -o bin/scriptChecker pc_tools/scriptChecker/functionsAccessor.o pc_tools/scriptChecker/scriptChecker.o pc_tools/scriptChecker/xblastScriptEngine.o
-	
+
 imagecompress: obj/image-crom.bin bin/imagebld
 	cp obj/image-crom.bin obj/c
 	gzip -9 obj/c
@@ -366,10 +342,10 @@ imagecompress: obj/image-crom.bin bin/imagebld
 256KBBinGen: imagecompress crcbin cromwell.bin
 	bin/imagebld -rom obj/2blimage.bin obj/c.gz image/cromwell.bin
 	bin/crcbin image/cromwell.bin image/crcwell.bin
-	
+
 makefsdata: clean
 	gcc -I"$(TOPDIR)/$(LWIPFOLDER)" -I"$(TOPDIR)/$(LWIPFOLDER)/src/include" -I"$(TOPDIR)" -Og -Wall -c -o "obj/makefsdata.o" "$(TOPDIR)/$(LWIPFOLDER)/src/apps/httpd/makefsdata/makefsdata.c"
 	gcc -o bin/makefsdata obj/makefsdata.o
 	bin/makefsdata "$(TOPDIR)/$(LWIPFOLDER)/src/apps/httpd/fs" -e -nossi
 	mv fsdata.c "$(TOPDIR)/$(LWIPFOLDER)/src/apps/httpd/fsdata.c"
-	
+

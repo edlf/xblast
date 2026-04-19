@@ -19,6 +19,8 @@
 #include "lib/LPCMod/LCDRingBuffer.h"
 #include "string.h"
 
+_xLCD xLCD;
+
 void BootLCDInit(void)
 {
     xLCD.enable = 0;            //Set it unintialized for now.

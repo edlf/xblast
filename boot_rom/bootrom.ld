@@ -43,7 +43,7 @@ SECTIONS {
         *(.got);
     }
            
-           .rodata ( RAM_CODE + SIZEOF(.text) + SIZEOF(.data) ) : AT ( SIZEOF(.low_rom) + SIZEOF(.text) + SIZEOF(.data)) {
+    .rodata ( RAM_CODE + SIZEOF(.text) + SIZEOF(.data) ) : AT ( SIZEOF(.low_rom) + SIZEOF(.text) + SIZEOF(.data)) {
         *(.rodata);
         *(.rodata.str1.1);
         *(.rodata.str1.32);
@@ -61,13 +61,10 @@ SECTIONS {
         _heap = . ;
     }
     
-        /* We need to copy the .data section to to upper memory */
+    /* We need to copy the .data section to to upper memory */
     _size_ramcopy = SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.rodata) + SIZEOF(.bss);
     _size_2bl = SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.rodata);                
     
     /DISCARD/ : { *(.eh_frame) }
-
-
-
-
+    /DISCARD/ : { *(.note.gnu.property) }
 }
