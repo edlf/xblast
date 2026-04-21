@@ -1021,7 +1021,8 @@ int BootIdeAtapiModeSense(int nDriveIndex, unsigned char bCodePage, unsigned cha
 
     return nReturn;
 }
-*
+*/
+
 /////////////////////////////////////////////////
 //  BootIdeAtapiAdditionalSenseCode
 //
@@ -1052,7 +1053,7 @@ int BootIdeAtapiAdditionalSenseCode(int nDriveIndex, unsigned char * pba, int nL
     BootIdeReadData(uIoBase, pba, nReturn);
 
     return nReturn;
-} */
+}
 
 bool BootIdeAtapiReportFriendlyError(int nDriveIndex, char * szErrorReturn, int nMaxLengthError)
 {
