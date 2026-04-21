@@ -11,7 +11,7 @@ struct microcode {
     unsigned int rev;
     unsigned int date;
     unsigned int sig;
-    
+
     unsigned int cksum;
     unsigned int ldrver;
     unsigned int pf;
@@ -22,13 +22,13 @@ struct microcode {
 
 const unsigned int microcode_updates [] = {
  /*
-       Copyright  Intel Corporation, 1995, 96, 97, 98, 99, 2000, 2001. 
-       
-       These microcode updates are distributed for the sole purpose of 
+       Copyright  Intel Corporation, 1995, 96, 97, 98, 99, 2000, 2001.
+
+       These microcode updates are distributed for the sole purpose of
        installation in the BIOS or Operating System of computer systems
        which include a Genuine Intel microprocessor sold or distributed
        to or by you. You are not authorized to use this material for
-       any other purpose.  
+       any other purpose.
 */
 
 /*  MU168608.inc  */
@@ -298,16 +298,15 @@ const unsigned int microcode_updates [] = {
 
 
 };
- 
- 
- 
+
+
+
 void display_cpuid_update_microcode(void)
 {
     unsigned int eax, ebx, ecx, edx;
     unsigned int pf, rev, sig, val[2];
     unsigned int x86_model, x86_family, i;
     struct microcode *m;
-    int found = 0 ;
     /* cpuid sets msr 0x8B iff a microcode update has been loaded. */
     wrmsr(0x8B, 0, 0);
     cpuid(1, &eax, &ebx, &ecx, &edx);
@@ -322,11 +321,13 @@ void display_cpuid_update_microcode(void)
         rdmsr(0x17, val[0], val[1]);
         pf = 1 << ((val[1] >> 18) & 7);
     }
+
 //    printk("\n\n");
 //    printk("\n\n\n\n          microcode_info: sig = 0x%08X pf=0x%08X rev = 0x%08X\n",sig, pf, rev);
 //    printk("          x86_model = 0x%04X x86_family = 0x%04X\n",x86_model, x86_family);
-  
+
     m = (struct microcode *)microcode_updates;
+
     // We have 2 microocde Tables
     for(i = 0; i < 2; i++) {
         if ((m[i].sig == sig) && (m[i].pf == pf)) {
@@ -334,7 +335,7 @@ void display_cpuid_update_microcode(void)
             __asm__ __volatile__ ("cpuid" : : : "ax", "bx", "cx", "dx");
             rdmsr(0x8B, val[0], val[1]);
             //printk("microcode updated from revision %d to %d\n", rev, val[1]);
-            found = 1;
+            // found = 1;
         }
     }
 //    if (found == 0) printk("No Valid Microcode Update for this processor found\n")

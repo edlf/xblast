@@ -17,7 +17,7 @@
 
 /*------------------------------------------------------------------------*/
 /* Typedefs */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 #include "cromwell_types.h"
 
 
@@ -44,9 +44,9 @@ typedef int irqreturn_t;
 typedef unsigned long kernel_ulong_t;
 
 typedef int wait_queue_head_t;
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Stuff from xbox/linux environment */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #include "list.h"
 
@@ -89,11 +89,11 @@ return dest;
 #include <string.h>
 #endif
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* General structs */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
-struct timer_list { 
+struct timer_list {
     void (*function)(unsigned long);
     unsigned long data;
     int expires;
@@ -126,10 +126,10 @@ struct device_driver{
 };
 
 struct bus_type {
-        char                    * name;       
+        char                    * name;
         int             (*match)(struct device * dev, struct device_driver * drv);
         struct device * (*add)  (struct device * parent, char * bus_id);
-        int             (*hotplug) (struct device *dev, char **envp, 
+        int             (*hotplug) (struct device *dev, char **envp,
                                     int num_envp, char *buffer, int buffer_size);
 };
 
@@ -185,17 +185,17 @@ struct usb_device_id {
 #define USB_DEVICE_ID_MATCH_INT_SUBCLASS        0x0100
 #define USB_DEVICE_ID_MATCH_INT_PROTOCOL        0x0200
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* imported functions from top-level */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 void zxprintf(char* fmt, ...);
 void zxsprintf(char *buffer, char* fmt, ...);
 int zxsnprintf(char *buffer, size_t s, char* fmt, ...);
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* PCI structs (taken from linux/pci.h et al., but slightly modified) */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 struct pci_dev {
     int vendor;
@@ -245,9 +245,9 @@ struct usbdevfs_hub_portinfo
     int port[8];
 };
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* constant defines */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define TASK_UNINTERRUPTIBLE 0
 #define HZ 1000    /* Don't rely on that... */
@@ -279,9 +279,9 @@ struct usbdevfs_hub_portinfo
 #define PCI_COMMAND 0
 #undef PCI_COMMAND_MASTER
 #define PCI_COMMAND_MASTER 0
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Module/export macros */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define MODULE_AUTHOR(a)
 #define MODULE_DESCRIPTION(a)
@@ -300,9 +300,9 @@ struct usbdevfs_hub_portinfo
 #define __setup(x,y) int setup_##y=(int)y
 #define subsys_initcall(x) void subsys_##x(void){x();}
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Access macros */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define dev_get_drvdata(a) (a)->driver_data
 #define dev_set_drvdata(a,b) (a)->driver_data=(b)
@@ -325,9 +325,9 @@ struct usbdevfs_hub_portinfo
              pos = list_entry(pos->member.next, typeof(*pos), member),  \
                      prefetch(pos->member.next))
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* function wrapper macros */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 #define kmalloc(x,y) malloc(x)
 #define kfree(x) free(x)
 
@@ -346,14 +346,14 @@ struct usbdevfs_hub_portinfo
 #define spin_unlock(a) do {} while(0)
 
 #define spin_lock_irqsave(a,b) b=0
-#define spin_unlock_irqrestore(a,b)
+#define spin_unlock_irqrestore(a,b) (void) b
 
 #if 0
 #define local_irq_save(x) __asm__ __volatile__("pushfl ; popl %0 ; cli":"=g" (x): /* no input */ :"memory")
 #define local_irq_restore(x) __asm__ __volatile__("pushl %0 ; popfl": /* no output */ :"g" (x):"memory", "cc")
 #else
-#define local_irq_save(x) do {} while(0) 
-#define local_irq_restore(x) do {} while(0) 
+#define local_irq_save(x) do {} while(0)
+#define local_irq_restore(x) do {} while(0)
 #endif
 
 #define atomic_inc(x) *(x)+=1
@@ -363,7 +363,7 @@ struct usbdevfs_hub_portinfo
 #define atomic_read(x) *(x)
 #define ATOMIC_INIT(x) (x)
 
-#define down(x) do {} while(0) 
+#define down(x) do {} while(0)
 #define up(x) do {} while(0)
 #define down_trylock(a) 0
 
@@ -383,7 +383,7 @@ struct usbdevfs_hub_portinfo
 /* PCI */
 #define pci_pool_create(a,b,c,d,e) (void*)1
 
-#define pci_pool_alloc(a,b,c)  my_pci_pool_alloc(a,b,c) 
+#define pci_pool_alloc(a,b,c)  my_pci_pool_alloc(a,b,c)
 
 static void  __inline__ *my_pci_pool_alloc(void* pool, size_t size,
                         dma_addr_t *dma_handle)
@@ -420,7 +420,7 @@ static void  __inline__ *my_pci_alloc_consistent(struct pci_dev *hwdev, size_t s
 #define pci_module_init(x) my_pci_module_init(x)
 int my_pci_module_init(struct pci_driver *x);
 
-#define pci_unregister_driver(a)      do {} while(0)  
+#define pci_unregister_driver(a)      do {} while(0)
 
 #define bus_register(a) do {} while(0)
 #define bus_unregister(a) do {} while(0)
@@ -436,7 +436,7 @@ int my_pci_module_init(struct pci_driver *x);
 #define usb_create_driverfs_dev_files(a) do {} while(0)
 #define usb_create_driverfs_intf_files(a) do {} while(0)
 #define sg_dma_address(x) ((unsigned int)((x)->page*4096 + (x)->offset))
-#define sg_dma_len(x) ((x)->length) 
+#define sg_dma_len(x) ((x)->length)
 
 #define page_address(x) ((void*)(x/4096))
 
@@ -483,9 +483,9 @@ void my_wait_for_completion(struct completion*);
 #define yield() do {} while(0)
 #define cpu_relax() do {} while(0)
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Kernel macros */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define LINUX_VERSION_CODE 0x020572
 #define UTS_SYSNAME "XBOX"
@@ -507,9 +507,9 @@ void my_wait_for_completion(struct completion*);
 #undef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Conversion macros */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define __constant_cpu_to_le32(x) (x)
 #define cpu_to_le16(x) (x)
@@ -522,9 +522,9 @@ void my_wait_for_completion(struct completion*);
 #define le16_to_cpup(x) (*(__u16*)(x))
 #define cpu_to_le16p(x) (*(__u16*)(x))
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Debug output */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 //#define DEBUG_MODE
 #include "lib/LPCMod/xblastDebug.h"
 #ifdef DEBUG_MODE
@@ -539,12 +539,12 @@ void my_wait_for_completion(struct completion*);
 
 #ifndef DEBUG_MODE
 #define dev_printk(lvl,x,f,arg...) do {} while (0)
-#define dev_dbg(x,f,arg...) do {} while (0) //printk(f, ## arg)
+#define dev_dbg(x,f,arg...) do {(void) x;} while (0) //printk(f, ## arg)
 #define dev_info(x,f,arg...) do {} while (0)
 #define dev_warn(x,f,arg...) do {} while (0)
 #define dev_err(x,f,arg...) do {} while (0)
 #define pr_debug(x,f,arg...) do {} while (0)
-#define usbprintk
+#define usbprintk(x,arg...) do {} while (0)
 #endif
 
 
@@ -552,17 +552,17 @@ void my_wait_for_completion(struct completion*);
 #define PCI_DEVFN(a,b) 0
 #define PCI_SLOT(a) 0
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Stuff from kernel */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #include "asm/errno.h"
 #include "linux/bitops.h"
 #include "linux/pci_ids.h"
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* global variables */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define jiffies my_jiffies
 extern int my_jiffies;
@@ -571,9 +571,9 @@ extern struct dummy_process *my_current;
 
 extern struct list_head interrupt_list;
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Function prototypes */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 void usb_hcd_pci_remove (struct pci_dev *dev);
 
 #define my_wait_ms(x) wait_ms(x)
@@ -587,9 +587,9 @@ void usb_hcd_pci_remove (struct pci_dev *dev);
 #define pci_find_slot(a,b) my_pci_find_slot(a,b)
 struct pci_dev *my_pci_find_slot(int a,int b);
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Timer management */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define MAX_TIMERS 20
 extern struct timer_list *main_timer_list[MAX_TIMERS];
@@ -640,9 +640,9 @@ static void __inline__ mod_timer(struct timer_list* t, int ex)
     add_timer(t);
 }
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* Device driver and process related stuff */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 static int __inline__ usb_major_init(void){return 0;}
 static void __inline__ usb_major_cleanup(void){}
@@ -684,9 +684,9 @@ static void __inline__ complete(struct completion *p)
 #define kernel_thread(a,b,c) my_kernel_thread(a,b,c)
 int my_kernel_thread(int (*handler)(void*), void* parm, int flags);
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* PCI, simple and inlined... */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 static int __inline__ pci_enable_device(struct pci_dev *dev) {return 0;}
 
 static unsigned long __inline__ pci_resource_start (struct pci_dev *dev, int x)
@@ -729,9 +729,9 @@ static void __inline__ *pci_get_drvdata(struct pci_dev *dev)
     return dev->data;
 }
 
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 /* IRQ handling */
-/*------------------------------------------------------------------------*/ 
+/*------------------------------------------------------------------------*/
 
 #define request_irq(a,b,c,d,e) my_request_irq(a,b,c,d,e)
 int my_request_irq(unsigned int irq,

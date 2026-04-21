@@ -107,7 +107,7 @@ typedef struct tsHarddiskInfo {  // this is the retained knowledge about an IDE 
     unsigned char term_space_1[2];
     unsigned char m_szSerial[20];
     unsigned char term_space_2[2];
-    char m_szFirmware[8];
+    unsigned char m_szFirmware[8];
     unsigned char term_space_3[2];
     unsigned char m_fDriveExists;
     unsigned char m_fAtapi;  // true if a CDROM, etc

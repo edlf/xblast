@@ -27,10 +27,10 @@ int WriteToSMBus(unsigned char Address,unsigned char bRegister,unsigned char Siz
     while(IoInputWord(I2C_IO_BASE+0)&0x0800) ;  // Franz's spin while bus busy with any master traffic
 
     while(nRetriesToLive--) {
-        
+
         unsigned char b;
         unsigned int temp;
-        
+
         IoOutputByte(I2C_IO_BASE+4, (Address<<1)|0);
         IoOutputByte(I2C_IO_BASE+8, bRegister);
 
@@ -49,11 +49,11 @@ int WriteToSMBus(unsigned char Address,unsigned char bRegister,unsigned char Siz
                 IoOutputWord(I2C_IO_BASE+6, Data_to_smbus&0xff);
                 break;
         }
-    
-    
+
+
         temp = IoInputWord(I2C_IO_BASE+0);
         IoOutputWord(I2C_IO_BASE+0, temp);  // clear down all preexisting errors
-    
+
         switch (Size) {
             case 4:
                 IoOutputByte(I2C_IO_BASE+2, 0x1d);    // unsigned int modus
@@ -67,17 +67,17 @@ int WriteToSMBus(unsigned char Address,unsigned char bRegister,unsigned char Siz
         }
 
         b = 0;
-        
+
         while( (b&0x36)==0 ) { b=IoInputByte(I2C_IO_BASE+0); }
 
         if ((b&0x10) != 0) {
             return ERR_SUCCESS;
-        
+
         }
-        
+
         wait_us_blocking(1);
     }
-        
+
     return ERR_I2C_ERROR_BUS;
 
 }
@@ -87,21 +87,21 @@ int WriteToSMBus(unsigned char Address,unsigned char bRegister,unsigned char Siz
 int ReadfromSMBus(unsigned char Address,unsigned char bRegister,unsigned char Size,unsigned int *Data_to_smbus)
 {
     int nRetriesToLive=50;
-    
+
     while(IoInputWord(I2C_IO_BASE+0)&0x0800) ;  // Franz's spin while bus busy with any master traffic
 
     while(nRetriesToLive--) {
         unsigned char b;
         int temp;
-        
+
         IoOutputByte(I2C_IO_BASE+4, (Address<<1)|1);
         IoOutputByte(I2C_IO_BASE+8, bRegister);
-        
+
         temp = IoInputWord(I2C_IO_BASE+0);
         IoOutputWord(I2C_IO_BASE+0, temp);  // clear down all preexisting errors
-                
+
         switch (Size) {
-            case 4:    
+            case 4:
                 IoOutputByte(I2C_IO_BASE+2, 0x0d);    // unsigned int modus ?
                 break;
             case 2:
@@ -113,14 +113,14 @@ int ReadfromSMBus(unsigned char Address,unsigned char bRegister,unsigned char Si
         }
 
         b = 0;
-        
-            
+
+
         while( (b&0x36)==0 ) { b=IoInputByte(I2C_IO_BASE+0); }
 
         if(b&0x24) {
             //printf("I2CTransmitByteGetReturn error %x\n", b);
         }
-        
+
         if(!(b&0x10)) {
             //printf("I2CTransmitByteGetReturn no complete, retry\n");
         }
@@ -140,14 +140,14 @@ int ReadfromSMBus(unsigned char Address,unsigned char bRegister,unsigned char Si
                     *Data_to_smbus = IoInputByte(I2C_IO_BASE+6);
                     break;
             }
-            
+
 
             return ERR_SUCCESS;
 
         }
-        
+
     }
-           
+
     return ERR_I2C_ERROR_BUS;
 }
 
@@ -177,7 +177,7 @@ int I2CTransmitWord(unsigned char bPicAddressI2cFormat, unsigned short wDataToWr
 int I2CWriteBytetoRegister(unsigned char bPicAddressI2cFormat, unsigned char bRegister, unsigned char wDataToWrite)
 {
     return WriteToSMBus(bPicAddressI2cFormat,bRegister,1,(wDataToWrite&0xff));
-    
+
 }
 
 
@@ -205,7 +205,7 @@ bool I2CGetTemperature(int * pnLocalTemp, int * pExternalTemp)
     float temp1, cpuFrac = 0.0;
 
     //Motherboard temp.
-    ReadfromSMBus(0x10, 0x0A, 1, pExternalTemp);
+    ReadfromSMBus(0x10, 0x0A, 1, (unsigned int*) pExternalTemp);
 
     if(getMotherboardRevision() != XboxMotherboardRevision_1_6){
         *pnLocalTemp=I2CTransmitByteGetReturn(0x4c, 0x01);
@@ -248,9 +248,9 @@ bool I2CGetTemperature(int * pnLocalTemp, int * pExternalTemp)
             }
         }
     }
-    
 
-    //Check for bus error - 1.6 xboxes have no readable 
+
+    //Check for bus error - 1.6 xboxes have no readable
     //temperature sensors.
     //if (*pnLocalTemp==ERR_I2C_ERROR_BUS ||
     //        *pExternalTemp==ERR_I2C_ERROR_BUS)

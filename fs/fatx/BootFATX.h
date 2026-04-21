@@ -171,7 +171,7 @@ void PrintFATXPartitionTable(int nDriveIndex);
 int FATXSignature(int nDriveIndex,unsigned int block);
 FATXPartition *OpenFATXPartition(int nDriveIndex,unsigned int partitionOffset,
                         unsigned long long partitionSize);
-int FATXRawRead (int drive, int sector, unsigned long long byte_offset, int byte_len, char *buf);
+int FATXRawRead (int drive, int sector, unsigned long long byte_offset, int byte_len, unsigned char *buf);
 void DumpFATXTree(FATXPartition *partition);
 void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting);
 void LoadFATXCluster(FATXPartition* partition, int clusterId, unsigned char* clusterData);

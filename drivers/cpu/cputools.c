@@ -3,7 +3,7 @@
 #include "cpu.h"
 #include "lib/time/timeManagement.h"
 
-extern void cpuid(int op, int *eax, int *ebx, int *ecx, int *edx)
+extern void cpuid(int op, unsigned int *eax, unsigned int *ebx, unsigned int *ecx, unsigned int *edx)
 {
         __asm__("pushl %%ebx\n\t"
         "cpuid\n\t"
@@ -15,14 +15,14 @@ extern void cpuid(int op, int *eax, int *ebx, int *ecx, int *edx)
                   "=d" (*edx)
                 : "a" (op)
                 : "cc");
-}              
+}
 
 extern void intel_interrupts_on()
 {
     unsigned long low, high;
-    
+
    // printk("Disabling local apic...");
-    
+
     /* this is so interrupts work. This is very limited scope --
      * linux will do better later, we hope ...
      */
@@ -80,12 +80,12 @@ extern unsigned long getCPUFreq(void){
 
     Tcpu_result = RDTSC();
     Twin_result = IoInputDword(0x8008);
-    
+
 
     Fcpu = (Tcpu_result - Tcpu_fsb);
     Fcpu /= (Twin_result - Twin_fsb);
     Fcpu *= 3.375;
-    finalResult = Fcpu;  
+    finalResult = Fcpu;
 
     return finalResult;
 }

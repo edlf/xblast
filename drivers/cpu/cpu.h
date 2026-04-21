@@ -26,7 +26,7 @@
 extern void intel_interrupts_on(void);
 extern void cache_disable(void);
 extern void cache_enable(void);
-extern void cpuid(int op, int *eax, int *ebx, int *ecx, int *edx);
+extern void cpuid(int op, unsigned int *eax, unsigned int *ebx, unsigned int *ecx, unsigned int *edx);
 extern unsigned long getCPUFreq(void);
 void display_cpuid_update_microcode(void);
 void setup_ioapic(void);
