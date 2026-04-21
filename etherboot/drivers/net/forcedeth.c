@@ -565,8 +565,7 @@ static int phy_reset(struct nic *nic)
 static int phy_init(struct nic *nic)
 {
 	u8 *base = (u8 *) BASE;
-	u32 phyinterface, phy_reserved, mii_status, mii_control,
-	    mii_control_1000, reg;
+	u32 phyinterface, phy_reserved, mii_control, reg;
 
 	/* set advertise register */
 	reg = mii_rw(nic, np->phyaddr, MII_ADVERTISE, MII_READ);
@@ -582,7 +581,7 @@ static int phy_init(struct nic *nic)
 	phyinterface = readl(base + NvRegPhyInterface);
 
 	/* see if gigabit phy */
-	mii_status = mii_rw(nic, np->phyaddr, MII_BMSR, MII_READ);
+	// mii_rw(nic, np->phyaddr, MII_BMSR, MII_READ);
 
 	/* reset the phy */
 	if (phy_reset(nic)) {
@@ -729,7 +728,7 @@ static int update_linkspeed(struct nic *nic)
 	int newdup = np->duplex;
 	u32 mii_status;
 	int retval = 0;
-	u32 control_1000, status_1000, phyreg;
+	u32 phyreg;
 	u8 *base = (u8 *) BASE;
 	int i;
 
@@ -882,7 +881,7 @@ RESET - Reset the NIC to prepare for use
 static int forcedeth_reset(struct nic *nic)
 {
 	u8 *base = (u8 *) BASE;
-	int ret, oom, i;
+	int ret, i;
 	ret = 0;
 	dprintf(("forcedeth: open\n"));
 
@@ -900,7 +899,7 @@ static int forcedeth_reset(struct nic *nic)
 	writel(0, base + NvRegAdapterControl);
 
 	/* 2) initialize descriptor rings */
-	oom = init_ring(nic);
+	(void) init_ring(nic);
 
 	writel(0, base + NvRegLinkSpeed);
 	writel(0, base + NvRegUnknownTransmitterReg);
@@ -1012,8 +1011,13 @@ static int forcedeth_reset(struct nic *nic)
 	 * speed changes cause interrupts and are handled by nv_link_irq().
 	 */
 	{
+		#if TFTM_DEBUG
 		u32 miistat;
 		miistat = readl(base + NvRegMIIStatus);
+		#else
+		(void) readl(base + NvRegMIIStatus);
+		#endif
+
 		writel(NVREG_MIISTAT_MASK, base + NvRegMIIStatus);
 		dprintf(("startup: got 0x%hX.\n", miistat));
 	}
@@ -1030,8 +1034,6 @@ static int forcedeth_reset(struct nic *nic)
 
 	return ret;
 }
-
-//extern void hex_dump(const char *data, const unsigned int len);
 
 /**************************************************************************
 POLL - Wait for a frame

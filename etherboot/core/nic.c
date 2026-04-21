@@ -35,7 +35,7 @@ static int dummy(void *unused __unused)
  * leaving the ethernet data 16 byte aligned.  Beyond this
  * we use memmove but this makes the common cast simple and fast.
  */
-static char	packet[ETH_FRAME_LEN + ETH_DATA_ALIGN] __aligned;
+static unsigned char packet[ETH_FRAME_LEN + ETH_DATA_ALIGN] __aligned;
 
 struct nic	nic =
 {

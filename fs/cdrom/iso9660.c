@@ -18,27 +18,27 @@
 
 int iso9660_name_translate(char *translated, char *old, unsigned len) {
   int i;
-  
+
   for (i = 0; i < len; i++) {
     unsigned char c = old[i];
     if (!c)
       break;
-    
+
     /* lower case */
-    if (isupper(c)) c = tolower(c);    
-    
+    if (isupper(c)) c = tolower(c);
+
     /* Drop trailing '.;1' (ISO 9660:1988 7.5.1 requires period) */
     if (c == '.' && i == len - 3 && old[i + 1] == ';' && old[i + 2] == '1')
       break;
-    
+
     /* Drop trailing ';1' */
     if (c == ';' && i == len - 2 && old[i + 1] == '1')
       break;
-    
+
     /* Convert remaining ';' to '.' */
     if (c == ';')
       c = '.';
-    
+
     translated[i] = c;
   }
   translated[i] = '\0';
@@ -61,15 +61,15 @@ unsigned long read_dir(int driveId, struct iso_directory_record *dir_read, char 
     if(!buffer) {
         return 0;
     }
-    
+
     for(i = 0; i < (read_size >> ISOFS_BLOCK_BITS); i++) {
         BootIdeReadSector(driveId, &buffer[i * ISOFS_BLOCK_SIZE], offset , 0, ISOFS_BLOCK_SIZE);
         offset++;
     }
-    
+
     newfilename = (char *)malloc(1024);
     memset(newfilename, 0x0, 1024);
-        
+
     offset=0;
     while(offset < read_size) {
         dir = (struct iso_directory_record *)&buffer[offset];
@@ -81,19 +81,19 @@ unsigned long read_dir(int driveId, struct iso_directory_record *dir_read, char 
         }
         if(dir->name[0] != 0 && dir->name[0] != 1) {
             sprintf(newfilename, "%s/",filename);
-            iso9660_name_translate(newfilename + strlen(newfilename), 
+            iso9660_name_translate(newfilename + strlen(newfilename),
                     dir->name, (unsigned char)dir->name_len[0]);
-//            printk("Read : Sector %d Filename %s %d\n", 
+//            printk("Read : Sector %d Filename %s %d\n",
 //                    *((unsigned long *)(dir->extent)),  newfilename,
 //                    (unsigned char)dir->ext_attr_length[0]);
         }
-        
+
         if(strlen(newfilename) <= strlen(search)) {
             if(memcmp(newfilename, search, strlen(search)) == 0) {
                 sect = *((unsigned long *)(dir->extent));
                 memcpy(dir_found, dir, sizeof(struct iso_directory_record));
-//                printk("Found : Sector %d Directory %s Filename %s  %d %d \n", 
-//                    sect, newfilename, search, 
+//                printk("Found : Sector %d Directory %s Filename %s  %d %d \n",
+//                    sect, newfilename, search,
 //                    strlen(newfilename), strlen(search));
 //                free(newfilename);
 //                free(buffer);
@@ -106,26 +106,26 @@ unsigned long read_dir(int driveId, struct iso_directory_record *dir_read, char 
                         strlen(newfilename)) && search[strlen(newfilename)]=='/') {
                 sect = read_dir(driveId, dir, search, newfilename, dir_found);
                 return sect;
-            }    
+            }
         }
         offset+=dir_length;
         sect = 0;
     }
-    
+
     free(buffer);
     free(newfilename);
 
     return sect;
 }
 
-unsigned long read_file(int driveId, struct iso_directory_record *dir_read, char *buffer, unsigned int max_bytes_to_read) {
+unsigned long read_file(int driveId, struct iso_directory_record *dir_read, unsigned char *buffer, unsigned int max_bytes_to_read) {
     unsigned long read_size;
     unsigned long bytes_read;
     unsigned long offset;
     int i;
     char *tmpbuff;
 
-    
+
     offset = *((unsigned long *)(dir_read->extent));
     tmpbuff = (char *) malloc(ISO_BLOCKSIZE);
 
@@ -133,18 +133,18 @@ unsigned long read_file(int driveId, struct iso_directory_record *dir_read, char
         read_size = *(unsigned long *)dir_read->size;
     }
     else read_size = *(unsigned long *)max_bytes_to_read;
-    
+
     bytes_read = read_size;
-    
+
     if(read_size <= ISO_BLOCKSIZE) {
         read_size = ISO_BLOCKSIZE;
     } else {
         read_size+=(ISO_BLOCKSIZE - (read_size % ISO_BLOCKSIZE));
     }
-    
+
 //    printk("         read_file sector %d %d\n", offset, read_size);
 //    printk("         read %d\n", bytes_read);
-    
+
     for(i = 0; i < (read_size >> ISOFS_BLOCK_BITS) ; i++) {
         memset(tmpbuff, 0x0, ISO_BLOCKSIZE);
         BootIdeReadSector(driveId, tmpbuff, offset , 0, ISO_BLOCKSIZE);
@@ -165,12 +165,12 @@ int BootIso9660GetFile(int driveId, char *szcPath, unsigned char *pbaFile, unsig
     struct iso_directory_record *rootd;
     unsigned long offset;
     struct iso_directory_record *dir;
-    
+
     pvd = (struct iso_primary_descriptor *)malloc(sizeof(struct iso_primary_descriptor));
     memset(pvd,0x0,sizeof(struct iso_primary_descriptor));
     dir = (struct iso_directory_record *)malloc(sizeof(struct iso_directory_record));
     memset(dir,0x0,sizeof(struct iso_directory_record));
-    
+
     if(BootIdeReadSector(driveId, pvd, 16 , 0, ISO_BLOCKSIZE)) {
 //        printk("BootIso9660GetFile : Error read Sector\n");
         free(pvd);
@@ -180,7 +180,7 @@ int BootIso9660GetFile(int driveId, char *szcPath, unsigned char *pbaFile, unsig
 
     rootd = (struct iso_directory_record *)&pvd->root_directory_record;
     offset = read_dir(driveId, rootd, szcPath, "", dir);
-    
+
     if(offset > 0) {
         return read_file(driveId, dir, pbaFile, dwFileLengthMax);
     } else {
