@@ -1,0 +1,35 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Dependencies
+      run: sudo apt update && sudo apt install gcc-multilib
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Create Build Tag
+      id: build_tag
+      run: echo "::set-output name=BUILD_TAG::build-$(date -u +'%Y%m%d')-$(git rev-parse --short HEAD)"
+    - name: Build
+      run: make
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        path: |
+          xbe/XBlast OS.xbe
+          image/crcwell.bin
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: softprops/action-gh-release@v2.2.2
+      with:
+        files: |
+          xbe/XBlast OS.xbe
+          image/crcwell.bin
+        tag_name: ${{ steps.build_tag.outputs.BUILD_TAG }}
