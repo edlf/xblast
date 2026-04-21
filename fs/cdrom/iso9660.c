@@ -190,4 +190,3 @@ int BootIso9660GetFile(int driveId, char *szcPath, unsigned char *pbaFile, unsig
         return -1;
     }
 }
-
