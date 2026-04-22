@@ -74,7 +74,7 @@ typedef struct {
     unsigned short m_wCylinder;
     unsigned char m_bDrivehead;
 
-       /* 48-bit LBA */
+    /* 48-bit LBA */
     unsigned char m_bCountSectorExt;
     unsigned char m_bSectorExt;
     unsigned short m_wCylinderExt;
