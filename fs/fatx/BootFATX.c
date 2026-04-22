@@ -39,7 +39,6 @@ XboxPartitionTable BackupPartTbl =
 
 int checkForLastDirectoryEntry(unsigned char* entry)
 {
-
     // if the filename length byte is 0 or 0xff,
     // this is the last entry
     if ((entry[0] == 0xff) || (entry[0] == 0))
@@ -958,11 +957,11 @@ bool FATXCheckMBR(unsigned char driveId)
     unsigned char *sourceTable = (unsigned char *)&BackupPartTbl;
     unsigned char i;
     unsigned char ba[512];
+
     if(BootIdeReadSector(driveId, &ba[0], 0x00, 0, 512)) {
         printk("\n\n\n           FATXCheckMBR : Unable to read MBR sector\n");
         return 0;
-    }
-    else{
+    } else{
         for(i = 0; i < 48; i++){
             if(ba[i] != sourceTable[i]){         //Contains generic MBR header
                 return 0;                       //First 48 bytes should always be identical for every Part tables.

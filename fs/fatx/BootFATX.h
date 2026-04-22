@@ -7,14 +7,14 @@
 #include <stdbool.h>
 
 
-#define STORE_SIZE    (0x131F00000ULL)
-#define SYSTEM_SIZE    (0x1f400000UL)
-#define CACHE1_SIZE    (0x2ee80000UL)
-#define CACHE2_SIZE    (0x2ee80000UL)
-#define CACHE3_SIZE    (0x2ee80000UL)
+#define STORE_SIZE       (0x131F00000ULL)
+#define SYSTEM_SIZE      (0x1f400000UL)
+#define CACHE1_SIZE      (0x2ee80000UL)
+#define CACHE2_SIZE      (0x2ee80000UL)
+#define CACHE3_SIZE      (0x2ee80000UL)
 
-#define SECTOR_EXTEND   (0x00EE8AB0UL)
-#define SECTOR_STORE    (0x0055F400UL)
+#define SECTOR_EXTEND    (0x00EE8AB0UL)
+#define SECTOR_STORE     (0x0055F400UL)
 #define SECTOR_SYSTEM    (0x00465400UL)
 #define SECTOR_CONFIG    (0x00000000UL)
 #define SECTOR_CACHE1    (0x00000400UL)
@@ -23,17 +23,17 @@
 
 #define SECTORD_CONFIG	 (SECTOR_CACHE1 - SECTOR_CONFIG)
 #define SECTORS_STORE    (SECTOR_EXTEND - SECTOR_STORE)         //0x9896B0
-#define SECTORS_SYSTEM    (SECTOR_STORE  - SECTOR_SYSTEM)
-#define SECTORS_CACHE1    (SECTOR_CACHE2 - SECTOR_CACHE1)
-#define SECTORS_CACHE2    (SECTOR_CACHE3 - SECTOR_CACHE2)
-#define SECTORS_CACHE3    (SECTOR_SYSTEM - SECTOR_CACHE3)
+#define SECTORS_SYSTEM   (SECTOR_STORE  - SECTOR_SYSTEM)
+#define SECTORS_CACHE1   (SECTOR_CACHE2 - SECTOR_CACHE1)
+#define SECTORS_CACHE2   (SECTOR_CACHE3 - SECTOR_CACHE2)
+#define SECTORS_CACHE3   (SECTOR_SYSTEM - SECTOR_CACHE3)
 
-#define LBASIZE_512GB   1073741824UL                      //Switch to 64K clusters beyond that
-#define LBASIZE_1024GB  2147483645UL                      //Max LBA size supported by Xbox
-#define LBASIZE_256GB   536870912UL                       //Switch to 32K clusters beyond that
-#define LBASIZE_137GB   (0x0FFFFFFFUL - SECTOR_EXTEND)     //LBA28 limited F: drive size.
+#define LBASIZE_512GB   1073741824UL                      // Switch to 64K clusters beyond that
+#define LBASIZE_1024GB  2147483645UL                      // Max LBA size supported by Xbox
+#define LBASIZE_256GB   536870912UL                       // Switch to 32K clusters beyond that
+#define LBASIZE_137GB   (0x0FFFFFFFUL - SECTOR_EXTEND)    // LBA28 limited F: drive size.
 
-#define FATX16_MAXLBA   2096800UL                         //Max number of sectors possible of a FATX16 partition. Higher than that is FATX32.
+#define FATX16_MAXLBA   2096800UL                         // Max number of sectors possible of a FATX16 partition. Higher than that is FATX32.
 
 /*Taken from XBPartitionner*/
 // This flag (part of PARTITION_ENTRY.pe_flags) tells you whether/not a
@@ -62,7 +62,7 @@
 // File attribute: hidden
 #define FATX_FILEATTR_HIDDEN 0x02
 
-// File attribute: system 
+// File attribute: system
 #define FATX_FILEATTR_SYSTEM 0x04
 
 // File attribute: archive
@@ -81,9 +81,8 @@
 
 // This structure describes a FATX partition
 typedef struct {
-
   int nDriveIndex;
- 
+
   // The starting byte of the partition
   unsigned long long partitionStart;
 
@@ -104,10 +103,10 @@ typedef struct {
     unsigned short *words;
     unsigned long *dwords;
   } clusterChainMap;
-  
+
   // Address of cluster 1
   unsigned long long cluster1Address;
-  
+
 } FATXPartition;
 
 typedef struct {                                        //Also known as FATX SuperBlock.
@@ -159,18 +158,12 @@ typedef struct
         XboxPartitionTableEntry TableEntries[14];
 } XboxPartitionTable;
 
-//TODO: One of the 2 functions below will need to be removed.
-//LoadFATXFilefixed requires you to specify pointer (unsigned char* Position) for allocated memory.
-//LoadFATXFile allocates memory and point to it using the "buffer" unsigned char pointer in fileinfo struct.
-//int LoadFATXFilefixed(FATXPartition *partition,char *filename, FATXFILEINFO *fileinfo,unsigned char* Position);
-//A decision has been made. Left it commented for "legacy" purposes.
 int LoadFATXFile(FATXPartition *partition,char *filename, FATXFILEINFO *fileinfo);
 int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen, char *prefix);
 int FATXFindDir(FATXPartition *partition, int clusterId, char *dir);
 void PrintFATXPartitionTable(int nDriveIndex);
 int FATXSignature(int nDriveIndex,unsigned int block);
-FATXPartition *OpenFATXPartition(int nDriveIndex,unsigned int partitionOffset,
-                        unsigned long long partitionSize);
+FATXPartition *OpenFATXPartition(int nDriveIndex,unsigned int partitionOffset, unsigned long long partitionSize);
 int FATXRawRead (int drive, int sector, unsigned long long byte_offset, int byte_len, unsigned char *buf);
 void DumpFATXTree(FATXPartition *partition);
 void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting);
@@ -182,7 +175,6 @@ int _FATXFindFile(FATXPartition* partition,char* filename,int clusterId, FATXFIL
 int FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo);
 void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned int entryNumber, unsigned int cluster);
 int FATXCheckFATXMagic(unsigned char driveId);
-//bool FATXCheckBRFR(unsigned char drive);
 void FATXSetBRFR(unsigned char drive);
 bool FATXCheckMBR(unsigned char driveId);
 void FATXSetMBR(unsigned char driveId, XboxPartitionTable *p_table);
