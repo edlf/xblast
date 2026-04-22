@@ -7,64 +7,70 @@ MEMORY
 }
 
 
-RAM_CODE = 0x00100000; 
+RAM_CODE = 0x00100000;
 
 /* this should be changed depending the actual size of the rom */
 ROM_SIZE = 256K;
-LOW_ROM = 0xff000000; 
+LOW_ROM = 0xff000000;
 
 
 TOP_ROM = ( LOW_ROM + ROM_SIZE - 512 );
 TOP_ROM_LOAD = ( ROM_SIZE - 512 );
 
 SECTIONS {
-
     /* ROM Part of the programm */
-
     .low_rom LOW_ROM : AT ( 0x0 ){
         *(.low_rom);
         _end_rom = . ;
     }
 
     /* RAM Part of the programm */
-
     .text (RAM_CODE) : AT( SIZEOF(.low_rom) ) {
         _ram_location = .;
         _start_ramcopy = _end_rom;
         *(.text);
-        *(.text.unlikely);
+        *(.text.*);
         _start_checksum = _start_ramcopy - LOW_ROM;
     }
 
     .data (RAM_CODE + SIZEOF(.text)) : AT( SIZEOF(.low_rom) + SIZEOF(.text)) {
         *(.data);
+        *(.data.*);
         *(.sdata);
         *(.sdata2);
         *(.got);
+        *(.got.*);
     }
-           
+
     .rodata ( RAM_CODE + SIZEOF(.text) + SIZEOF(.data) ) : AT ( SIZEOF(.low_rom) + SIZEOF(.text) + SIZEOF(.data)) {
         *(.rodata);
         *(.rodata.str1.1);
+        *(.rodata.str1.4);
         *(.rodata.str1.32);
         *(.rodata.cst4);
         *(.rodata.cst8);
         _size_code_2bl = .;
     }
-        
+
     .bss ( RAM_CODE + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.rodata) ) : AT ( SIZEOF(.low_rom) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.rodata)) {
+        BSS_BASE = .;
         _bss = .;
         *(.bss)
         *(.sbss)
         *(COMMON)
         _ebss = . ;
         _heap = . ;
+        BSS_END = .;
     }
-    
+
     /* We need to copy the .data section to to upper memory */
     _size_ramcopy = SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.rodata) + SIZEOF(.bss);
-    _size_2bl = SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.rodata);                
-    
+    _size_2bl = SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.rodata);
+
     /DISCARD/ : { *(.eh_frame) }
     /DISCARD/ : { *(.note.gnu.property) }
 }
+
+BSS_SIZE = BSS_END - BSS_BASE;
+BSS_SIZE_L = BSS_SIZE / 4;
+
