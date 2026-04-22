@@ -15,7 +15,6 @@ void IconMenuInit(void);
 
 // Generated only once. Static entries.
 TEXTMENU* BankSelectMenuInit(void);
-TEXTMENU* BFMBootMenuInit(void);
 TEXTMENU* CDMenuInit(void);
 TEXTMENU* DeveloperMenuInit(void);
 TEXTMENU* EEPROMFileRestoreMenuInit(void);

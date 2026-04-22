@@ -28,7 +28,7 @@ TEXTMENU* DeveloperMenuInit(void)
     itemPtr->functionPtr = LPCIOWrite;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
-    
+
     //Read LPC port data.
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Read LPC I/O");
@@ -65,15 +65,6 @@ TEXTMENU* DeveloperMenuInit(void)
     itemPtr->functionPtr = settingsPrintData;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
-/*
-    //Boot BFM BIOS.
-    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Boot BFM BIOS");
-    itemPtr->functionPtr = DrawChildTextMenu;
-    itemPtr->functionDataPtr = (void *)BFMBootMenuInit();
-    TextMenuAddItem(menuPtr, itemPtr);
-*/
-
 
     return menuPtr;
 }

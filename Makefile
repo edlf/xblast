@@ -125,7 +125,6 @@ OBJECTS-CROM += $(TOPDIR)/obj/ResetMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/HDDFlashMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/CDMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/InfoMenuInit.o
-#OBJECTS-CROM += $(TOPDIR)/obj/FlashMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/HDDMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/LEDMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/SystemMenuInit.o
@@ -135,7 +134,6 @@ OBJECTS-CROM += $(TOPDIR)/obj/ModchipMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/NetworkMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/LCDMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/EepromEditMenuInit.o
-#OBJECTS-CROM += $(TOPDIR)/obj/BFMBootMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/XBlastScriptMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/UncommittedChangesMenuInit.o
 OBJECTS-CROM += $(TOPDIR)/obj/MenuActions.o
@@ -147,7 +145,6 @@ OBJECTS-CROM += $(TOPDIR)/obj/HDDMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/CDMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/LEDMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/ToolsMenuActions.o
-#OBJECTS-CROM += $(TOPDIR)/obj/Confirm.o
 OBJECTS-CROM += $(TOPDIR)/obj/OnScreenKeyboard.o
 OBJECTS-CROM += $(TOPDIR)/obj/ModchipMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/LCDMenuActions.o
@@ -155,7 +152,6 @@ OBJECTS-CROM += $(TOPDIR)/obj/SystemMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/DeveloperMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/NetworkMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/EepromEditMenuActions.o
-#OBJECTS-CROM += $(TOPDIR)/obj/BFMBootMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/XBlastScriptMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/UncommittedChangesMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/LoadLinux.o
@@ -176,7 +172,6 @@ OBJECTS-CROM += $(TOPDIR)/obj/BootLPCMod.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootLCD.o
 OBJECTS-CROM += $(TOPDIR)/obj/LCDRingBuffer.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootFATX.o
-#OBJECTS-CROM += $(TOPDIR)/obj/ff.o
 OBJECTS-CROM += $(TOPDIR)/obj/ProgressBar.o
 OBJECTS-CROM += $(TOPDIR)/obj/ConfirmDialog.o
 OBJECTS-CROM += $(TOPDIR)/obj/md5.o
@@ -191,6 +186,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsDefs.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsImportExport.o
 OBJECTS-CROM += $(TOPDIR)/obj/PowerManagement.o
 OBJECTS-CROM += $(TOPDIR)/obj/HardwareIdentifier.o
+
 #USB
 OBJECTS-CROM += $(TOPDIR)/obj/config.o
 OBJECTS-CROM += $(TOPDIR)/obj/hcd-pci.o
@@ -209,6 +205,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xpad.o
 #OBJECTS-CROM += $(TOPDIR)/obj/xremote.o
 #OBJECTS-CROM += $(TOPDIR)/obj/usbkey.o
 OBJECTS-CROM += $(TOPDIR)/obj/risefall.o
+
 #ETHERBOOT
 ifeq ($(ETHERBOOT), yes)
 OBJECTS-CROM += $(TOPDIR)/obj/nic.o
