@@ -80,7 +80,7 @@ const char *AvCableName(void)
 	const char *vga_name="VGA";
 	const char *vgasog_name="VGA SoG";
 	const char *unknown_name="Unknown";
-    
+
     xbox_av_type av_type = DetectAvType();
     switch (av_type)
     {
@@ -103,7 +103,7 @@ const char *AvCableName(void)
 
 void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
 {
-    xbox_tv_encoding tv_encoding; 
+    xbox_tv_encoding tv_encoding;
     xbox_av_type av_type;
     unsigned char b;
     RIVA_HW_INST riva;
@@ -112,12 +112,12 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     int i=0;
     GPU_PARAMETER gpu;
     xbox_video_mode encoder_mode;
-    
+
     tv_encoding = DetectVideoStd();
     debugSPIPrint(DEBUG_VIDEO_DRIVER, "Detected Video Standard:%s\n", tv_encoding == TV_ENC_NTSC ? "NTSC" : "PAL");
     DetectVideoEncoder();
     debugSPIPrint(DEBUG_VIDEO_DRIVER, "Detected Video Encoder: %s\n", VideoEncoderName());
-    
+
     if(isFrostySupport() == false)
     {
         LPCmodSettings.OSsettings.enableVGA = 0;
@@ -179,7 +179,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     MMIO_H_OUT32 (riva.PCRTC, 0, 0x800, pvmode->m_dwFrameBufferStart);
 
     IoOutputByte(0x80d3, 5);  // Kill all video out using an ACPI control pin
-    
+
     MMIO_H_OUT32(riva.PRAMDAC,0,0x884,0x0);
     MMIO_H_OUT32(riva.PRAMDAC,0,0x888,0x0);
     MMIO_H_OUT32(riva.PRAMDAC,0,0x88c,0x10001000);
@@ -209,14 +209,14 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         MMIO_H_OUT32(riva.PRAMDAC,0,0x84c,0x0);
         MMIO_H_OUT32(riva.PRAMDAC,0,0x8c4,0x0);
     }
-    
+
     writeCrtNv (&riva, 0, 0x14, 0x00);
     writeCrtNv (&riva, 0, 0x17, 0xe3); // Set CRTC mode register
     writeCrtNv (&riva, 0, 0x19, 0x10); // ?
     writeCrtNv (&riva, 0, 0x1b, 0x05); // arbitration0
     writeCrtNv (&riva, 0, 0x22, 0xff); // ?
     writeCrtNv (&riva, 0, 0x33, 0x11); // ?
-    
+
     if (av_type == AV_HDTV)
     {
         unsigned char pll_int;
@@ -228,7 +228,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         else if (video_mode->yres > 600) {
             hdtv_mode = HDTV_720p;
         }*/
-        
+
         // Settings for 720x480@60Hz (480p)
         pvmode->width=720;
         pvmode->height=480;
@@ -258,7 +258,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         gpu.crtchdispend = pvmode->width;
         gpu.crtcvstart = gpu.nvvstart;
         gpu.crtcvtotal = gpu.nvvtotal;
-        
+
         pll_int = (unsigned char)((double)27027 * 6.0 / 13.5e3 + 0.5);
 
         switch (video_encoder)
@@ -282,7 +282,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         pvmode->height=600;
         pvmode->xmargin=20;
         pvmode->ymargin=20;
-    
+
         gpu.xres = pvmode->width;
         gpu.nvhstart = 900;
         gpu.nvhtotal = 1028;
@@ -294,7 +294,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         gpu.crtcvstart = gpu.nvvstart;
         gpu.crtcvtotal = gpu.nvvtotal;
         pll_int = (unsigned char)((double)36000 * 6.0 / 13.5e3 + 0.5);
-    
+
         switch (video_encoder)
         {
             case ENCODER_CONEXANT:
@@ -340,8 +340,8 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
                 pvmode->xmargin=20;
                 pvmode->ymargin=20; // lines
                 break;
-        }    
-        encoder_mode.xres = pvmode->width; 
+        }
+        encoder_mode.xres = pvmode->width;
         encoder_mode.yres = pvmode->height;
         encoder_mode.tv_encoding = tv_encoding;
         encoder_mode.bpp = 32;
@@ -362,7 +362,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
                 encoder_ok = xcalibur_calc_mode(&encoder_mode, &newmode);
                 break;
         }
-            
+
         gpu.xres = pvmode->width;
         gpu.nvhstart = newmode.ext.hsyncstart;
         gpu.nvhtotal = newmode.ext.htotal;
@@ -382,13 +382,12 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         unsigned long *XCal_Reg;
         int n1=0;
 
-        //Set up the GPU 
+        //Set up the GPU
         SetGPURegister(&gpu, pvmode->m_pbBaseAddressVideo);
-        
+
         switch (video_encoder)
         {
         case ENCODER_CONEXANT:
-            I2CWriteBytetoRegister(0x45,0xc4, 0x00); // EN_OUT = 1
             // Conexant init (starts at register 0x2e)
             regs = (unsigned char *)newmode.encoder_regs;
             for(i=0x2e,n1=0;i<0x100;i+=2,n1++)
@@ -446,11 +445,11 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
             }
             free(regs);
             break;
-        }    
+        }
     }
     //Free the malloc'd registers
     free((char *)newmode.encoder_regs);
-        
+
     NVDisablePalette (&riva, 0);
     writeCrtNv (&riva, 0, 0x44, 0x03);
     NVInitGrSeq(&riva);
@@ -469,7 +468,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         I2CTransmitWord(0x45, (0xaa<<8)|0);
         I2CTransmitWord(0x45, (0xac<<8)|0);
     }
-    
+
     NVWriteSeq(&riva, 0x01, 0x01);  /* reenable display */
 
     //Turn on the output
