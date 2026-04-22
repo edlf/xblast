@@ -90,8 +90,7 @@ const ISR_PREP isrprep[] =
     { 0x0f, (unsigned int)IntHandlerExceptionF },
     { 0x10, (unsigned int)IntHandlerException10 },
 
-            // interrupts from PIC1
-
+    // interrupts from PIC1
     { 0x20, (unsigned int)IntHandlerTimer0 },
     { 0x21, (unsigned int)IntHandler1 },
     { 0x22, (unsigned int)IntHandler2 },
@@ -101,8 +100,7 @@ const ISR_PREP isrprep[] =
     { 0x26, (unsigned int)IntHandler6 },
     { 0x27, (unsigned int)IntHandler7 },
 
-            // interrupts from PIC 2
-
+    // interrupts from PIC 2
     { 0x70, (unsigned int)IntHandler8 },
     { 0x71, (unsigned int)IntHandler9 },
     { 0x72, (unsigned int)IntHandler10 },
@@ -123,21 +121,15 @@ void BootInterruptsWriteIdt(void)
 
     // init storage used by ISRs
 
-    VIDEO_VSYNC_POSITION = 0;
     BIOS_TICK_COUNT = 0;
-    VIDEO_VSYNC_DIR = 0;
     nCountI2cinterrupts = 0;
     nCountUnusedInterrupts = 0;
     nCountUnusedInterruptsPic2 = 0;
     nCountInterruptsSmc = 0;
     nCountInterruptsIde = 0;
     traystate = ETS_NOTHING;
-    VIDEO_LUMASCALING = 0;
-    VIDEO_RSCALING = 0;
-    VIDEO_BSCALING = 0;
 
-        // set up default exception, interrupt vectors to dummy stubs
-
+    // set up default exception, interrupt vectors to dummy stubs
     for(n = 0; n < 0x100; n++)   // have to do 256
     {
         ptspmi[n].m_wSelector = 0x10;
@@ -191,12 +183,11 @@ void BootInterruptsWriteIdt(void)
 void IntHandlerCSmc(void)
 {
     unsigned char bStatus, nBit=0;
-        unsigned int temp;
-        unsigned char temp_AV_mode;
-        
+    unsigned int temp;
+    unsigned char temp_AV_mode;
+
     nCountInterruptsSmc++;
-   
-        
+
     temp = IoInputWord(0x8000);
     if (temp!=0x0)
     {
@@ -204,18 +195,15 @@ void IntHandlerCSmc(void)
         //printk("System Timer wants to sleep we kill him");
         //return;
     }
-        
-   
-    
+
     bStatus=I2CTransmitByteGetReturn(0x10, 0x11); // Query PIC for interrupt reason
-    
+
     debugSPIPrintInt("\n\nreturn byte : 0x%02X\n\n", bStatus);
     // we do nothing, if there is not Interrupt reason
     if (bStatus==0x0)
     {
         return;
     }
-    
 
     while(nBit<7)
     {
@@ -361,8 +349,8 @@ void IntHandlerCTimer0(void)
     BIOS_TICK_COUNT++;
     updateTime();
 }
- 
- 
+
+
 // USB interrupt
 
 void IntHandler1C(void)
@@ -399,7 +387,7 @@ void IntHandler2C(void)
 void IntHandler3VsyncC(void)  // video VSYNC
 {
     *((volatile unsigned int *)0xfd600100)=0x1;  // clear VSYNC int
-} 
+}
 
 
 void IntHandler4C(void)
@@ -536,9 +524,7 @@ void IntHandlerExceptionFC(void)
 {
     debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Reserved\n");    while(1) ;
 }
-//void IntHandlerException10C(void) {    debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Copro Error\n");    while(1) ; }
 void IntHandlerException10C(void)
 {
     debugSPIPrint(DEBUG_EXCEPTIONS,"CPU Exc: Copro Error\n");
 }
-

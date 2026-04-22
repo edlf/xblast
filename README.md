@@ -1,7 +1,3 @@
-# Downloads
-
-Download from [releases directory](releases/)
-
 # README #
 
 This is the code repository for the XBlast's Xbox Legal "OS".
@@ -63,7 +59,7 @@ Windows users can use WSL.
 
 ### Implemented features ###
 
-This project is available in both "BIOS" and "XBE"(Xbox executable) form. The features for the 2 versions are not all the same. Generally speaking, the XBE version contains less feature. 
+This project is available in both "BIOS" and "XBE"(Xbox executable) form. The features for the 2 versions are not all the same. Generally speaking, the XBE version contains less feature.
 
 Also note that this software can detect if a firmware replacement device is inserted onto the LPC port. Certain options specifically related to XBlast Mod will not be available if the proper hardware is not detected. However, HD44780 LCD ouput is supported on the whole range of SmartXX devices and on Xecuter 3(CE).
 
