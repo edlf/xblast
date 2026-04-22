@@ -4,7 +4,7 @@
  * Maintainer: Oliver Schwartz <Oliver.Schwartz@gmx.de>
  *
  * Contributors:
- * 
+ *
  * This file is subject to the terms and conditions of the GNU General Public
  * License.  See the file COPYING in the main directory of this archive
  * for more details.
@@ -55,79 +55,67 @@ typedef struct _xbox_video_mode {
 
 typedef struct _riva_hw_state
 {
-      U032 bpp;
-        U032 width;
-           U032 height;
-        U032 repaint0;
-           U032 repaint1;
-          U032 screen;
-        U032 pixel;
-        U032 horiz;
-           U032 arbitration0;
-          U032 arbitration1;
-          U032 vpll;
-           U032 pllsel;
-           U032 general;
-          U032 config;
-           U032 cursor0;
-          U032 cursor1;
-           U032 cursor2;
-          U032 offset0;
-        U032 offset1;
-           U032 offset2;
-         U032 offset3;
-          U032 pitch0;
-          U032 pitch1;
-           U032 pitch2;
-          U032 pitch3;
-//#ifdef CONFIG_XBOX
-          U032 fb_start;
-           U032 vend;
-           U032 vtotal;
-          U032 vcrtc;
-          U032 vsyncstart;
-           U032 vsyncend;
-          U032 vvalidstart;
-           U032 vvalidend;
-         U032 hend;
-           U032 htotal;
-          U032 hcrtc;
-        U032 hsyncstart;
-        U032 hsyncend;
-         U032 hvalidstart;
-          U032 hvalidend;
-           U032 crtchdispend;
-        U032 crtcvstart;
-          U032 crtcvtotal;
-         U032 checksum;
-         //#endif
-  } RIVA_HW_STATE;
+  U032 bpp;
+  U032 width;
+  U032 height;
+  U032 repaint0;
+  U032 repaint1;
+  U032 screen;
+  U032 pixel;
+  U032 horiz;
+  U032 arbitration0;
+  U032 arbitration1;
+  U032 vpll;
+  U032 pllsel;
+  U032 general;
+  U032 config;
+  U032 cursor0;
+  U032 cursor1;
+  U032 cursor2;
+  U032 offset0;
+  U032 offset1;
+  U032 offset2;
+  U032 offset3;
+  U032 pitch0;
+  U032 pitch1;
+  U032 pitch2;
+  U032 pitch3;
+  // XBOX registers bellow
+  U032 fb_start;
+  U032 vend;
+  U032 vtotal;
+  U032 vcrtc;
+  U032 vsyncstart;
+  U032 vsyncend;
+  U032 vvalidstart;
+  U032 vvalidend;
+  U032 hend;
+  U032 htotal;
+  U032 hcrtc;
+  U032 hsyncstart;
+  U032 hsyncend;
+  U032 hvalidstart;
+  U032 hvalidend;
+  U032 crtchdispend;
+  U032 crtcvstart;
+  U032 crtcvtotal;
+  U032 checksum;
+} RIVA_HW_STATE;
 
 struct riva_regs {
-           unsigned char attr[NUM_ATC_REGS];
-           unsigned char crtc[NUM_CRT_REGS];
-           unsigned char gra[NUM_GRC_REGS];
-           unsigned char seq[NUM_SEQ_REGS];
-           unsigned char misc_output;
-          RIVA_HW_STATE ext;
-    void *encoder_regs;
+  unsigned char attr[NUM_ATC_REGS];
+  unsigned char crtc[NUM_CRT_REGS];
+  unsigned char gra[NUM_GRC_REGS];
+  unsigned char seq[NUM_SEQ_REGS];
+  unsigned char misc_output;
+  RIVA_HW_STATE ext;
+  void *encoder_regs;
 };
 
 typedef enum enumEncoderType {
-            ENCODER_CONEXANT,
-            ENCODER_FOCUS,
-            ENCODER_XCALIBUR
+  ENCODER_CONEXANT,
+  ENCODER_FOCUS,
+  ENCODER_XCALIBUR
 } xbox_encoder_type;
 
-/*static const conexant_video_parameter vidstda[];
-
-int tv_init(void);
-void tv_exit(void);
-xbox_encoder_type tv_get_video_encoder(void);
-
-void tv_save_mode(unsigned char * mode_out);
-void tv_load_mode(unsigned char * mode);
-xbox_tv_encoding get_tv_encoding(void);
-xbox_av_type detect_av_type(void);
-*/
 #endif

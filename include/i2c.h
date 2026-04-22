@@ -10,11 +10,11 @@
 
 #include <stdbool.h>
 
-int WriteToSMBus(unsigned char Address,unsigned char bRegister,unsigned char Size,unsigned int Data_to_smbus);
-int ReadfromSMBus(unsigned char Address,unsigned char bRegister,unsigned char Size,unsigned int *Data_to_smbus);
-int I2CTransmitByteGetReturn(unsigned char bPicAddressI2cFormat, unsigned char bDataToWrite);
-int I2CTransmitWord(unsigned char bPicAddressI2cFormat, unsigned short wDataToWrite);
-int I2CWriteBytetoRegister(unsigned char bPicAddressI2cFormat, unsigned char bRegister, unsigned char wDataToWrite);
+int WriteToSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, const unsigned int Data_to_smbus);
+int ReadfromSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, unsigned int *Data_to_smbus);
+int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite);
+int I2CTransmitWord(const unsigned char bPicAddressI2cFormat, const unsigned short wDataToWrite);
+int I2CWriteBytetoRegister(const unsigned char bPicAddressI2cFormat, const unsigned char bRegister, const unsigned char wDataToWrite);
 
 int I2cSetFrontpanelLed(unsigned char b);
 bool I2CGetTemperature(int * pnLocalTemp, int * pExternalTemp);

@@ -17,8 +17,6 @@
 #ifndef conexant_h
 #define conexant_h
 
-//#include <linux/xboxfbctl.h>
-//include "xboxfb.h"
 #include "boot.h"
 #include "encoder.h"
 

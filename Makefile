@@ -11,7 +11,7 @@ RAMTEST_256MB := 1
 DEBUG := 0
 
 # Override TSOP control availability based on Xbox Revision
-TSOPCTRL := 0 
+TSOPCTRL := 0
 
 # Generates VGA enabled by default image. Does not override existing setting in flash.
 VGA := 0
@@ -35,7 +35,7 @@ CROM_CFLAGS = $(INCLUDE) $(INCLUDE_ALL)
 
 #You can override these if you wish.
 CFLAGS = $(INCLUDE_ALL) -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member -fno-zero-initialized-in-bss -fno-stack-protector -U_FORTIFY_SOURCE -fno-PIC
-2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding -fno-zero-initialized-in-bss -fno-stack-protector -fno-PIC
+2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding -fno-zero-initialized-in-bss -fno-stack-protector -fno-PIC -Wall
 
 LD      = ${PREFIX}ld
 OBJCOPY = ${PREFIX}objcopy
@@ -49,7 +49,7 @@ ifeq ($(ETHERBOOT), yes)
 ETH_SUBDIRS = etherboot
 CROM_CFLAGS	+= -DETHERBOOT
 ETH_INCLUDE = 	-I$(TOPDIR)/etherboot/include -I$(TOPDIR)/etherboot/arch/i386/include -I$(TOPDIR)
-ETH_CFLAGS  = 	-Os -march=pentium -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding -fno-stack-protector -U_FORTIFY_SOURCE -fno-zero-initialized-in-bss -fno-PIC
+ETH_CFLAGS  = 	-Os -march=pentium -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding -fno-stack-protector -U_FORTIFY_SOURCE -fno-zero-initialized-in-bss -fno-PIC -Wall
 endif
 
 ifeq ($(DEBUG), 1)
@@ -83,7 +83,7 @@ OBJECTS-VML = $(TOPDIR)/boot_vml/vml_Startup.o
 ifeq ($(ETHERBOOT), yes)
 OBJECTS-ETH = $(TOPDIR)/boot_eth/eth_Startup.o
 endif
-                                             
+
 OBJECTS-ROMBOOT = $(TOPDIR)/obj/2bBootStartup.o
 OBJECTS-ROMBOOT += $(TOPDIR)/obj/2bPicResponseAction.o
 OBJECTS-ROMBOOT += $(TOPDIR)/obj/2bBootStartBios.o
@@ -92,7 +92,7 @@ OBJECTS-ROMBOOT += $(TOPDIR)/obj/2bBootLibrary.o
 OBJECTS-ROMBOOT += $(TOPDIR)/obj/misc.o
 #OBJECTS-ROMBOOT += $(TOPDIR)/obj/LED.o
 
-OBJECTS-CROM = $(TOPDIR)/obj/Boot.o                                          
+OBJECTS-CROM = $(TOPDIR)/obj/Boot.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootStartup.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootResetAction.o
 OBJECTS-CROM += $(TOPDIR)/obj/i2cio.o
@@ -192,7 +192,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsImportExport.o
 OBJECTS-CROM += $(TOPDIR)/obj/PowerManagement.o
 OBJECTS-CROM += $(TOPDIR)/obj/HardwareIdentifier.o
 #USB
-OBJECTS-CROM += $(TOPDIR)/obj/config.o 
+OBJECTS-CROM += $(TOPDIR)/obj/config.o
 OBJECTS-CROM += $(TOPDIR)/obj/hcd-pci.o
 OBJECTS-CROM += $(TOPDIR)/obj/hcd.o
 OBJECTS-CROM += $(TOPDIR)/obj/hub.o
@@ -247,7 +247,7 @@ endif
 cromsubdirs: $(patsubst %, _dir_%, $(SUBDIRS))
 $(patsubst %, _dir_%, $(SUBDIRS)) : dummy
 	$(MAKE) CFLAGS="$(CFLAGS) $(CROM_CFLAGS)" -C $(patsubst _dir_%, %, $@) INCLUDE_ALL="$(INCLUDE_ALL)"
-	
+
 2blsubdirs: $(patsubst %, _dir_%, boot_rom)
 $(patsubst %, _dir_%, boot_rom) : dummy
 	$(MAKE) CFLAGS="$(2BL_CFLAGS) $(INCLUDE)" -C $(patsubst _dir_%, %, $@) INCLUDE_ALL="$(INCLUDE_ALL)"
@@ -256,17 +256,17 @@ dummy:
 
 resources:
 	# Background
-	${LD} -r --oformat elf32-i386 -o $(TOPDIR)/obj/backdrop.elf -T $(TOPDIR)/scripts/backdrop.ld -b binary $(TOPDIR)/pics/backdrop.jpg	
+	${LD} -r --oformat elf32-i386 -o $(TOPDIR)/obj/backdrop.elf -T $(TOPDIR)/scripts/backdrop.ld -b binary $(TOPDIR)/pics/backdrop.jpg
 
 clean:
 	find . \( -name '*.[oas]' -o -name core -o -name '.*.flags' \) -type f -print \
 		| grep -v lxdialog/ | xargs rm -f
-	rm -f $(TOPDIR)/obj/*.gz 
-	rm -f $(TOPDIR)/obj/*.bin 
+	rm -f $(TOPDIR)/obj/*.gz
+	rm -f $(TOPDIR)/obj/*.bin
 	rm -f $(TOPDIR)/obj/*.elf
 	rm -f $(TOPDIR)/obj/*.map
-	rm -f $(TOPDIR)/image/*.bin 
-	rm -f $(TOPDIR)/image/*.xbe 
+	rm -f $(TOPDIR)/image/*.bin
+	rm -f $(TOPDIR)/image/*.xbe
 	rm -f $(TOPDIR)/xbe/*.xbe $(TOPDIR)/xbe/*.bin
 	rm -f $(TOPDIR)/xbe/*.elf
 	rm -f $(TOPDIR)/image/*.bin
@@ -277,16 +277,16 @@ clean:
 	rm -f $(TOPDIR)/boot_vml/disk/vmlboot
 	rm -f $(TOPDIR)/$(LWIPFOLDER)/src/apps/httpd/fsdata.c
 	rm -f boot_eth/ethboot
-	mkdir -p $(TOPDIR)/xbe 
+	mkdir -p $(TOPDIR)/xbe
 	mkdir -p $(TOPDIR)/image
-	mkdir -p $(TOPDIR)/obj 
+	mkdir -p $(TOPDIR)/obj
 	mkdir -p $(TOPDIR)/bin
 
 obj/image-crom.bin: cromsubdirs resources
 	${LD} -o obj/image-crom.elf ${OBJECTS-CROM} ${RESOURCES} ${LDFLAGS-ROM} -Map $(TOPDIR)/obj/image-crom.map
 	${OBJCOPY} --output-target=binary --strip-all obj/image-crom.elf $@
 
-vmlboot: vml_startup 
+vmlboot: vml_startup
 	${LD} -o $(TOPDIR)/obj/vmlboot.elf ${OBJECTS-VML} ${LDFLAGS-VMLBOOT}
 	${OBJCOPY} --output-target=binary --strip-all $(TOPDIR)/obj/vmlboot.elf $(TOPDIR)/boot_vml/disk/$@
 
@@ -306,7 +306,7 @@ endif
 xromwell.xbe: xbeboot
 	${LD} -o $(TOPDIR)/obj/xbeboot.elf ${OBJECTS-XBE} ${LDFLAGS-XBEBOOT}
 	${OBJCOPY} --output-target=binary --strip-all $(TOPDIR)/obj/xbeboot.elf $(TOPDIR)/xbe/XBlast\ OS.xbe
-	
+
 xbeboot:
 	$(CC) ${CFLAGS} -c -o ${OBJECTS-XBE} boot_xbe/xbeboot.S
 

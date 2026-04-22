@@ -20,4 +20,5 @@
 
 int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out );
 int focus_calc_hdtv_mode(xbox_hdtv_mode hdtv_mode, unsigned char pll_int, void **encoder_regs);
+
 #endif

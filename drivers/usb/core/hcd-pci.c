@@ -1,6 +1,6 @@
 /*
  * (C) Copyright David Brownell 2000-2002
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 2 of the License, or (at your
@@ -16,26 +16,8 @@
  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if 0
-#include <linux/config.h>
-
-#ifdef CONFIG_USB_DEBUG
-    #define DEBUG
-#else
-    #undef DEBUG
-#endif
-
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/pci.h>
-#include <asm/io.h>
-#include <asm/irq.h>
-#include <linux/usb.h>
-#include "hcd.h"
-#else
 #include "../usb_wrapper.h"
 #include "hcd.h"
-#endif
 
 
 /* PCI-based HCs are normal, but custom bus glue should be ok */
@@ -190,7 +172,7 @@ clean_3:
         usb_hcd_pci_remove (dev);
 
     return retval;
-} 
+}
 EXPORT_SYMBOL (usb_hcd_pci_probe);
 
 

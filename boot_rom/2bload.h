@@ -67,8 +67,8 @@ void BootStartBiosLoader(void);
 
 ///////// BootPerformPicChallengeResponseAction.c
 
-int I2CTransmitWord(unsigned char bPicAddressI2cFormat, unsigned short wDataToWrite);
-int I2CTransmitByteGetReturn(unsigned char bPicAddressI2cFormat, unsigned char bDataToWrite);
+int I2CTransmitWord(const unsigned char bPicAddressI2cFormat, const unsigned short wDataToWrite);
+int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite);
 
 void *memcpy (void *__restrict __dest, const void *__restrict __src, size_t __n);
 void *memset (void *__s, int __c, size_t __n);

@@ -123,8 +123,8 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         LPCmodSettings.OSsettings.enableVGA = 0;
     }
 
-        // Dump to global variable
-    VIDEO_AV_MODE=I2CTransmitByteGetReturn(0x10, 0x04);
+    // Dump to global variable
+    VIDEO_AV_MODE = I2CTransmitByteGetReturn(0x10, 0x04);
     av_type = DetectAvType();
     gpu.av_type = av_type;
 
@@ -132,7 +132,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
 
     memset((void *)pvmode,0,sizeof(CURRENT_VIDEO_MODE_DETAILS));
 
-    //Focus driver (presumably XLB also) doesnt do widescreen yet - only blackscreens otherwise.
+    // Focus driver (presumably XLB also) doesnt do widescreen yet - only blackscreens otherwise.
     if((((unsigned char *)&eeprom)[0x96]&0x01) && video_encoder == ENCODER_CONEXANT) // 16:9 widescreen TV
     {
         debugSPIPrint(DEBUG_VIDEO_DRIVER, "Screen format set to 16:9\n");
@@ -173,7 +173,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     pvmode->hoc /= 100.0;
     pvmode->voc /= 100.0;
 
-    mapNvMem(&riva,pvmode->m_pbBaseAddressVideo);
+    mapNvMem(&riva, pvmode->m_pbBaseAddressVideo);
     unlockCrtNv(&riva,0);
 
     MMIO_H_OUT32 (riva.PCRTC, 0, 0x800, pvmode->m_dwFrameBufferStart);
@@ -197,9 +197,8 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
         MMIO_H_OUT32(riva.PRAMDAC,0,0x880,0);
     }
 
-    if (((av_type != AV_SCART_RGB) && (av_type != AV_VGA_SOG) && (av_type != AV_VGA))
-          || video_encoder==ENCODER_XCALIBUR) {
-        // Set GPU to YUV for non RGB modes or if the encoder is Xcalibur
+    // Set GPU to YUV for non RGB modes or if the encoder is Xcalibur
+    if (((av_type != AV_SCART_RGB) && (av_type != AV_VGA_SOG) && (av_type != AV_VGA)) || video_encoder==ENCODER_XCALIBUR) {
         MMIO_H_OUT32(riva.PRAMDAC,0,0x630,0x2);
         MMIO_H_OUT32(riva.PRAMDAC,0,0x84c,0x00801080);
         MMIO_H_OUT32(riva.PRAMDAC,0,0x8c4,0x40801080);
@@ -221,11 +220,11 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     {
         unsigned char pll_int;
         xbox_hdtv_mode hdtv_mode = HDTV_480p;
+
         //Only 480p supported at present
         /*if (video_mode->yres > 800) {
             hdtv_mode = HDTV_1080i;
-        }
-        else if (video_mode->yres > 600) {
+        } else if (video_mode->yres > 600) {
             hdtv_mode = HDTV_720p;
         }*/
 
@@ -408,12 +407,14 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
                 }
                 wait_us_blocking(500);
             }
-                    // Timing Reset
+
+            // Timing Reset
             b=I2CTransmitByteGetReturn(0x45,0x6c) & (0x7f);
             I2CWriteBytetoRegister(0x45, 0x6c, 0x80|b);
             b=I2CTransmitByteGetReturn(0x45,0xc4) & (0xfe);
             I2CWriteBytetoRegister(0x45, 0xc4, 0x01|b); // EN_OUT = 1
             break;
+
         case ENCODER_FOCUS:
             regs = (unsigned char *)newmode.encoder_regs;
             for (i=0; i<0xc4; ++i)
@@ -422,6 +423,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
                 wait_us_blocking(500);
             }
             break;
+
         case ENCODER_XCALIBUR:
             //Xlb init
             XCal_Reg = (unsigned long*)newmode.encoder_regs;

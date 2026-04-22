@@ -12,12 +12,12 @@ enum {
 };
 
 typedef struct {
-        // fill on entry
+    // fill on entry
     int m_nVideoModeIndex; // fill on entry to BootVgaInitializationKernel(), eg, VIDEO_MODE_800x600
     unsigned char m_fForceEncoderLumaAndChromaToZeroInitially; // fill on entry to BootVgaInitializationKernel(), 0=mode change visible immediately, !0=initially forced to black raster
     unsigned int m_dwFrameBufferStart; // frame buffer start address, set to zero to use default
     unsigned char * volatile m_pbBaseAddressVideo; // base address of video, usually 0xfd000000
-        // filled on exit
+    // filled on exit
     unsigned int width; // everything else filled by BootVgaInitializationKernel() on return
     unsigned int height;
     unsigned int xmargin;

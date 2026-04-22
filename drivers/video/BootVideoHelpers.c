@@ -38,7 +38,7 @@ unsigned int BootVideoGetCharacterWidth(unsigned char bCharacter, bool fDouble)
 {
     unsigned int nStart, nWidth;
     int nSpace=WIDTH_SPACE_PIXELS;
-    
+
     if(fDouble) nSpace=8;
 
     if(bCharacter == '\n') return 0;
@@ -53,7 +53,6 @@ unsigned int BootVideoGetCharacterWidth(unsigned char bCharacter, bool fDouble)
 }
 
 // returns number of x pixels taken up by string
-
 unsigned int BootVideoGetStringTotalWidth(const char * szc) {
     unsigned int nWidth=0;
     bool fDouble=false;
@@ -69,7 +68,6 @@ unsigned int BootVideoGetStringTotalWidth(const char * szc) {
 }
 
 // convert pixel count to size of memory in bytes required to hold it, given the character height
-
 unsigned int BootVideoFontWidthToBitmapBytecount(unsigned int uiWidth)
 {
     return (uiWidth << 2) * uiPixelsY;
@@ -97,7 +95,7 @@ void BootVideoJpegBlitBlend(
     while(y--) {
 
         for(n=0;n<x;n++) {
-            
+
             dw = ((*((unsigned int *)pFront))|0xff000000)&0xff80c080;      //Loosen tolerance from 0xffc0c0c0
 
             if(dw!=m_rgbaTransparent) {
@@ -251,13 +249,13 @@ int BootVideoOverlayString(unsigned int * pdwaTopLeftDestination, unsigned int m
 bool BootVideoInitJPEGBackdropBuffer(JPEG * pJpeg)
 {
     int i;
-    
+
     if(pJpeg->pBackdrop == NULL)
     	pJpeg->pBackdrop = malloc(3 * 1024 * (832 - ICON_HEIGHT)); //1024x768x24bpp
 
     if(pJpeg->pBackdrop == NULL)
     	return false;
-    
+
     switch(fSpecialEdition)
     {
     case SYSCON_ID_V1_PRE_EDITION:
@@ -285,7 +283,7 @@ blueColorDraw:
 		}
     break;
     }
-        
+
     return true;
 }
 
@@ -304,7 +302,7 @@ bool BootVideoJpegUnpackAsRgb(unsigned char *pbaJpegFileImage, JPEG * pJpeg, int
     {
         return true;
     }
-    
+
     if(njGetHeight() == ICON_HEIGHT)
     {
     	if(pJpeg->pData != NULL)
@@ -319,7 +317,7 @@ bool BootVideoJpegUnpackAsRgb(unsigned char *pbaJpegFileImage, JPEG * pJpeg, int
     }
 
     njDone();
-  
+
     return false;
 }
 
@@ -442,7 +440,7 @@ int console_putchar(int c)
     buf[0] = (char)c;
     buf[1] = 0;
     BootVideoChunkedPrint(buf);
-    return (int)buf[0];    
+    return (int)buf[0];
 }
 
 //Fix for BSD
