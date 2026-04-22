@@ -24,8 +24,7 @@
 
 extern unsigned char VIDEO_AV_MODE;
 // functions defined elsewhere
-int I2CTransmitByteGetReturn(unsigned char bPicAddressI2cFormat, unsigned char bDataToWrite);
-//int I2CTransmitWord(unsigned char bPicAddressI2cFormat, unsigned short wDataToWrite);
+int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite);
 
 // internally used structures
 
@@ -36,14 +35,6 @@ typedef struct {
     long v_blanko;
     long vscale;
 } BLANKING_PARAMETER;
-#if 0
-#ifndef JUSTVIDEO
-static double fabs(double d) {
-    if (d > 0) return d;
-    else return -d;
-}
-#endif
-#endif
 
 static unsigned char NvGetCrtc(volatile unsigned char * pbRegs, int nIndex) {
     pbRegs[0x6013d4]=nIndex;

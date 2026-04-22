@@ -35,7 +35,7 @@ CROM_CFLAGS = $(INCLUDE) $(INCLUDE_ALL)
 
 #You can override these if you wish.
 CFLAGS = $(INCLUDE_ALL) -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member -fno-zero-initialized-in-bss -fno-stack-protector -U_FORTIFY_SOURCE -fno-PIC
-2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding -fno-zero-initialized-in-bss -fno-stack-protector -fno-PIC
+2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding -fno-zero-initialized-in-bss -fno-stack-protector -fno-PIC -Wall
 
 LD      = ${PREFIX}ld
 OBJCOPY = ${PREFIX}objcopy

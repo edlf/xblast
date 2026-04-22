@@ -61,7 +61,7 @@ void BootOriginalBios(FlashBank bank)
 
         if(fHasHardware == SYSCON_ID_V1 || fHasHardware == SYSCON_ID_XT || fHasHardware == SYSCON_ID_V1_TSOP || fHasHardware == SYSCON_ID_XT_TSOP)
         {
-                //WriteToIO(XODUS_CONTROL, RELEASED0);    //Release D0
+            //WriteToIO(XODUS_CONTROL, RELEASED0);    //Release D0
             if(getMotherboardRevision() == XboxMotherboardRevision_1_6 || getMotherboardRevision() == XboxMotherboardRevision_UNKNOWN)
             {
                 switchBootBank(KILL_MOD);    // switch to original bios. Mute modchip.

@@ -43,7 +43,7 @@ void *memset (void *__s, int __c, size_t __n)
             :"memory");
     return __s;
 }
-                
+
 
 int memcmp(const void * cs,const void * ct,size_t count)
 {

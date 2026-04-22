@@ -72,7 +72,7 @@ static void gzip_release(void **);
  */
 static unsigned char *real_mode; /* Pointer to real-mode data */
 
-char *input_data;
+unsigned char *input_data;
 int input_len;
 
 static long bytes_out = 0;
@@ -171,7 +171,7 @@ struct {
     short b;
     } stack_start = { & user_stack [STACK_SIZE] , __KERNEL_DS };
 
-int decompress_kernel(char *out, char *data, int len)
+int decompress_kernel(unsigned char *out, unsigned char *data, int len)
 {
     input_data = data;
     input_len = len;

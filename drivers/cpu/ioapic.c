@@ -7,6 +7,7 @@ struct ioapicreg {
     unsigned int reg;
     unsigned int value_low, value_high;
 };
+
 struct ioapicreg ioapicregvalues[] = {
 #define ALL        (0xff << 24)
 #define NONE        (0)

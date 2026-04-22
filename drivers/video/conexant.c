@@ -4,7 +4,7 @@
  * Maintainer: Oliver Schwartz <Oliver.Schwartz@gmx.de>
  *
  * Contributors:
- * 
+ *
  * This file is subject to the terms and conditions of the GNU General Public
  * License.  See the file COPYING in the main directory of this archive
  * for more details.
@@ -34,10 +34,7 @@ typedef struct {
     double clk_ratio;
 } xbox_tv_mode_parameter;
 
-
-
-    // and here is all the video timing for every standard
-
+// and here is all the video timing for every standard
 static const conexant_video_parameter vidstda[] = {
     { 3579545.00, 0.0000053, 0.00000782, 0.0000047, 0.000063555, 0.0000094, 0.000035667, 0.0000015, 243, 262.5, 0.0000092 },
     { 3579545.00, 0.0000053, 0.00000782, 0.0000047, 0.000064000, 0.0000094, 0.000035667, 0.0000015, 243, 262.5, 0.0000092 },

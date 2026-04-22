@@ -20,7 +20,7 @@
     ReadfromSMBus() by Lehner Franz (franz@caos.at)
 */
 
-int WriteToSMBus(unsigned char Address,unsigned char bRegister,unsigned char Size,unsigned int Data_to_smbus)
+int WriteToSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, const unsigned int Data_to_smbus)
 {
     int nRetriesToLive=50;
 
@@ -82,9 +82,7 @@ int WriteToSMBus(unsigned char Address,unsigned char bRegister,unsigned char Siz
 
 }
 
-
-
-int ReadfromSMBus(unsigned char Address,unsigned char bRegister,unsigned char Size,unsigned int *Data_to_smbus)
+int ReadfromSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, unsigned int *Data_to_smbus)
 {
     int nRetriesToLive=50;
 
@@ -157,31 +155,27 @@ int ReadfromSMBus(unsigned char Address,unsigned char bRegister,unsigned char Si
 /* --------------------- Normal 8 bit operations -------------------------- */
 
 
-int I2CTransmitByteGetReturn(unsigned char bPicAddressI2cFormat, unsigned char bDataToWrite)
+int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite)
 {
     unsigned int temp;
-    if (ReadfromSMBus(bPicAddressI2cFormat,bDataToWrite,1,&temp) != ERR_SUCCESS)
+    if (ReadfromSMBus(bPicAddressI2cFormat,bDataToWrite,1,&temp) != ERR_SUCCESS) {
         return ERR_I2C_ERROR_BUS;
+	}
     return temp;
 }
 
-
 // transmit a word, no returned data from I2C device
-
-int I2CTransmitWord(unsigned char bPicAddressI2cFormat, unsigned short wDataToWrite)
+int I2CTransmitWord(const unsigned char bPicAddressI2cFormat, const unsigned short wDataToWrite)
 {
     return WriteToSMBus(bPicAddressI2cFormat,(wDataToWrite>>8)&0xff,1,(wDataToWrite&0xff));
 }
 
-
-int I2CWriteBytetoRegister(unsigned char bPicAddressI2cFormat, unsigned char bRegister, unsigned char wDataToWrite)
+int I2CWriteBytetoRegister(const unsigned char bPicAddressI2cFormat, const unsigned char bRegister, const unsigned char wDataToWrite)
 {
     return WriteToSMBus(bPicAddressI2cFormat,bRegister,1,(wDataToWrite&0xff));
-
 }
 
-
-void I2CModifyBits(unsigned char bAds, unsigned char bReg, unsigned char bData, unsigned char bMask)
+void I2CModifyBits(const unsigned char bAds, const unsigned char bReg, const unsigned char bData, const unsigned char bMask)
 {
     unsigned char b=I2CTransmitByteGetReturn(0x45, bReg)&(~bMask);
     I2CTransmitWord(0x45, (bReg<<8)|((bData)&bMask)|b);
@@ -189,7 +183,7 @@ void I2CModifyBits(unsigned char bAds, unsigned char bReg, unsigned char bData, 
 
 // ----------------------------  PIC challenge/response -----------------------------------------------------------
 
-int I2cSetFrontpanelLed(unsigned char b)
+int I2cSetFrontpanelLed(const unsigned char b)
 {
     I2CTransmitWord( 0x10, 0x800 | b);  // sequencing thanks to Jarin the Penguin!
     I2CTransmitWord( 0x10, 0x701);
@@ -290,19 +284,13 @@ unsigned char I2CGetFanSpeed(void){
     return (I2CTransmitByteGetReturn(0x10, 0x10) << 1);
 }
 
-void I2CSetFanSpeed(unsigned char speed){
-/*    unsigned char giveUp = 0;
-    do {
-        WriteToSMBus(0x10,0x05,1,1);             //Activate manual fan speed control
-        wait_us(5);
-        WriteToSMBus(0x10,0x06,1,speed >> 1);    //Send new speed to PIC
-    }while((I2CGetFanSpeed() != (speed >> 1)) && giveUp++ < 10);    //If the Xbox is hard of hearing, repeat max 10 times.
-*/
+void I2CSetFanSpeed(const unsigned char speed){
 	WriteToSMBus(0x10,0x06,1,speed >> 1);    //Send new speed to PIC, divide incoming value by 2.
 	wait_us_blocking(5);
-        WriteToSMBus(0x10,0x05,1,1);             //Activate manual fan speed control
-        wait_us_blocking(5);
-        WriteToSMBus(0x10,0x06,1,speed >> 1);    //Send new speed to PIC
+
+	WriteToSMBus(0x10,0x05,1,1);             //Activate manual fan speed control
+    wait_us_blocking(5);
+    WriteToSMBus(0x10,0x06,1,speed >> 1);    //Send new speed to PIC
 }
 
 
