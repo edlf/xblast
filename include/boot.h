@@ -60,12 +60,7 @@ extern unsigned int video_encoder;
 extern volatile unsigned int VIDEO_CURSOR_POSX;
 extern volatile unsigned int VIDEO_CURSOR_POSY;
 extern volatile unsigned int VIDEO_ATTR;
-extern volatile unsigned int VIDEO_LUMASCALING;
-extern volatile unsigned int VIDEO_RSCALING;
-extern volatile unsigned int VIDEO_BSCALING;
 extern volatile unsigned int BIOS_TICK_COUNT;
-extern volatile unsigned int VIDEO_VSYNC_POSITION;
-extern volatile unsigned int VIDEO_VSYNC_DIR;
 extern volatile unsigned int DVD_TRAY_STATE;
 
 extern unsigned char VIDEO_AV_MODE ;
