@@ -20,12 +20,12 @@
 .section .text, "ax"
          .org 0x00
          jmp	start_linux
-         
+
 .global	Cromwellconfig
 Cromwellconfig:
 	.org 0x0c
-		// Space for the SHA1 checksum
-        .org 0x20   
+	// Space for the SHA1 checksum
+        .org 0x20
 
         // The Value positions are fixed, do not change them, used everywhere
         .long 0x0	// 0x20 if XBE, then this bit is 0, if Cromwell mode, the bit is set to 1 by the Startuploader
@@ -59,10 +59,10 @@ tableIdtDescriptor:
 	.word 2048
 	.long IDT_LOC                      // IDT located at 0xB0000
 	.word 0     // fill Word, so we get aligned again
-        
+
         // We are dword aligned now
 
-.align 16        
+.align 16
 	.globl start_linux
 start_linux:
 
@@ -135,8 +135,14 @@ reload_cs:
 
 	// Set the stack pointer to give us a valid stack
 	movl $STACK_TOP, %esp
-        
-    // We clear the IDT in RAM   (IDT located @  0xb0000 )
+
+	// Clear out .bss
+	xor %eax, %eax
+	mov $BSS_SIZE_L, %ecx
+	mov $BSS_BASE, %edi
+	rep stosl
+
+        // We clear the IDT in RAM   (IDT located @  0xb0000 )
 	xor %eax, %eax
 	movl $0x5000/4, %ecx
 	movl $IDT_LOC, %edi
@@ -146,7 +152,7 @@ reload_cs:
 	// We load the Interrupt Descriptor Table
 	lidt tableIdtDescriptor
 
-       // FPU SETUP
+        // FPU SETUP
 	xor	%eax, %eax
 	xor	%edx, %edx
 	xor	%ecx, %ecx
@@ -196,7 +202,7 @@ reload_cs:
 	movl	$0xf8000800, %eax
 	wrmsr
 
-     // MTRR for FLASH
+        // MTRR for FLASH
 	movl	$0x204, %ecx
 	movl	$0x00000000, %edx
 	movl	$0xFff00000, %eax 	    // We set to Uncacheable
@@ -216,24 +222,24 @@ reload_cs:
         wrmsr
 
 	movl	$0x208, %ecx		// IA32_MTRR_PHYS Base 4
-        wrmsr                                                   
+        wrmsr
 	movl	$0x209, %ecx		// IA32_MTRR_PHYS_MASK 4
-        wrmsr                                                   
+        wrmsr
 
 	movl	$0x20a, %ecx		// IA32_MTRR_PHYS Base 5
-        wrmsr                                                   
+        wrmsr
 	movl	$0x20b, %ecx		// IA32_MTRR_PHYS_MASK 5
-        wrmsr                                                   
+        wrmsr
 
 	movl	$0x20c, %ecx		// IA32_MTRR_PHYS Base 6
-        wrmsr                                                   
+        wrmsr
 	movl	$0x20d, %ecx		// IA32_MTRR_PHYS_MASK 6
         wrmsr
 
 	movl	$0x20e, %ecx		// IA32_MTRR_PHYS Base 7
         wrmsr
 	movl	$0x20f, %ecx		// IA32_MTRR_PHYS_MASK 7
-        wrmsr                                                   
+        wrmsr
 
 
 	// Ok, we tell now the processor, we finished Memory Type definitions
@@ -243,16 +249,16 @@ reload_cs:
 	xor	%edx, %edx
 	movl	$0x800, %eax 		//Enable MTRRs
 	wrmsr
-      
-        
-   
+
+
+
 //	movl	$0x600, %eax
 //	mov	%eax, %cr4
 
 	mov	%eax, %eax       // Flush the TLB    and resets it
 	mov	%eax, %cr3
  	wbinvd
- 
+
    	/* turn on normal cache */
 	//  bit 30 + 29 = CD + NW
 	// CD = Cache Disable (disable = 1)
