@@ -30,6 +30,7 @@ SECTIONS {
 		*(.rodata.str1.32);
 		*(.rodata.cst4);
 		*(.rodata.cst8);
+		*(.rodata.cst16);
 		_start_backdrop = .;
 		*(.backdrop);
 		_end_backdrop = .;
