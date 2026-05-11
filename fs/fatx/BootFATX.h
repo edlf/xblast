@@ -5,7 +5,7 @@
 // (c) 2001 Andrew de Quincey
 
 #include <stdbool.h>
-
+#include <stdint.h>
 
 #define STORE_SIZE       (0x131F00000ULL)
 #define SYSTEM_SIZE      (0x1f400000UL)
@@ -29,7 +29,8 @@
 #define SECTORS_CACHE3   (SECTOR_SYSTEM - SECTOR_CACHE3)
 
 #define LBASIZE_512GB   1073741824UL                      // Switch to 64K clusters beyond that
-#define LBASIZE_1024GB  2147483645UL                      // Max LBA size supported by Xbox
+#define LBASIZE_1024GB  2147483645UL                      // Max LBA size supported by Xbox (without cerb)
+#define LBASIZE_16TB    0x800000000                       // Max LBA size supported by Xbox (with cerb)
 #define LBASIZE_256GB   536870912UL                       // Switch to 32K clusters beyond that
 #define LBASIZE_137GB   (0x0FFFFFFFUL - SECTOR_EXTEND)    // LBA28 limited F: drive size.
 
@@ -79,6 +80,8 @@
 
 #define FATX16CLUSTERSIZE 16384
 
+#define FATX_MAX_FILES_FOLDER 4096
+
 // This structure describes a FATX partition
 typedef struct {
   int nDriveIndex;
@@ -101,7 +104,7 @@ typedef struct {
   // The cluster chain map table (which may be in words OR dwords)
   union {
     unsigned short *words;
-    unsigned long *dwords;
+    unsigned long  *dwords;
   } clusterChainMap;
 
   // Address of cluster 1
@@ -110,11 +113,11 @@ typedef struct {
 } FATXPartition;
 
 typedef struct {                                        //Also known as FATX SuperBlock.
-    unsigned int magic;
-    unsigned int volumeID;
-    unsigned int clusterSize;
-    unsigned short nbFAT;
-    unsigned int unknown;
+    uint32_t magic;
+    uint32_t volumeID;
+    uint32_t clusterSize;
+    uint16_t nbFAT;
+    uint32_t unknown;
     unsigned char  unused[0xfee];
 }__attribute__((packed)) PARTITIONHEADER;               //For a total of 4096(0x1000) bytes.
 
@@ -126,36 +129,36 @@ typedef struct {
     unsigned char *buffer;
 } FATXFILEINFO;
 
-
 //Taken from ReactOS' vfat.h source and Xbox-Linux archives.
 typedef struct {
     unsigned char FilenameLength;
     unsigned char Attrib;
     char Filename[42];
-    unsigned int FirstCluster;
-    unsigned int FileSize;
-    unsigned short UpdateTime;
-    unsigned short UpdateDate;
-    unsigned short CreationTime;
-    unsigned short CreationDate;
-    unsigned short AccessTime;
-    unsigned short AccessDate;
+    uint32_t FirstCluster;
+    uint32_t FileSize;
+    uint16_t UpdateTime;
+    uint16_t UpdateDate;
+    uint16_t CreationTime;
+    uint16_t CreationDate;
+    uint16_t AccessTime;
+    uint16_t AccessDate;
 }__attribute__((packed)) FATXDIRINFO;                   //For a total of 64 bytes.
 
 typedef struct
 {
-        unsigned char Name[16];
-        unsigned int Flags;
-        unsigned int LBAStart;
-        unsigned int LBASize;
-        unsigned int Reserved;
+    unsigned char Name[16];
+    uint32_t Flags;
+    uint32_t LBAStart;
+    uint32_t LBASize;
+    uint16_t LBAStart_high;
+    uint16_t LBASize_high;
 } XboxPartitionTableEntry;
 
 typedef struct
 {
-        unsigned char   Magic[16];
-        char    Res0[32];
-        XboxPartitionTableEntry TableEntries[14];
+    unsigned char           Magic[16];
+    char                    Res0[32];
+    XboxPartitionTableEntry TableEntries[14];
 } XboxPartitionTable;
 
 int LoadFATXFile(FATXPartition *partition,char *filename, FATXFILEINFO *fileinfo);
@@ -182,6 +185,6 @@ void FATXSetInitMBR(unsigned char driveId);
 void FATXFormatCacheDrives(int nIndexDrive, bool verbose);
 void FATXFormatDriveC(int nIndexDrive, bool verbose);
 void FATXFormatDriveE(int nIndexDrive, bool verbose);
-void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, unsigned int lbaSize);
+void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, uint64_t lbaSize);
 
 #endif //    _BootFATX_H_

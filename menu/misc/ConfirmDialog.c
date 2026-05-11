@@ -31,18 +31,15 @@ bool ConfirmDialog(char * string, bool critical)
     }
 
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
-    VIDEO_ATTR=0xffff1515;                        //Red characters.
+    VIDEO_ATTR=0xffff1515; //Red characters.
     yPos = centerScreenPrintk(yPos, "\2%s\n", string);
-    VIDEO_ATTR=0xffffff;                //Back to white
-    yPos = centerScreenPrintk(yPos, "Hold RT, LT, Start and White to confirm\n");
+    VIDEO_ATTR=0x00ffffff; //Back to white
+    yPos = centerScreenPrintk(yPos, "Hold Start to confirm\n");
     centerScreenPrintk(yPos, "Press Back to cancel");
     
     while(cromwellLoop())
     {
-        if(risefall_xpad_BUTTON(TRIGGER_XPAD_TRIGGER_RIGHT) &&
-           risefall_xpad_BUTTON(TRIGGER_XPAD_TRIGGER_LEFT) &&
-           risefall_xpad_STATE(XPAD_STATE_START)
-           && XPAD_current[0].keys[5]) //white button
+        if(risefall_xpad_STATE(XPAD_STATE_START)) //white button
         {
             debugSPIPrint(DEBUG_GENERAL_UI, "All correct buttons pressed. Accepting.\n");
             strncpy(bypassConfirmDialog, string, stringLength);

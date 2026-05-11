@@ -66,11 +66,11 @@ void printMainMenuHeader(void)
     printk("\n\n");
     if(isXBE())
     {
-        printk("           \2"PROG_NAME" (XBE) v" VERSION "\n\n\2");
+        printk("           \2"PROG_NAME" (XBE) v" VERSION " Mod\n\n\2");
     }
     else
     {
-        printk("           \2"PROG_NAME" (ROM) v" VERSION "\n\n\2");
+        printk("           \2"PROG_NAME" (ROM) v" VERSION " Mod\n\n\2");
     }
 
     VIDEO_ATTR=0xff00ff00;

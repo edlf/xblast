@@ -20,27 +20,26 @@ XboxPartitionTable BackupPartTbl =
     { '*', '*', '*', '*', 'P', 'A', 'R', 'T', 'I', 'N', 'F', 'O', '*', '*', '*', '*' },
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     {
-        { { 'X', 'B', 'O', 'X', ' ', 'S', 'H', 'E', 'L', 'L', ' ', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_STORE, SECTORS_STORE, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'D', 'A', 'T', 'A', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_SYSTEM, SECTORS_SYSTEM, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '1'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE1, SECTORS_CACHE1, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '2'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE2, SECTORS_CACHE2, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '3'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE3, SECTORS_CACHE3, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'F', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND + 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'S', 'H', 'E', 'L', 'L', ' ', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_STORE, SECTORS_STORE, 0, 0},
+        { { 'X', 'B', 'O', 'X', ' ', 'D', 'A', 'T', 'A', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_SYSTEM, SECTORS_SYSTEM, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '1'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE1, SECTORS_CACHE1, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '2'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE2, SECTORS_CACHE2, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '3'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE3, SECTORS_CACHE3, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'F', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND, 0, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'G', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND + 0, 0, 0, 0 },
+        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
+        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
+        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
+        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
+        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
+        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
+        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
     }
 };
 
 int checkForLastDirectoryEntry(unsigned char* entry)
 {
-    // if the filename length byte is 0 or 0xff,
-    // this is the last entry
+    // if the filename length byte is 0 or 0xff, this is the last entry
     if ((entry[0] == 0xff) || (entry[0] == 0))
     {
         return 1;
@@ -116,7 +115,7 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
 
     //TODO: Freakin bubble sort for now... Just to test "strcmpbynum" function
 exit:
-printk("\n\n");
+    printk("\n\n");
     while(sortNotOver && c >= 2)
     {
 
@@ -677,7 +676,7 @@ int _FATXFindFile(FATXPartition* partition,
     endOfDirectory = 0;
     while(clusterId != -1)
     {
-            // load cluster data
+        // load cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // loop through it, outputing entries
@@ -913,8 +912,10 @@ void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned 
 
     dirEntry->FilenameLength = strlen(entryName);
     strncpy(dirEntry->Filename,entryName,42);
-    if(dirEntry->FilenameLength < 42)                           //If filename is not of 42 characters
-        dirEntry->Filename[dirEntry->FilenameLength] = 0xFF;    //Terminate it.
+    if(dirEntry->FilenameLength < 42) {
+        //Terminate it.
+        dirEntry->Filename[dirEntry->FilenameLength] = 0xFF;
+    }
     dirEntry->Attrib = FATX_FILEATTR_DIRECTORY;
     dirEntry->FirstCluster = cluster;
     dirEntry->FileSize = 0;
@@ -1320,7 +1321,7 @@ void FATXFormatDriveE(int nIndexDrive, bool verbose){
         cromwellSuccess();
 }
 
-void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, unsigned int lbaSize){
+void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, uint64_t lbaSize){
     unsigned char buffer[512], headerBuf[0x1000];
     unsigned int i;
     unsigned char *ptrBuffer;
@@ -1332,15 +1333,18 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
 
     XboxPartitionTable * mbr = (XboxPartitionTable *)buffer;
 
-    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS)
+    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
        FATXSetBRFR(driveId);
+    }
 
-    if(lbaSize >= LBASIZE_512GB)         //Need 64K clusters
+    if(lbaSize >= LBASIZE_512GB) {       //Need 64K clusters
         clusterSize = 128;               //Clustersize in number of 512-byte sectors
-    else if(lbaSize >= LBASIZE_256GB)
+    }
+    else if(lbaSize >= LBASIZE_256GB) {
         clusterSize = 64;
-    else
+    } else {
         clusterSize = 32;
+    }
 
 
     //Calculate size of FAT, in number of 512-byte sectors.
@@ -1362,7 +1366,8 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
         }
     }
     else
-    {                                                   //If no MBR already on disk
+    {
+        //If no MBR already on disk
         memcpy(mbr, &BackupPartTbl, sizeof(BackupPartTbl)); //Copy backup in working buffer and work from there.
     }
 
