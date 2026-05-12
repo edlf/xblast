@@ -1,6 +1,18 @@
 # README #
 
+
+## Important
 This has been modified to build on newer gcc versions and some fixes from cromwell have been ported over.
+
+
+### Notes
+* LBA48 support, can format big HDDs (takes a while). No backup partition table yet though
+* Enabled keyboard support
+* Sends YUV over the GPU bus to match stock behavior. This fixes the funky colors with digital hdmi mods
+* Uses [arith64](https://github.com/glitchub/arith64/) and some iPXE code to circumvent gcc shenaningans
+
+
+## Original Readme
 
 This is the code repository for the XBlast's Xbox Legal "OS".
 
@@ -85,7 +97,3 @@ Notable features only available on XBlast mod
 * Quickboot bank(bypass OS)
 * TSOP control for multiple BIOS banks (Xbox 1.0/1.1 only).
 
-### Notes
-* Uses [arith64](https://github.com/glitchub/arith64/)
-* Partial LBA48 support, formating not tested
-* Sends YUV over the GPU bus to match stock behavior for hdmi mods
