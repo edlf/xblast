@@ -260,15 +260,14 @@ unsigned int PciReadDword(unsigned int bus, unsigned int dev, unsigned int func,
 
 extern tsHarddiskInfo tsaHarddiskInfo[];  // static struct stores data about attached drives
 int BootIdeInit(void);
-int BootIdeReadSector(int nDriveIndex, void * pbBuffer, unsigned int block, int byte_offset, int n_bytes);
-int BootIdeBootSectorHddOrElTorito(int nDriveIndex, unsigned char * pbaResult);
-int BootIdeAtapiAdditionalSenseCode(int nDrive, unsigned char * pba, int nLengthMaxReturn);
-int BootIdeSetTransferMode(int nIndexDrive, int nMode);
-int BootIdeSetMultimodeSectors(unsigned char nIndexDrive, unsigned char nbSectors);
+int BootIdeReadSector(const int nDriveIndex, void * pbBuffer, const uint64_t block, int byte_offset, int n_bytes);
+int BootIdeAtapiAdditionalSenseCode(const int nDrive, unsigned char * pba, int nLengthMaxReturn);
+int BootIdeSetTransferMode(const int nIndexDrive, const int nMode);
+int BootIdeSetMultimodeSectors(const unsigned char nIndexDrive, unsigned char nbSectors);
 //int BootIdeSetPIOMode(unsigned char nIndexDrive, unsigned short cycleTime);
 int BootIdeWaitNotBusy(unsigned uIoBase);
-bool BootIdeAtapiReportFriendlyError(int nDriveIndex, char * szErrorReturn, int nMaxLengthError);
-void BootIdeAtapiPrintkFriendlyError(int nDriveIndex);
+bool BootIdeAtapiReportFriendlyError(const int nDriveIndex, char * szErrorReturn, int nMaxLengthError);
+void BootIdeAtapiPrintkFriendlyError(const int nDriveIndex);
 
 ///////// BootUSB.c
 

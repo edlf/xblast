@@ -78,17 +78,20 @@ typedef struct PRDT{
 
 //Methods
 int BootIdeInit(void);
-int BootIdeReadSector(int nDriveIndex, void * pbBuffer, unsigned int block, int byte_offset, int n_bytes) ;
+
+int DriveSecurityChange(unsigned uIoBase, const int driveId, ide_command_t ide_cmd, unsigned char *password);
+int CalculateDrivePassword(const int driveId, unsigned char *key, unsigned char *eepromPtr);
+bool driveMasterPasswordUnlock(unsigned uIoBase, const int driveId, const char *master_password);
+
+int BootIdeReadSector(const int nDriveIndex, void * pbBuffer, const uint64_t block, int byte_offset, int n_bytes);
 int BootIdeReadData(unsigned uIoBase, void * buf, size_t size);
-int DriveSecurityChange(unsigned uIoBase, int driveId, ide_command_t ide_cmd, unsigned char *password);
-int CalculateDrivePassword(int driveId, unsigned char *key, unsigned char *eepromPtr);
-bool driveMasterPasswordUnlock(unsigned uIoBase, int driveId, const char *master_password);
-int BootIdeWriteSector(int nDriveIndex, void * pbBuffer, unsigned int block, unsigned char retry);
-int BootIdeWriteMultiple(int nDriveIndex, void * pbBuffer, unsigned int startLBA, unsigned short len, unsigned char retry);
 
-bool driveToggleSMARTFeature(int nDriveIndex, unsigned short smart_cmd);
-int driveSMARTRETURNSTATUS(int nDriveIndex);
+int BootIdeWriteSector(const int nDriveIndex, void * pbBuffer, const uint64_t block, unsigned char retry);
+int BootIdeWriteMultiple(const int nDriveIndex, void * pbBuffer, const uint64_t startLBA, unsigned short len, unsigned char retry);
 
-int HDD_SECURITY_SendATACommand(int nIndexDrive, ide_command_t ATACommand, char * password, bool masterPassword);
+bool driveToggleSMARTFeature(const int nDriveIndex, unsigned short smart_cmd);
+int driveSMARTRETURNSTATUS(const int nDriveIndex);
+
+int HDD_SECURITY_SendATACommand(const int nIndexDrive, ide_command_t ATACommand, char * password, bool masterPassword);
 
 #endif

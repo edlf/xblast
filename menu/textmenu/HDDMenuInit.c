@@ -19,8 +19,7 @@ void HDDSMARTOperationsMenuDynamic(void * drive);
 void HDDFormatMenuDynamic(void * drive);
 void HDDLockUnlockMenuDynamic(void * drive);
 
-TEXTMENU* HDDMenuInit(void)
-{
+TEXTMENU* HDDMenuInit(void) {
     TEXTMENUITEM* itemPtr = NULL;
     TEXTMENU* menuPtr;
     int i = 0;
@@ -28,10 +27,8 @@ TEXTMENU* HDDMenuInit(void)
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "HDD Menu");
 
-    for(i = 0; i < 2; ++i)
-    {
-        if(tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi == 0)
-        {
+    for(i = 0; i < 2; ++i) {
+        if(tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi == 0) {
             //If it's not ATAPI, it must be IDE
             //Add menu entry for corresponding HDD
             itemPtr = calloc(1, sizeof(TEXTMENUITEM));
@@ -45,8 +42,7 @@ TEXTMENU* HDDMenuInit(void)
         }
     }
 
-    if(itemPtr == NULL)
-    {
+    if(itemPtr == NULL) {
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption, "No Hard Drive");
         itemPtr->noSelect = NOSELECTERROR;
@@ -67,8 +63,8 @@ void HDDOperationsMenuDynamic(void* drive){
 
     sprintf(menuPtr->szCaption, "%s HDD", *nDriveIndex ? "Slave":"Master");
 
-    if((tsaHarddiskInfo[*nDriveIndex].m_securitySettings &0x0001)==0x0001)        //Drive Security feature supported.
-    {
+    //Drive Security feature supported.
+    if((tsaHarddiskInfo[*nDriveIndex].m_securitySettings &0x0001)==0x0001) {
         //HDD Lock/Unlock menu
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption,"Lock/Unlock menu");
@@ -84,7 +80,7 @@ void HDDOperationsMenuDynamic(void* drive){
     itemPtr->functionDataPtr = nDriveIndex;
     TextMenuAddItem(menuPtr, itemPtr);
 
-    if(tsaHarddiskInfo[*nDriveIndex].m_fHasSMARTcapabilities){
+    if(tsaHarddiskInfo[*nDriveIndex].m_fHasSMARTcapabilities) {
         //S.M.A.R.T. menu
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption,"S.M.A.R.T. menu");
@@ -162,8 +158,7 @@ void HDDSMARTOperationsMenuDynamic(void* drive) {
 
     //SMART Enable/Disable
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    if(tsaHarddiskInfo[nDriveIndex].m_fSMARTEnabled)
-    {
+    if(tsaHarddiskInfo[nDriveIndex].m_fSMARTEnabled) {
         sprintf(itemPtr->szCaption,"Disable");
     } else {
         sprintf(itemPtr->szCaption,"Enable");
