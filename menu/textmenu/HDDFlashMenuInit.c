@@ -22,15 +22,14 @@ void HDDFlashMenuDynamic(void* unused)
     FATXFILEINFO fileinfo;
     FATXPartition* partition;
 
-    char* fnames[FATX_MAX_FILES_FOLDER]; //Because Each dir can have up to 4096 files when not in root of partition.
-    short n = 0, i = 0;
+    char* fnames[FATX_MAX_FILES_FOLDER] = {NULL}; //Because Each dir can have up to 4096 files when not in root of partition.
+    short n = 0;
     int bioses = 0;
     int res;
     int dcluster;
     char* path = "\\BIOS\\";      //And we're not in root.
     char fullPath[20];
     char* fullPathptr = fullPath;
-    memset(fnames[0], 0, sizeof(char) * FATX_MAX_FILES_FOLDER);
     memset(fullPath, 0, sizeof(char) * 20);
 
     // Generate the menu title.
@@ -48,19 +47,17 @@ void HDDFlashMenuDynamic(void* unused)
 
     strcpy(menuPtr->szCaption, fullPath);
 
-    if(partition != NULL)
-    {
+    if(partition != NULL) {
         dcluster = FATXFindDir(partition, FATX_ROOT_FAT_CLUSTER, "BIOS");
-        if((dcluster != -1) && (dcluster != 1))
-        {
+
+        if((dcluster != -1) && (dcluster != 1)) {
             n = FATXListDir(partition, dcluster, &fnames[0], FATX_MAX_FILES_FOLDER, path);
-            for (i = 0; i < n; i++)
-            {
+
+            for (int i = 0; i < n; i++) {
                 // Check the file.
                 res = FATXFindFile(partition, fnames[i], FATX_ROOT_FAT_CLUSTER, &fileinfo);
-        
-                if(res && (fileinfo.fileSize % (256 * 1024) == 0))
-                {
+
+                if(res && (fileinfo.fileSize % (256 * 1024) == 0)) {
                     // If it's a (readable) file - i.e. not a directory.
                     // AND it's filesize is divisible by 256k.
                     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
@@ -71,25 +68,21 @@ void HDDFlashMenuDynamic(void* unused)
                     bioses++;
                 }
             }
-            if(n < 1)
-            {
+
+            if(n < 1) {
                 // If there were no directories and no files.
                 itemPtr = calloc(1, sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "No files in C:\\BIOS.");
                 itemPtr->functionPtr = NULL;
                 TextMenuAddItem(menuPtr, itemPtr);
-            }
-            else if(bioses == 0)
-            {
+            } else if(bioses == 0) {
                 // If there were directories, but no files.
                 itemPtr = calloc(1, sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "No BIOS files in C:\\BIOS.");
                 itemPtr->functionPtr = NULL;
                 TextMenuAddItem(menuPtr, itemPtr);
             }
-        }
-        else
-        {
+        } else {
             // If C:\BIOS doesnt exist.
             itemPtr = calloc(1, sizeof(TEXTMENUITEM));
             sprintf(itemPtr->szCaption, "C:\\BIOS does not exist.");
@@ -98,9 +91,7 @@ void HDDFlashMenuDynamic(void* unused)
         }
 
         CloseFATXPartition(partition);
-    }
-    else
-    {
+    } else {
         // If the partition couldn't be opened at all.
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption, "Error reading C:\\ partition.");

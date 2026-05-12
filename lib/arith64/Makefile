@@ -1,4 +1,3 @@
-
-O_TARGET :=  vml_Startup.o
+O_TARGET := arith64.o
 
 include $(TOPDIR)/Rules.make

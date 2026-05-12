@@ -109,7 +109,7 @@ void BootVgaInitializationKernelNG(CURRENT_VIDEO_MODE_DETAILS * pvmode)
     RIVA_HW_INST riva;
     struct riva_regs newmode;
     int encoder_ok = 0;
-    int i=0;
+    unsigned int i=0;
     GPU_PARAMETER gpu;
     xbox_video_mode encoder_mode;
 
@@ -546,8 +546,7 @@ static void mapNvMem (RIVA_HW_INST *riva, unsigned char *IOAddress)
 
 static void NVDisablePalette (RIVA_HW_INST *riva, int head)
 {
-    volatile CARD8 tmp;
-    tmp = VGA_RD08(riva->PCIO + head * HEAD, VGA_IOBASE_COLOR + VGA_IN_STAT_1_OFFSET);
+    VGA_RD08(riva->PCIO + head * HEAD, VGA_IOBASE_COLOR + VGA_IN_STAT_1_OFFSET);
     VGA_WR08(riva->PCIO + head * HEAD, VGA_ATTR_INDEX, 0x20);
 }
 

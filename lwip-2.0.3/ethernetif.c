@@ -213,7 +213,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
     h = (struct eth_hdr *)buf;
 
     // signal that packet should be sent();
-    eth_transmit(&h->dest.addr[0], ntohs(h->type), p->tot_len - sizeof(struct eth_hdr), &buf[sizeof(struct eth_hdr)]);
+    eth_transmit((char*) &h->dest.addr[0], ntohs(h->type), p->tot_len - sizeof(struct eth_hdr), &buf[sizeof(struct eth_hdr)]);
 
 #if ETH_PAD_SIZE
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
@@ -325,7 +325,6 @@ ethernetif_input(struct netif *netif)
 #if 0
     struct ethernetif *ethernetif;
 #endif
-    struct eth_hdr *ethhdr;
     struct pbuf *p;
 
     // ethernetif = netif->state;
@@ -673,6 +672,10 @@ bool netflashPostProcess(void)
             {
                 LockHDD(1, 1, postProcessBuf);
             }
+            break;
+        case WebServerOps_NoOp:
+            break;
+        default:
             break;
         }
 

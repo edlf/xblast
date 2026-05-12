@@ -28,33 +28,26 @@ EEPROMChangeList eepromChangeList;
 
 static void putNewChangeInList(EEPROMChangeList* list, EEPROMChangeEntry_t* change);
 
-void BootEepromReadEntireEEPROM()
-{
-    int i;
+void BootEepromReadEntireEEPROM() {
     unsigned char *pb=(unsigned char *)&eeprom;
-    for(i = 0; i < sizeof(EEPROMDATA); i++)
-    {
+    for(int i = 0; i < sizeof(EEPROMDATA); i++) {
         *pb++ = I2CTransmitByteGetReturn(0x54, i);
     }
 }
 
-void eepromChangeTrackerInit(void)
-{
+void eepromChangeTrackerInit(void) {
     eepromChangeList.changeCount = 0;
     eepromChangeList.firstChangeEntry = NULL;
 }
 
-void BootEepromReloadEEPROM(EEPROMDATA * realeeprom)
-{
+void BootEepromReloadEEPROM(EEPROMDATA * realeeprom) {
     memcpy(realeeprom, &origEeprom, sizeof(EEPROMDATA));
 }
 
-void BootEepromCompareAndWriteEEPROM(EEPROMDATA * realeeprom)
-{
-    int i;
+void BootEepromCompareAndWriteEEPROM(EEPROMDATA * realeeprom) {
     unsigned char *pb = (unsigned char *)&eeprom;
     unsigned char *pc = (unsigned char *)realeeprom;
-    for(i = 0; i < sizeof(EEPROMDATA); i++)
+    for(int i = 0; i < sizeof(EEPROMDATA); i++)
     {
         if(pb[i] != pc[i])                //Compare byte by byte.
         {
@@ -99,7 +92,7 @@ void BootEepromPrintInfo()
     VIDEO_ATTR=0xffc8c8c8;
     printk("  Serial: ");
     VIDEO_ATTR=0xffc8c800;
-    
+
     {
         char sz[13];
         memcpy(sz, &eeprom.SerialNumber[0], 12);
@@ -122,9 +115,9 @@ void BootEepromWriteEntireEEPROM(void)
     }
 }
 
-/* The EepromCRC algorithm was obtained from the XKUtils 0.2 source released by 
- * TeamAssembly under the GNU GPL.  
- * Specifically, from XKCRC.cpp 
+/* The EepromCRC algorithm was obtained from the XKUtils 0.2 source released by
+ * TeamAssembly under the GNU GPL.
+ * Specifically, from XKCRC.cpp
  *
  * Rewritten to ANSI C by David Pye (dmp@davidmpye.dyndns.org)
  *
@@ -212,32 +205,25 @@ int getGameRegionValue(EEPROMDATA * eepromPtr)
     return result;
 }
 
-int setGameRegionValue(unsigned char value)
-{
-    int result = -1;
-    unsigned char baKeyHash[20];
-    unsigned char baDataHashConfirm[20];
+int setGameRegionValue(unsigned char value) {
     unsigned char baEepromDataLocalCopy[0x30];
-    struct rc4_key RC4_key;
     int version = 0;
-    int counter;
     unsigned int gameRegion = value;
 
     version = decryptEEPROMData((unsigned char *)&eeprom, baEepromDataLocalCopy);
 
-    if (version > EEPROM_EncryptV1_6)
-    {
-        return (-1);    //error, let's not do something stupid here. Leave with dignity.
+    // error, let's not do something stupid here. Leave with dignity.
+    if (version > EEPROM_EncryptV1_6) {
+        return -1;
     }
 
     //else we know the version
     memcpy(&baEepromDataLocalCopy[28+16],&gameRegion,4);
-    
+
     encryptEEPROMData(baEepromDataLocalCopy, &eeprom, version);
 
-    //Everything went well, return new gameRegion.
+    // Everything went well, return new gameRegion.
     return gameRegion;
-
 }
 
 EEPROM_EncryptVersion EepromSanityCheck(EEPROMDATA * eepromPtr)
@@ -664,7 +650,6 @@ void cleanEEPROMSettingsChangeListStruct(EEPROMChangeList* input)
 static void putNewChangeInList(EEPROMChangeList* list, EEPROMChangeEntry_t* change)
 {
     EEPROMChangeEntry_t* cycler = list->firstChangeEntry;
-    EEPROMChangeEntry_t* lastEntry = cycler;
 
     if(list->firstChangeEntry == NULL)
     {

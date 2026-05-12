@@ -1,18 +1,18 @@
 /*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or 
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
+ *
  */
 
 /*
@@ -38,8 +38,7 @@
 unsigned short current_remote_key;
 unsigned char remotekeyIsRepeat;
 
-struct xremote_info 
-{
+struct xremote_info  {
     struct urb *urb;
     unsigned char irpkt[8];
 };
@@ -55,7 +54,7 @@ struct xremote_info
 static void xremote_irq(struct urb *urb, struct pt_regs *regs)
 {
     struct xremote_info *xri = urb->context;
-        
+
     if (urb->status) return;
     if (urb->actual_length < 6) return;
 
@@ -69,16 +68,14 @@ static void xremote_irq(struct urb *urb, struct pt_regs *regs)
         remotekeyIsRepeat=0;
     }
     else remotekeyIsRepeat=1;
-                     
+
     usb_submit_urb(urb,GFP_ATOMIC);
 }
 
-static int xremote_probe(struct usb_interface *intf, const struct usb_device_id *id)
-{
+static int xremote_probe(struct usb_interface *intf, const struct usb_device_id *id) {
     struct urb *urb;
     struct usb_device *udev = interface_to_usbdev (intf);
     struct usb_endpoint_descriptor *ep_irq_in;
-    struct usb_endpoint_descriptor *ep_irq_out;
     struct xremote_info *xri;
 
     xri=(struct xremote_info *)kmalloc(sizeof(struct xremote_info),0);
@@ -102,8 +99,7 @@ static int xremote_probe(struct usb_interface *intf, const struct usb_device_id 
     return 0;
 }
 
-static void xremote_disconnect(struct usb_interface *intf)
-{
+static void xremote_disconnect(struct usb_interface *intf) {
     struct xremote_info *xri = usb_get_intfdata (intf);
     usbprintk("DVD Remote disconnected\n ");
     usb_unlink_urb(xri->urb);
@@ -112,29 +108,27 @@ static void xremote_disconnect(struct usb_interface *intf)
 }
 
 static struct usb_device_id xremote_id_table [] = {
-    { USB_DEVICE(0x040b, 0x6521) }, /* Gamester Xbox DVD Movie Playback Kit IR */
-    { USB_DEVICE(0x045e, 0x0284) }, /* Microsoft Xbox DVD Movie Playback Kit IR */
+    { USB_DEVICE(0x040b, 0x6521) }, // Gamester Xbox DVD Movie Playback Kit IR
+    { USB_DEVICE(0x045e, 0x0284) }, // Microsoft Xbox DVD Movie Playback Kit IR
     { USB_DEVICE(0x0000, 0x0000) }, // nothing detected - FAIL
     { } /* Terminating entry */
 };
 
 static struct usb_driver xremote_driver = {
-    .owner =        THIS_MODULE,
-    .name =            "XRemote",
-    .probe =        xremote_probe,
-    .disconnect =        xremote_disconnect,
-    .id_table =        xremote_id_table,
+    .owner =      THIS_MODULE,
+    .name =       "XRemote",
+    .probe =      xremote_probe,
+    .disconnect = xremote_disconnect,
+    .id_table =   xremote_id_table,
 };
 
-void XRemoteInit(void)
-{
-
+void XRemoteInit(void) {
     current_remote_key=0;
     usbprintk("XRemote probe %p\n",xremote_probe);
     if (usb_register(&xremote_driver) < 0) {
         err("Unable to register XRemote driver\n");
         return;
-    }       
+    }
 }
 
 void XRemoteRemove(void) {

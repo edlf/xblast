@@ -169,13 +169,13 @@ void runScript(unsigned char * file, unsigned int fileSize, int paramCount, int 
     bool accumulatorInUse;
     int arithOpInLine;
     _labelList labelList;
-    labelEntry * labelEntry;
+    labelEntry * labelEntry = NULL;
 
     _variableList variableList;
-    variableEntry * currentEntry;
+    variableEntry * currentEntry = NULL;
 
     _ifStatementList ifStatementList;
-    ifStatementEntry * ifEntry;
+    ifStatementEntry * ifEntry = NULL;
 
 
     int stringStartPtr = 0, stringStopPtr = 0, tempPtr, tempCounter;
@@ -186,7 +186,6 @@ void runScript(unsigned char * file, unsigned int fileSize, int paramCount, int 
         int value;
         char * text;
     }argumentList[5];
-    int nbArguments;
 #define MAXINSTRUCTIONLENGTH 100
     char compareBuf[MAXINSTRUCTIONLENGTH];                     //100 character long seems acceptable
     char tempBuf[50];
@@ -259,7 +258,7 @@ void runScript(unsigned char * file, unsigned int fileSize, int paramCount, int 
             goto endExecution;
         }
         //Copy line in compareBuf.
-        strncpy(compareBuf, &file[stringStartPtr], tempCounter);
+        strncpy(compareBuf, (char *) &file[stringStartPtr], tempCounter);
         //Manually append terminating character at the end of the string
         compareBuf[tempCounter] = '\0';
         //if(compareBuf[0] != '\0')
@@ -277,7 +276,6 @@ void runScript(unsigned char * file, unsigned int fileSize, int paramCount, int 
             }
         }
         tempPtr = 0;
-        nbArguments = 0;
 
         //Emergency escape. Right after the last possible malloc have been freed.
         if(emergencyEscape()){        //white button
@@ -295,7 +293,6 @@ void runScript(unsigned char * file, unsigned int fileSize, int paramCount, int 
                 //Once out, were right after the argument.
                 argEndPtr[i] = tempPtr - 1;
                 argumentList[i].exist = true;
-                nbArguments += 1;
                 //Move to start of next argument. Skip '(' too.
                 while((compareBuf[tempPtr] == '(' || compareBuf[tempPtr] == ',' || compareBuf[tempPtr] == ')') && compareBuf[tempPtr] != '\0'){
                     tempPtr +=1;
@@ -306,7 +303,6 @@ void runScript(unsigned char * file, unsigned int fileSize, int paramCount, int 
             }
         }
         //printf("\n\"%s\"", compareBuf);
-        //printf("     Line has %u argument(s)", nbArguments);
 
         //We parsed all 5 possible arguments of a line.
         //Argument 0 contains either a functionCall, a variable declaration or variable itself.
@@ -349,11 +345,12 @@ void runScript(unsigned char * file, unsigned int fileSize, int paramCount, int 
                             if(!ifEntry->validAssertion){ //Condition in IF statement was not met
                                 if(ifEntry->elsePosition != -1){    //There is a ELSE associated with this IF
                                     stringStartPtr = ifEntry->elsePosition; //Go there
-
+                                } else {//If there's not ELSE associated with IF
+                                    //Go to ENDIF
+                                    stringStartPtr = ifEntry->endifPosition;
                                 }
-                                else                                //If there's not ELSE associated with IF
-                                    stringStartPtr = ifEntry->endifPosition;        //Go to ENDIF
-                                    stringStopPtr = stringStartPtr;
+
+                                stringStopPtr = stringStartPtr;
                             }
 
 
@@ -763,7 +760,7 @@ void parseFileForLabels(unsigned char * file, unsigned int fileSize, _labelList 
         if(file[stringStartPtr] == '$'){        //Label identifier detected
             //stringStartPtr is now a beginning of the line and stringStopPtr is at the end of it.
             //Copy line in compareBuf.
-            strncpy(compareBuf, &file[stringStartPtr], stringStopPtr - stringStartPtr);
+            strncpy(compareBuf, (char*) &file[stringStartPtr], stringStopPtr - stringStartPtr);
             //Manually append terminating character at the end of the string
             compareBuf[stringStopPtr - stringStartPtr] = '\0';
             //if(compareBuf[0] != '\0')
@@ -791,7 +788,7 @@ bool parseFileForIFStatements(unsigned char * file, unsigned int fileSize, _ifSt
         if((stringTempPtr - stringStartPtr) >= 2){        //Detected something on this line.
             //stringStartPtr is now a beginning of the line and stringStopPtr is at the end of it.
             //Copy necessary text in compareBuf.
-            strncpy(compareBuf, &file[stringStartPtr], stringTempPtr - stringStartPtr);
+            strncpy(compareBuf, (char*) &file[stringStartPtr], stringTempPtr - stringStartPtr);
             //Manually append terminating character at the end of the string
             compareBuf[stringTempPtr - stringStartPtr] = '\0';
             stringStartPtr = ++stringStopPtr;     //Prepare to move on to next line.

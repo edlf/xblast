@@ -13,11 +13,9 @@
 #include "CDMenuActions.h"
 #include "string.h"
 
-TEXTMENU* CDMenuInit(void)
-{
+TEXTMENU* CDMenuInit(void) {
     TEXTMENUITEM* itemPtr;
     TEXTMENU* menuPtr;
-    int i = 0;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "CD Menu");
@@ -33,6 +31,6 @@ TEXTMENU* CDMenuInit(void)
     itemPtr->functionPtr = CDInject;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
-        
+
     return menuPtr;
 }
