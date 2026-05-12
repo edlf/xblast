@@ -260,7 +260,7 @@ unsigned int PciReadDword(unsigned int bus, unsigned int dev, unsigned int func,
 
 extern tsHarddiskInfo tsaHarddiskInfo[];  // static struct stores data about attached drives
 int BootIdeInit(void);
-int BootIdeReadSector(int nDriveIndex, void * pbBuffer, unsigned int block, int byte_offset, int n_bytes);
+int BootIdeReadSector(int nDriveIndex, void * pbBuffer, const uint64_t block, int byte_offset, int n_bytes);
 int BootIdeBootSectorHddOrElTorito(int nDriveIndex, unsigned char * pbaResult);
 int BootIdeAtapiAdditionalSenseCode(int nDrive, unsigned char * pba, int nLengthMaxReturn);
 int BootIdeSetTransferMode(int nIndexDrive, int nMode);

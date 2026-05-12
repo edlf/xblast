@@ -1307,7 +1307,6 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uin
     unsigned char *ptrBuffer;
     unsigned long counter, chainmapSize = 0;
     PARTITIONHEADER *header;
-    unsigned char clusterSize = 32;                //16KB cluster by default(32 sectors * 512 bytes)
 
     VIDEO_ATTR=0xffd8d8d8;
 
@@ -1317,31 +1316,29 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uin
        FATXSetBRFR(driveId);
     }
 
-    clusterSize = CalculateClusterSize(lbaSize);
+    const unsigned int clusterSize = CalculateClusterSize(lbaSize);
 
     //Calculate size of FAT, in number of 512-byte sectors.
-    chainmapSize = (lbaSize / clusterSize);       //Divide total of sectors(512 bytes) by number of sector contained in a cluster
-    chainmapSize = chainmapSize * ((lbaSize < FATX16_MAXLBA) ? 2 : 4);      //Multiply by length(in bytes) of a single entry in FAT.
-                                                                            //FATX16 has 2 byte FAT entries and FATX32 has 4 bytes entries.
-    chainmapSize = (chainmapSize >> 9);                                     //Divide by 512bytes,
+    chainmapSize = (lbaSize / clusterSize);                                 // Divide total of sectors(512 bytes) by number of sector contained in a cluster
+    chainmapSize = chainmapSize * ((lbaSize < FATX16_MAXLBA) ? 2 : 4);      // Multiply by length(in bytes) of a single entry in FAT.
+                                                                            // FATX16 has 2 byte FAT entries and FATX32 has 4 bytes entries.
+    chainmapSize = (chainmapSize >> 9);                                     // Divide by 512bytes,
 
     // Round it to 4096 byte boundary
     while((chainmapSize % 8) != 0) {
         chainmapSize += 1;
     }
 
-    if(tsaHarddiskInfo[driveId].m_fHasMbr == 1) {                           //MBR is present on HDD
+    if(tsaHarddiskInfo[driveId].m_fHasMbr == 1) { //MBR is present on HDD
         if(BootIdeReadSector(driveId, &buffer[0], 0x00, 0, 512)) {
             VIDEO_ATTR=0xffff0000;
             printk("\n\1                Unable to read MBR sector");
             cromwellWarning();
             return;
         }
-    }
-    else
-    {
+    } else  {
         //If no MBR already on disk
-        memcpy(mbr, &BackupPartTbl, sizeof(BackupPartTbl)); //Copy backup in working buffer and work from there.
+        memcpy(mbr, &BackupPartTbl, sizeof(BackupPartTbl)); // Copy backup in working buffer and work from there.
     }
 
     printk("\n\n\n           Writing partition table in MBR.   ");
@@ -1388,7 +1385,7 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uin
     printk("\n\n           Writing Boot Block.   ");
     // Starting (from 0 to 512*8 = 0x1000). Erasing Partition header data.
     // 4KB so 8*512 bytes sectors.
-    for (counter=lbaStart;counter<(lbaStart+8); counter++) {
+    for (counter = lbaStart; counter < (lbaStart + 8); counter++) {
         if(BootIdeWriteSector(driveId,buffer,counter, DEFAULT_WRITE_RETRY)){
             printk("\n           Write error, sector %u   ", counter);
             cromwellWarning();
@@ -1396,7 +1393,7 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uin
         }
     }
 
-    //Write Partition info on first sector. last seven sectors of the first 0x1000 are already 0xff anyway.
+    // Write Partition info on first sector. last seven sectors of the first 0x1000 are already 0xff anyway.
     if(BootIdeWriteSector(driveId,headerBuf,lbaStart, DEFAULT_WRITE_RETRY)){   //Partition header write.
         printk("\n           Write error, sector %u   ", lbaStart);
         cromwellWarning();
@@ -1413,7 +1410,7 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uin
         //Start by writing 0 everywhere, skip the first 144 sectors to write 9*256 sectors up to the end,
         //Reuse n times memory allocated (all set to 0x00) of 256*512 bytes in size in the event (chainmapSize % 256) != 0.
         //If (chainmapSize % 256) == 0, start of buffer contains initial chainmap initialization.
-        if(BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart+8+(chainmapSize % 256)+(i << 8), 256, DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
+        if(BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart + 8 + (chainmapSize % 256) + (i << 8), 256, DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
             printk("\n           Write error, Cluster Chainmap   ");                               //Length for E: drive is fixed at 2448 sectors
             cromwellWarning();
             return;

@@ -78,13 +78,16 @@ typedef struct PRDT{
 
 //Methods
 int BootIdeInit(void);
-int BootIdeReadSector(int nDriveIndex, void * pbBuffer, unsigned int block, int byte_offset, int n_bytes) ;
-int BootIdeReadData(unsigned uIoBase, void * buf, size_t size);
+
 int DriveSecurityChange(unsigned uIoBase, int driveId, ide_command_t ide_cmd, unsigned char *password);
 int CalculateDrivePassword(int driveId, unsigned char *key, unsigned char *eepromPtr);
 bool driveMasterPasswordUnlock(unsigned uIoBase, int driveId, const char *master_password);
-int BootIdeWriteSector(int nDriveIndex, void * pbBuffer, unsigned int block, unsigned char retry);
-int BootIdeWriteMultiple(int nDriveIndex, void * pbBuffer, unsigned int startLBA, unsigned short len, unsigned char retry);
+
+int BootIdeReadSector(int nDriveIndex, void * pbBuffer, const uint64_t block, int byte_offset, int n_bytes);
+int BootIdeReadData(unsigned uIoBase, void * buf, size_t size);
+
+int BootIdeWriteSector(int nDriveIndex, void * pbBuffer, const uint64_t block, unsigned char retry);
+int BootIdeWriteMultiple(int nDriveIndex, void * pbBuffer, uint64_t startLBA, unsigned short len, unsigned char retry);
 
 bool driveToggleSMARTFeature(int nDriveIndex, unsigned short smart_cmd);
 int driveSMARTRETURNSTATUS(int nDriveIndex);
