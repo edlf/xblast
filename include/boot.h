@@ -96,7 +96,7 @@ typedef struct tsHarddiskInfo {  // this is the retained knowledge about an IDE 
     unsigned short m_wCountHeads;
     unsigned short m_wCountCylinders;
     unsigned short m_wCountSectorsPerTrack;
-    unsigned long m_dwCountSectorsTotal; /* total */
+    uint64_t m_dwCountSectorsTotal; /* total */
     unsigned char m_bLbaMode;    /* am i lba (0x40) or chs (0x00) */
     unsigned char m_szIdentityModelNumber[40];
     unsigned char term_space_1[2];

@@ -78,14 +78,12 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // loop through it, outputing entries
-        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++)
-        {
+        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
             // work out the currentEntry
             curEntry = clusterData + (i * FATX_DIRECTORYENTRY_SIZE);
 
             // first of all, check that it isn't an end of directory marker
-            if (checkForLastDirectoryEntry(curEntry))
-            {
+            if (checkForLastDirectoryEntry(curEntry)) {
                 goto exit;
             }
 
@@ -93,14 +91,12 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
             filenameSize = curEntry[0];
 
             // check if file is deleted
-            if (filenameSize == 0xE5)
-            {
+            if (filenameSize == 0xE5) {
                 continue;
             }
 
             // check size is OK
-            if ((filenameSize < 1) || (filenameSize > FATX_FILENAME_MAX))
-            {
+            if ((filenameSize < 1) || (filenameSize > FATX_FILENAME_MAX)) {
 #ifdef FATX_INFO
                 printk("     Invalid filename size: %i\n", filenameSize);
 #endif
@@ -113,8 +109,7 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
             res[c][filenameSize + strlen (prefix)] = '\0';
 
             c++;
-            if (c >= reslen)
-            {
+            if (c >= reslen) {
                 goto exit;
             }
 
@@ -128,16 +123,12 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
     //TODO: Freakin bubble sort for now... Just to test "strcmpbynum" function
 exit:
     printk("\n\n");
-    while(sortNotOver && c >= 2)
-    {
-
+    while(sortNotOver && c >= 2) {
         sortNotOver = 0;
-        for(i = 0; i < (c - 1); i++)
-        {
+        for(i = 0; i < (c - 1); i++) {
             sortResult = strcmpbynum(res[i], res[i + 1]);
 
-            if(sortResult > 0)
-            {
+            if(sortResult > 0) {
                 sortNotOver++;
                 tempSortPtr = res[i];
                 res[i] = res[i + 1];
@@ -149,8 +140,7 @@ exit:
     return c;
 }
 
-int FATXFindDir(FATXPartition *partition, int clusterId, char *dir)
-{
+int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
     unsigned char* curEntry;
     unsigned char clusterData[partition->clusterSize];
     int i = 0;
@@ -159,8 +149,7 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir)
     unsigned long entryClusterId;
     char foundFilename[50];
 
-    while(clusterId != -1)
-    {
+    while(clusterId != -1) {
         // load cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
@@ -223,9 +212,7 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir)
     return 0;           //Keep compiler happy.
 }
 
-int LoadFATXFile(FATXPartition *partition,char *filename, FATXFILEINFO *fileinfo)
-{
-
+int LoadFATXFile(FATXPartition *partition, char *filename, FATXFILEINFO *fileinfo) {
     if(partition == NULL)
     {
         VIDEO_ATTR=0xffe8e8e8;
@@ -267,8 +254,7 @@ int LoadFATXFile(FATXPartition *partition,char *filename, FATXFILEINFO *fileinfo
     return false;
 }
 
-void PrintFATXPartitionTable(int nDriveIndex)
-{
+void PrintFATXPartitionTable(int nDriveIndex) {
     FATXPartition *partition = NULL;
     FATXFILEINFO fileinfo;
 
@@ -280,7 +266,7 @@ void PrintFATXPartitionTable(int nDriveIndex)
     {
         VIDEO_ATTR=0xffe8e8e8;
         printk("Partition SYSTEM\n");
-        partition = OpenFATXPartition(nDriveIndex,SECTOR_SYSTEM,SYSTEM_SIZE);
+        partition = OpenFATXPartition(nDriveIndex, SECTOR_SYSTEM, SYSTEM_SIZE);
         if(partition == NULL)
         {
             VIDEO_ATTR=0xffe8e8e8;
@@ -295,8 +281,7 @@ void PrintFATXPartitionTable(int nDriveIndex)
     VIDEO_ATTR=0xffc8c8c8;
 }
 
-int FATXSignature(int nDriveIndex,unsigned int block)
-{
+int FATXSignature(int nDriveIndex,unsigned int block) {
     unsigned char ba[512];
 
     if(BootIdeReadSector(0, &ba[0], block, 0, 512))
@@ -320,10 +305,7 @@ int FATXSignature(int nDriveIndex,unsigned int block)
     }
 }
 
-FATXPartition *OpenFATXPartition(int nDriveIndex,
-    unsigned int partitionOffset,
-    unsigned long long partitionSize)
-{
+FATXPartition *OpenFATXPartition(int nDriveIndex, unsigned int partitionOffset, uint64_t partitionSize) {
     unsigned char partitionInfo[FATX_PARTITION_HEADERSIZE];
     FATXPartition *partition;
     int readSize;
@@ -427,15 +409,12 @@ FATXPartition *OpenFATXPartition(int nDriveIndex,
     return partition;
 }
 
-void DumpFATXTree(FATXPartition *partition)
-{
+void DumpFATXTree(FATXPartition *partition) {
     // OK, start off the recursion at the root FAT
     _DumpFATXTree(partition, FATX_ROOT_FAT_CLUSTER, 0);
 }
 
-void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting)
-{
-
+void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting) {
     int endOfDirectory;
     unsigned char* curEntry;
     unsigned char clusterData[partition->clusterSize];
@@ -549,9 +528,7 @@ void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting)
     }
 }
 
-int FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo)
-{
-
+int FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo) {
     unsigned char clusterData[partition->clusterSize];
     int fileSize = fileinfo->fileSize;
     int written;
@@ -562,8 +539,7 @@ int FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo)
     ptr = fileinfo->buffer;
 
     // loop, outputting clusters
-    while(clusterId != -1)
-    {
+    while(clusterId != -1) {
         // Load the cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
@@ -591,11 +567,7 @@ int FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo)
     return true;
 }
 
-int FATXFindFile(FATXPartition* partition,
-                    char* filename,
-                    int clusterId, FATXFILEINFO *fileinfo)
-{
-
+int FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXFILEINFO *fileinfo) {
     int i = 0;
 #ifdef FATX_DEBUG
     VIDEO_ATTR=0xffc8c8c8;
@@ -625,8 +597,7 @@ int FATXFindFile(FATXPartition* partition,
 
 int _FATXFindFile(FATXPartition* partition,
                     char* filename,
-                    int clusterId, FATXFILEINFO *fileinfo)
-{
+                    int clusterId, FATXFILEINFO *fileinfo) {
     unsigned char* curEntry;
     unsigned char clusterData[partition->clusterSize];
     int i = 0;
@@ -790,10 +761,7 @@ int _FATXFindFile(FATXPartition* partition,
     return false;
 }
 
-
-
-unsigned long getNextClusterInChain(FATXPartition* partition, int clusterId)
-{
+unsigned long getNextClusterInChain(FATXPartition* partition, int clusterId) {
     int nextClusterId = 0;
     unsigned long eocMarker = 0;
     unsigned long rootFatMarker = 0;
@@ -848,8 +816,7 @@ unsigned long getNextClusterInChain(FATXPartition* partition, int clusterId)
     return nextClusterId;
 }
 
-void LoadFATXCluster(FATXPartition* partition, int clusterId, unsigned char* clusterData)
-{
+void LoadFATXCluster(FATXPartition* partition, int clusterId, unsigned char* clusterData) {
     unsigned long long clusterAddress;
     unsigned long long readSize;
 
@@ -857,8 +824,7 @@ void LoadFATXCluster(FATXPartition* partition, int clusterId, unsigned char* clu
     clusterAddress = partition->cluster1Address + ((unsigned long long)(clusterId - 1) * partition->clusterSize);
 
     // Now, load it
-    readSize = FATXRawRead(partition->nDriveIndex, partition->partitionStart,
-            clusterAddress, partition->clusterSize, clusterData);
+    readSize = FATXRawRead(partition->nDriveIndex, partition->partitionStart, clusterAddress, partition->clusterSize, clusterData);
 
     if (readSize != partition->clusterSize)
     {
@@ -869,30 +835,32 @@ void LoadFATXCluster(FATXPartition* partition, int clusterId, unsigned char* clu
 
 int FATXRawRead(int drive, int sector, unsigned long long byte_offset, int byte_len, unsigned char *buf) {
 
-    int byte_read;
+    int byte_read = 0;
 
-    byte_read = 0;
+    // printk("rawread: sector=0x%X, byte_offset=0x%X, len=%d\n", sector, byte_offset, byte_len);
 
-//    printk("rawread: sector=0x%X, byte_offset=0x%X, len=%d\n", sector, byte_offset, byte_len);
+    sector+=byte_offset/512;
+    byte_offset%=512;
 
-        sector+=byte_offset/512;
-        byte_offset%=512;
-
-        while(byte_len) {
+    while(byte_len) {
         int nThisTime=512;
-        if(byte_len<512) nThisTime=byte_len;
-                if(byte_offset) {
-                    //unsigned char ba[512];
+
+        if(byte_len<512) {
+            nThisTime=byte_len;
+        }
+
+        if(byte_offset) {
+            //unsigned char ba[512];
             if(BootIdeReadSector(drive, buf, sector, 0, 512)) {
                 VIDEO_ATTR=0xffe8e8e8;
                 printk("Unable to get first sector\n");
-                                return false;
+                return false;
             }
             //memcpy(buf, &ba[byte_offset], nThisTime-byte_offset);
-            buf+=nThisTime-byte_offset;
-            byte_len-=nThisTime-byte_offset;
+            buf += nThisTime-byte_offset;
+            byte_len -= nThisTime-byte_offset;
             byte_read += nThisTime-byte_offset;
-            byte_offset=0;
+            byte_offset = 0;
         } else {
             if(BootIdeReadSector(drive, buf, sector, 0, nThisTime)) {
                 VIDEO_ATTR=0xffe8e8e8;
@@ -916,7 +884,7 @@ void CloseFATXPartition(FATXPartition* partition) {
     }
 }
 
-void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned int entryNumber, unsigned int cluster){
+void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned int entryNumber, unsigned int cluster) {
     unsigned int offset = entryNumber * 0x40;
 
     FATXDIRINFO *dirEntry = (FATXDIRINFO *)&buffer[offset];
@@ -941,7 +909,7 @@ void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned 
     return;                                                     //buffer is updated, ready to be written on HDD.
 }
 
-void FATXSetBRFR(unsigned char drive){
+void FATXSetBRFR(unsigned char drive) {
 	unsigned char buffer[512];
 	unsigned int counter;
 
@@ -956,7 +924,8 @@ void FATXSetBRFR(unsigned char drive){
 
         sprintf((char *) buffer, "BRFR");
 
-        if(BootIdeWriteSector(drive, buffer, 3, DEFAULT_WRITE_RETRY)){       //Write "BRFR" string and number of boots(0) at absolute offset 0x600
+        // Write "BRFR" string and number of boots(0) at absolute offset 0x600
+        if(BootIdeWriteSector(drive, buffer, 3, DEFAULT_WRITE_RETRY)) {
             printk("\n           FATXSetBRFR: Write error, sector %u   ", 3);
             cromwellWarning();
             return;
@@ -965,8 +934,7 @@ void FATXSetBRFR(unsigned char drive){
         tsaHarddiskInfo[drive].m_enumDriveType = EDT_XBOXFS;
 }
 
-bool FATXCheckMBR(unsigned char driveId)
-{
+bool FATXCheckMBR(unsigned char driveId) {
     unsigned char *sourceTable = (unsigned char *)&BackupPartTbl;
     unsigned char i;
     unsigned char ba[512];
@@ -974,23 +942,22 @@ bool FATXCheckMBR(unsigned char driveId)
     if(BootIdeReadSector(driveId, &ba[0], 0x00, 0, 512)) {
         printk("\n\n\n           FATXCheckMBR : Unable to read MBR sector\n");
         return 0;
-    } else{
-        for(i = 0; i < 48; i++){
-            if(ba[i] != sourceTable[i]){         //Contains generic MBR header
-                return 0;                       //First 48 bytes should always be identical for every Part tables.
+    } else {
+        for(i = 0; i < 48; i++) {
+            if(ba[i] != sourceTable[i]) { //Contains generic MBR header
+                return 0;                 //First 48 bytes should always be identical for every Part tables.
             }
         }
-        for(i = 48; i < 208; i++){
-            if(ba[i] != sourceTable[i]){         //Contains standard Xbox Partitions (C,E,X,Y,Z)
-                return -1;                      //If basic partition entries contains unconventional values, return error.
+        for(i = 48; i < 208; i++) {
+            if(ba[i] != sourceTable[i]) { //Contains standard Xbox Partitions (C,E,X,Y,Z)
+                return -1;                //If basic partition entries contains unconventional values, return error.
             }
         }
     }
     return 1;
 }
 
-int FATXCheckFATXMagic(unsigned char driveId)
-{
+int FATXCheckFATXMagic(unsigned char driveId) {
     unsigned char ba[512];
     if(BootIdeReadSector(driveId, &ba[0], 0x03, 0, 512)) {
         printk("\n\n\n           FATXCheckFATXMagic : Unable to read MBR sector\n");
@@ -1002,7 +969,6 @@ int FATXCheckFATXMagic(unsigned char driveId)
     //Everything went fine.
     return 1;
 }
-
 
 void FATXSetMBR(unsigned char driveId, XboxPartitionTable *p_table){
     unsigned char *sourceTable = (unsigned char *)p_table;
@@ -1054,7 +1020,7 @@ void FATXFormatCacheDrives(int nIndexDrive, bool verbose){
     ptrBuffer[2]=0xff;
     ptrBuffer[3]=0xff;
 
-    //Cycle through all 3 cache partitions.
+    // Cycle through all 3 cache partitions.
     for(whichpartition = SECTOR_CACHE1; whichpartition <= SECTOR_CACHE3; whichpartition += (SECTOR_CACHE2 - SECTOR_CACHE1)){
         if(whichpartition == SECTOR_CACHE1)
         {
@@ -1119,8 +1085,9 @@ void FATXFormatCacheDrives(int nIndexDrive, bool verbose){
             }
         }
         //For a total of 264 sectors written, each partition.
-        if(verbose)
+        if(verbose) {
             cromwellSuccess();
+        }
     }
     free(ptrBuffer);
 }
@@ -1133,8 +1100,9 @@ void FATXFormatDriveC(int nIndexDrive, bool verbose){
     unsigned int counter;
     PARTITIONHEADER *header;
 
-    if(tsaHarddiskInfo[nIndexDrive].m_enumDriveType != EDT_XBOXFS)
+    if(tsaHarddiskInfo[nIndexDrive].m_enumDriveType != EDT_XBOXFS) {
         FATXSetBRFR(nIndexDrive);
+    }
 
     memset(headerBuf,0xff,0x1000);              //First sector(and only one used) of the Partition header area.
     header = (PARTITIONHEADER *)headerBuf;
@@ -1191,11 +1159,14 @@ void FATXFormatDriveC(int nIndexDrive, bool verbose){
 
 
 
-    if(verbose)
+    if(verbose) {
         cromwellSuccess();
+    }
 
-    if(verbose)
+    if(verbose) {
         printk("\n\n           Finalizing.   ");
+    }
+
     // Root Dir (from 512*136 = 0x11000 )
     memset(buffer,0x00,512);
     //Format 2 first clusters
@@ -1207,8 +1178,9 @@ void FATXFormatDriveC(int nIndexDrive, bool verbose){
         }
     }
     //For a total of 200 consecutive sectors written.
-    if(verbose)
+    if(verbose) {
         cromwellSuccess();
+    }
 }
 
 void FATXFormatDriveE(int nIndexDrive, bool verbose){
@@ -1217,8 +1189,9 @@ void FATXFormatDriveE(int nIndexDrive, bool verbose){
     unsigned int counter;
     PARTITIONHEADER *header;
 
-    if(tsaHarddiskInfo[nIndexDrive].m_enumDriveType != EDT_XBOXFS)
+    if(tsaHarddiskInfo[nIndexDrive].m_enumDriveType != EDT_XBOXFS) {
         FATXSetBRFR(nIndexDrive);
+    }
 
     memset(headerBuf,0xff,0x1000);              //First sector(and only one used) of the Partition header area.
     header = (PARTITIONHEADER *)headerBuf;
@@ -1329,11 +1302,12 @@ void FATXFormatDriveE(int nIndexDrive, bool verbose){
         return;
     }
     //For a total of 2648 sectors written
-    if(verbose)
+    if(verbose) {
         cromwellSuccess();
+    }
 }
 
-void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, uint64_t lbaSize){
+void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uint64_t lbaStart, uint64_t lbaSize){
     unsigned char buffer[512], headerBuf[0x1000];
     unsigned int i;
     unsigned char *ptrBuffer;
@@ -1357,9 +1331,10 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
                                                                             //FATX16 has 2 byte FAT entries and FATX32 has 4 bytes entries.
     chainmapSize = (chainmapSize >> 9);                                     //Divide by 512bytes,
 
-    while((chainmapSize % 8) != 0)                    //Round it to 4096 byte boundary.
+    // Round it to 4096 byte boundary
+    while((chainmapSize % 8) != 0) {
         chainmapSize += 1;
-
+    }
 
     if(tsaHarddiskInfo[driveId].m_fHasMbr == 1) {                           //MBR is present on HDD
         if(BootIdeReadSector(driveId, &buffer[0], 0x00, 0, 512)) {
@@ -1377,8 +1352,10 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
 
     printk("\n\n\n           Writing partition table in MBR.   ");
     mbr->TableEntries[partition].Flags = PE_PARTFLAGS_IN_USE;
-    mbr->TableEntries[partition].LBAStart = lbaStart;
-    mbr->TableEntries[partition].LBASize = lbaSize;
+    mbr->TableEntries[partition].LBAStart = (uint32_t)(lbaStart & LBA_LOWER_BITS);;
+    mbr->TableEntries[partition].LBAStart_high = (uint16_t)((lbaStart >> 32) && LBA_HIGHER_BITS);
+    mbr->TableEntries[partition].LBASize = (uint32_t)(lbaSize & LBA_LOWER_BITS);
+    mbr->TableEntries[partition].LBASize_high = (uint16_t)((lbaSize >> 32) && LBA_HIGHER_BITS);
     FATXSetMBR(driveId, mbr);
     cromwellSuccess();
 

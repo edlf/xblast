@@ -18,7 +18,7 @@ VGA := 0
 ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
 
-#Changed from the default of 0x3000 to allow for more xcodes and flash code
+# Changed from the default of 0x3000 to allow for more xcodes and flash code
 INCLUDE_ALL = -DBL_END_ADDR=0x3600 -DBUILD_RAMTEST=$(BUILD_RAMTEST) -DRAMTEST_256MB=$(RAMTEST_256MB)
 
 INCLUDE = \
@@ -203,6 +203,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsDefs.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsImportExport.o
 OBJECTS-CROM += $(TOPDIR)/obj/PowerManagement.o
 OBJECTS-CROM += $(TOPDIR)/obj/HardwareIdentifier.o
+# Arith64
 OBJECTS-CROM += $(TOPDIR)/obj/arith64.o
 
 #USB
@@ -224,7 +225,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xpad.o
 #OBJECTS-CROM += $(TOPDIR)/obj/usbkey.o
 OBJECTS-CROM += $(TOPDIR)/obj/risefall.o
 
-#ETHERBOOT
+# ETHERBOOT
 ifeq ($(ETHERBOOT), yes)
 OBJECTS-CROM += $(TOPDIR)/obj/nic.o
 OBJECTS-CROM += $(TOPDIR)/obj/xbox.o

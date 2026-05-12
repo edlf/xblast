@@ -95,7 +95,7 @@ bool LockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr)
             return false;
         }
     }
-    
+
     if(CalculateDrivePassword(nIndexDrive, password, eepromPtr))
     {
         printk("           Unable to calculate drive password - eeprom corrupt?");
@@ -118,7 +118,7 @@ bool LockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr)
             {
                 printk("\n\n                              ");
             }
-        }    
+        }
 
         VIDEO_ATTR = 0xffffff;
         printk("\n           Locking drive");
@@ -205,8 +205,8 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
             }
         }
     }
-    
-    
+
+
     if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_DISABLE, userPassword, false))
     {
         printk("\n\n           Unlock drive failed.");
@@ -224,7 +224,7 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
     {
         result = 0;
     }
-            
+
     if(result == 0)
     {
         //Unlock successful, read if there's a MBR, only if FATX formatted drive.
@@ -293,7 +293,7 @@ void DisplayHDDPassword(void* customString)
     unsigned char nIndexDrive = ((LockUnlockCommonParams *)customString)->driveIndex;
     unsigned char password[20];
     int i;
-    
+
     printk("\n\n\n           Calculating password");
     dots();
 
@@ -303,7 +303,7 @@ void DisplayHDDPassword(void* customString)
         wait_ms(2000);
         return;
     }
-    
+
     cromwellSuccess();
 
     printk("           The normal password (user password) for this Xbox/Drive combination\n           is as follows:\n\n");
@@ -344,7 +344,7 @@ void FormatDriveC(void* driveId)
     {
         return;                                 //Cancel operation.
     }
-        
+
     UiHeader("Format C: drive");      //'1' for verbose
     FATXFormatDriveC(nIndexDrive, 1);
     UIFooter();
@@ -364,8 +364,7 @@ void FormatDriveE(void* driveId)
     UIFooter();
 }
 
-void DisplayHDDInfo(void* driveId)
-{
+void DisplayHDDInfo(void* driveId) {
     unsigned char nIndexDrive = *(unsigned char *)driveId;
     unsigned char MBRBuffer[512];
     unsigned char i;
@@ -386,39 +385,22 @@ void DisplayHDDInfo(void* driveId)
     printk("\n           FATX Formatted? : %s ", tsaHarddiskInfo[nIndexDrive].m_enumDriveType==EDT_XBOXFS ? "Yes" : "No");
     printk("\n           Xbox MBR on HDD? : %s", tsaHarddiskInfo[nIndexDrive].m_fHasMbr ? "Yes" : "No");
 
-    if(tsaHarddiskInfo[nIndexDrive].m_fHasMbr)
-    {
-        if(BootIdeReadSector(nIndexDrive, MBRBuffer, 0x00, 0, 512))
-        {
+    if(tsaHarddiskInfo[nIndexDrive].m_fHasMbr) {
+        if(BootIdeReadSector(nIndexDrive, MBRBuffer, 0x00, 0, 512)) {
             //VIDEO_ATTR=0xffff0000;
             printk("\n                Unable to read MBR sector...\n");
-        }
-        else
-        {
-            for(i = 0; i < 7; i++)     //Print only info for C, E, F, G, X, Y and Z
-            {
-                if(mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0)    //Valid partition entry only
-                {
+        } else {
+            for(i = 0; i < 7; i++) {    //Print only info for C, E, F, G, X, Y and Z
+                if(mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0) {   //Valid partition entry only
                     printk("\n                 %s", mbr->TableEntries[i].Name);
                     printk("\n                     Active: %s", mbr->TableEntries[i].Flags == PE_PARTFLAGS_IN_USE ? "Yes" : "No");
 
-                    if(mbr->TableEntries[i].LBASize >= LBASIZE_512GB)           //Need 64K clusters
-                    {
-                        clusterSize = 64;                                      //Clustersize in number of 512-byte sectors
-                    }
-                    else if(mbr->TableEntries[i].LBASize >= LBASIZE_256GB)
-                    {
-                        clusterSize = 32;
-                    }
-                    else if(mbr->TableEntries[i].LBASize >= 1)
-                    {
-                        clusterSize = 16;
-                    }
-                    else
-                    {
-                    	clusterSize = 0;
-                    }
-                    partSize = mbr->TableEntries[i].LBASize / 2048;      //in MB
+
+                    uint64_t size = (uint64_t) mbr->TableEntries[i].LBASize_high;
+                    size = (size << 32) | mbr->TableEntries[i].LBASize;
+                    clusterSize = CalculateClusterSize(size);
+
+                    partSize = size / 2048;      //in MB
                     printk("    Size: %uMB   Cluster: %uKB", partSize, clusterSize);
                 }
             }

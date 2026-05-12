@@ -36,6 +36,9 @@
 
 #define FATX16_MAXLBA   2096800UL                         // Max number of sectors possible of a FATX16 partition. Higher than that is FATX32.
 
+#define LBA_LOWER_BITS   0xFFFFFFFF
+#define LBA_HIGHER_BITS  0x0000FFFF
+
 /*Taken from XBPartitionner*/
 // This flag (part of PARTITION_ENTRY.pe_flags) tells you whether/not a
 // partition is being used (whether/not drive G is active, for example)
@@ -167,15 +170,15 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
 int FATXFindDir(FATXPartition *partition, int clusterId, char *dir);
 void PrintFATXPartitionTable(int nDriveIndex);
 int FATXSignature(int nDriveIndex,unsigned int block);
-FATXPartition *OpenFATXPartition(int nDriveIndex,unsigned int partitionOffset, unsigned long long partitionSize);
+FATXPartition *OpenFATXPartition(int nDriveIndex,unsigned int partitionOffset, uint64_t partitionSize);
 int FATXRawRead (int drive, int sector, unsigned long long byte_offset, int byte_len, unsigned char *buf);
 void DumpFATXTree(FATXPartition *partition);
 void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting);
 void LoadFATXCluster(FATXPartition* partition, int clusterId, unsigned char* clusterData);
 unsigned long getNextClusterInChain(FATXPartition* partition, int clusterId);
 void CloseFATXPartition(FATXPartition* partition);
-int FATXFindFile(FATXPartition* partition,char* filename,int clusterId, FATXFILEINFO *fileinfo);
-int _FATXFindFile(FATXPartition* partition,char* filename,int clusterId, FATXFILEINFO *fileinfo);
+int FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXFILEINFO *fileinfo);
+int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXFILEINFO *fileinfo);
 int FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo);
 void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned int entryNumber, unsigned int cluster);
 int FATXCheckFATXMagic(unsigned char driveId);
@@ -186,6 +189,6 @@ void FATXSetInitMBR(unsigned char driveId);
 void FATXFormatCacheDrives(int nIndexDrive, bool verbose);
 void FATXFormatDriveC(int nIndexDrive, bool verbose);
 void FATXFormatDriveE(int nIndexDrive, bool verbose);
-void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, uint64_t lbaSize);
+void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uint64_t lbaStart, uint64_t lbaSize);
 
 #endif //    _BootFATX_H_

@@ -1,5 +1,7 @@
 # README #
 
+This has been modified to build on newer gcc versions and some fixes from cromwell have been ported over.
+
 This is the code repository for the XBlast's Xbox Legal "OS".
 
 It is a replacement firmware or "BIOS" to run on the Original Xbox video game console. It also serves as software control interface for the "Xblast" line of modding devices for Xbox.
@@ -83,3 +85,5 @@ Notable features only available on XBlast mod
 * Quickboot bank(bypass OS)
 * TSOP control for multiple BIOS banks (Xbox 1.0/1.1 only).
 
+### Notes
+* Uses [arith64](https://github.com/glitchub/arith64/)

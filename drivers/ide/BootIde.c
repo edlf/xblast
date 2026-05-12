@@ -422,39 +422,35 @@ int BootIdeDriveInit(unsigned uIoBase, int nIndexDrive)
     tsaHarddiskInfo[nIndexDrive].m_wCountHeads = drive_info[3];
     tsaHarddiskInfo[nIndexDrive].m_wCountCylinders = drive_info[1];
     tsaHarddiskInfo[nIndexDrive].m_wCountSectorsPerTrack = drive_info[6];
-    tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal = *((unsigned int*)&(drive_info[60]));
+    tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal = *((unsigned int*) &(drive_info[60])); // 28 bit sector
     tsaHarddiskInfo[nIndexDrive].m_wAtaRevisionSupported = drive_info[88];
 
 
     VIDEO_ATTR=0xffc8c8c8;
-        /* 48-bit LBA - we should check bits 83 AND 86 to check both
+    /* 48-bit LBA - we should check bits 83 AND 86 to check both
      * supported AND enabled  - however, some drives do not set
      * Bit 83. Bit 86 seems to be the accepted way to detect whether
      * 48-bit LBA is available. */
-        if( drive_info[86] & 1ul<<10 )  {
-
-        tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal =
-            *((unsigned int*)&(drive_info[100]));
+    if( drive_info[86] & 1ul<<10 )  {
+        // 100-103
+        tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal = *((uint64_t*) &(drive_info[100]));
     }
     /* End 48-bit LBA */
 
     {
         unsigned short * pw=(unsigned short *)&(drive_info[10]);
-        tsaHarddiskInfo[nIndexDrive].s_length =
-            copy_swap_trim(tsaHarddiskInfo[nIndexDrive].m_szSerial,(unsigned char *)pw,20);
+        tsaHarddiskInfo[nIndexDrive].s_length = copy_swap_trim(tsaHarddiskInfo[nIndexDrive].m_szSerial,(unsigned char *)pw,20);
         pw=(unsigned short *)&(drive_info[27]);
-        tsaHarddiskInfo[nIndexDrive].m_length =
-            copy_swap_trim(tsaHarddiskInfo[nIndexDrive].m_szIdentityModelNumber,(unsigned char *)pw,40);
+        tsaHarddiskInfo[nIndexDrive].m_length = copy_swap_trim(tsaHarddiskInfo[nIndexDrive].m_szIdentityModelNumber,(unsigned char *)pw,40);
         copy_swap_trim(tsaHarddiskInfo[nIndexDrive].m_szFirmware,(unsigned char *)&(drive_info[23]),8);
-
     }
 
     tsaHarddiskInfo[nIndexDrive].m_fDriveExists = 1;
 
     if (tsaHarddiskInfo[nIndexDrive].m_fAtapi) {
-     // CDROM/DVD
+        // CDROM/DVD
         debugSPIPrint(DEBUG_IDE_DRIVER,"ATAPI device specific init routine.\n");
-                // We Detected a CD-DVD or so, as there are no Heads ...
+        // We Detected a CD-DVD or so, as there are no Heads ...
         tsaHarddiskInfo[nIndexDrive].m_fAtapi=true;
 #ifndef SILENT_MODE
         printk("hd%c: ", nIndexDrive+'a');
