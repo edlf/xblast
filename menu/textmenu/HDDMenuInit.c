@@ -111,7 +111,7 @@ void LargeHDDMenuDynamic(void* drive) {
     unsigned char nDriveIndex = *(unsigned char *)drive;
 
     //Amount of free sectors after standard partitions
-    unsigned long nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
+    uint64_t nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     sprintf(menuPtr->szCaption, "Large HDD format options : %s", nDriveIndex ? "Slave":"Master");
