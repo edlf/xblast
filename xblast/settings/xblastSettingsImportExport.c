@@ -271,8 +271,7 @@ int LPCMod_SaveCFGToHDD(void){
         UiHeader("Saved settings to C:\\XBlast\\xblast.cfg");
 
         CloseFATXPartition(partition);
-    }
-    else{
+    } else {
         UiHeader("Error opening partition. Drive formatted?");
     }
 

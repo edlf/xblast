@@ -1,8 +1,7 @@
 #include "font.h"
 
 
-main()
-{
+main() {
     int n, n1=0;
 
     printf("const unsigned short waStarts[] = {\n");

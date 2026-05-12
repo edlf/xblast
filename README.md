@@ -1,5 +1,19 @@
 # README #
 
+
+## Important
+This has been modified to build on newer gcc versions and some fixes from cromwell have been ported over.
+
+
+### Notes
+* LBA48 support, can format big HDDs (takes a while). No backup partition table yet though
+* Enabled keyboard support
+* Sends YUV over the GPU bus to match stock behavior. This fixes the funky colors with digital hdmi mods
+* Uses [arith64](https://github.com/glitchub/arith64/) and some iPXE code to circumvent gcc shenaningans
+
+
+## Original Readme
+
 This is the code repository for the XBlast's Xbox Legal "OS".
 
 It is a replacement firmware or "BIOS" to run on the Original Xbox video game console. It also serves as software control interface for the "Xblast" line of modding devices for Xbox.

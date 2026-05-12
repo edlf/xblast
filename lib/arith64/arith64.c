@@ -21,6 +21,7 @@
 #define arith64_s64 signed long long int
 #define arith64_u32 unsigned int
 #define arith64_s32 int
+#define arith64_u16 unsigned short
 
 typedef union
 {
@@ -266,4 +267,36 @@ arith64_u64 __umoddi3(arith64_u64 a, arith64_u64 b)
     arith64_u64 r;
     __divmoddi4(a, b, &r);
     return r;
+}
+
+// Stolen from iPXE (GPLv2+)
+arith64_u64 __udivmoddi4(arith64_u64 num, arith64_u64 den, arith64_u64* rem_p )
+{
+  arith64_u64 quot = 0, qbit = 1;
+
+  if ( den == 0 ) {
+    return 1/((unsigned)den); /* Intentional divide by zero, without
+                                 triggering a compiler warning which
+                                 would abort the build */
+  }
+
+  /* Left-justify denominator and count shift */
+  while ( (arith64_s64)den >= 0 ) {
+    den <<= 1;
+    qbit <<= 1;
+  }
+
+  while ( qbit ) {
+    if ( den <= num ) {
+      num -= den;
+      quot += qbit;
+    }
+    den >>= 1;
+    qbit >>= 1;
+  }
+
+  if ( rem_p )
+    *rem_p = num;
+
+  return quot;
 }

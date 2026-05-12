@@ -9,16 +9,14 @@
 #include <stdbool.h>
 
 #define F_GEQUAL 0x10
-#define FMAX_G 0x20
-#define F137_G 0x40
-#define F_NOG 0x80
+#define F137_G 0x20
+#define F_NOG 0x40
 
-typedef struct
-{
+typedef struct {
     unsigned char driveIndex;
     char* string1;
     char* string2;
-}LockUnlockCommonParams;
+} LockUnlockCommonParams;
 
 void AssertLockUnlock(void* customStructPtr);
 void AssertLockUnlockFromNetwork(void* customStructPtr);
