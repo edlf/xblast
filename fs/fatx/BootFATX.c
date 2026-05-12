@@ -20,13 +20,13 @@ XboxPartitionTable BackupPartTbl =
     { '*', '*', '*', '*', 'P', 'A', 'R', 'T', 'I', 'N', 'F', 'O', '*', '*', '*', '*' },
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     {
-        { { 'X', 'B', 'O', 'X', ' ', 'S', 'H', 'E', 'L', 'L', ' ', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_STORE, SECTORS_STORE, 0, 0},
-        { { 'X', 'B', 'O', 'X', ' ', 'D', 'A', 'T', 'A', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_SYSTEM, SECTORS_SYSTEM, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '1'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE1, SECTORS_CACHE1, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '2'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE2, SECTORS_CACHE2, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', 'A', 'M', 'E', ' ', 'S', 'W', 'A', 'P', ' ', '3'}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE3, SECTORS_CACHE3, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'F', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND, 0, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'G', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND + 0, 0, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'S', 'H', 'E', 'L', 'L', ' ', 'C', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_STORE, SECTORS_STORE, 0, 0},
+        { { 'X', 'B', 'O', 'X', ' ', 'D', 'A', 'T', 'A', ' ', 'E', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_SYSTEM, SECTORS_SYSTEM, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'X', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE1, SECTORS_CACHE1, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'Y', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE2, SECTORS_CACHE2, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'Z', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE3, SECTORS_CACHE3, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'E', 'X', 'T', 'R', 'A', ' ', 'F', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND, 0, 0, 0 },
+        { { 'X', 'B', 'O', 'X', ' ', 'E', 'X', 'T', 'R', 'A', ' ', 'G', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND + 0, 0, 0, 0 },
         { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
         { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
         { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
@@ -935,22 +935,16 @@ void FATXSetBRFR(unsigned char drive) {
 }
 
 bool FATXCheckMBR(unsigned char driveId) {
-    unsigned char *sourceTable = (unsigned char *)&BackupPartTbl;
-    unsigned char i;
     unsigned char ba[512];
 
     if(BootIdeReadSector(driveId, &ba[0], 0x00, 0, 512)) {
         printk("\n\n\n           FATXCheckMBR : Unable to read MBR sector\n");
         return 0;
     } else {
-        for(i = 0; i < 48; i++) {
-            if(ba[i] != sourceTable[i]) { //Contains generic MBR header
-                return 0;                 //First 48 bytes should always be identical for every Part tables.
-            }
-        }
-        for(i = 48; i < 208; i++) {
-            if(ba[i] != sourceTable[i]) { //Contains standard Xbox Partitions (C,E,X,Y,Z)
-                return -1;                //If basic partition entries contains unconventional values, return error.
+        // Check magic
+        for(unsigned char i = 0; i < XboxPartitionTableMagicSize; i++) {
+            if(ba[i] != LBA48_Partition_Table_Magic[i]) {
+                return 0;
             }
         }
     }

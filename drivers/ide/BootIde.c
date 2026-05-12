@@ -469,7 +469,7 @@ int BootIdeDriveInit(unsigned uIoBase, int nIndexDrive)
         if (isXBE() == false)
         {
             debugSPIPrint(DEBUG_IDE_DRIVER,"Reset ATAPI device specific requirement from cold boot.\n");
-              // this is the only way to clear the ATAPI ''I have been reset'' error indication
+            // this is the only way to clear the ATAPI ''I have been reset'' error indication
             unsigned char ba[128];
             ba[2]=0x06;
             while (ba[2]==0x06)
