@@ -40,8 +40,8 @@ int risefall_xpad_BUTTON(unsigned char selected_Button) {
         }
 
         if (match) {
-            //A match occurred, so the event has now been processed
-            //Clear it, and return success
+            // A match occurred, so the event has now been processed
+            // Clear it, and return success
             current_keyboard_key=0;
             return 1;
         }
@@ -90,7 +90,6 @@ int risefall_xpad_BUTTON(unsigned char selected_Button) {
     // Xbox controller section
     // A, B, X, Y, Black and White buttons sub section
     if (selected_Button < 6) {
-
         unsigned char Button;
         Button = XPAD_current[0].keys[selected_Button];
 
@@ -109,7 +108,6 @@ int risefall_xpad_BUTTON(unsigned char selected_Button) {
 
     // Directional pad sub section
      if ((selected_Button > 5) & (selected_Button < 10) ) {
-
         unsigned char Buttonmask;
 
         switch (selected_Button) {
@@ -139,13 +137,13 @@ int risefall_xpad_BUTTON(unsigned char selected_Button) {
          }
     }
 
-     // Analog triggers sub section
-    if(selected_Button == TRIGGER_XPAD_TRIGGER_RIGHT){
+    // Analog triggers sub section
+    if(selected_Button == TRIGGER_XPAD_TRIGGER_RIGHT) {
         if(XPAD_current[0].trig_right > 200){
             return 1;
         }
     }
-    if(selected_Button == TRIGGER_XPAD_TRIGGER_LEFT){
+    if(selected_Button == TRIGGER_XPAD_TRIGGER_LEFT) {
         if(XPAD_current[0].trig_left > 200){
             return 1;
         }

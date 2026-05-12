@@ -47,11 +47,9 @@ static void usb_kbd_irq(struct urb *urb, struct pt_regs *regs)
     #endif
 
     usb_submit_urb(urb,GFP_ATOMIC);
-
 }
 
-static int usb_kbd_probe(struct usb_interface *intf, const struct usb_device_id *id)
-{
+static int usb_kbd_probe(struct usb_interface *intf, const struct usb_device_id *id) {
     struct urb *urb;
     struct usb_device *udev = interface_to_usbdev (intf);
     struct usb_endpoint_descriptor *ep_irq_in;
@@ -88,8 +86,7 @@ static int usb_kbd_probe(struct usb_interface *intf, const struct usb_device_id 
 }
 
 
-static void usb_kbd_disconnect(struct usb_interface *intf)
-{
+static void usb_kbd_disconnect(struct usb_interface *intf) {
     struct usb_kbd_info *usbk = usb_get_intfdata (intf);
     usbprintk("Keyboard disconnected\n ");
     usb_unlink_urb(usbk->urb);
@@ -104,15 +101,14 @@ static struct usb_device_id usb_kbd_id_table [] = {
 
 
 static struct usb_driver usb_kbd_driver = {
-    .owner =        THIS_MODULE,
-    .name =            "keyboard",
-    .probe =        usb_kbd_probe,
-    .disconnect =        usb_kbd_disconnect,
-    .id_table =        usb_kbd_id_table,
+    .owner =      THIS_MODULE,
+    .name =       "keyboard",
+    .probe =      usb_kbd_probe,
+    .disconnect = usb_kbd_disconnect,
+    .id_table =   usb_kbd_id_table,
 };
 
-void UsbKeyBoardInit(void)
-{
+void UsbKeyBoardInit(void) {
     current_keyboard_key = 0;
     //sbprintk("Keyboard probe %p ",xremote_probe);
     if (usb_register(&usb_kbd_driver) < 0) {

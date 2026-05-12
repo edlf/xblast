@@ -8,8 +8,6 @@
  *
  */
 
-
-
 #include "../usb_wrapper.h"
 #include "config.h"
 #include "string.h"
@@ -23,8 +21,7 @@ unsigned char xpad_state_history;
 struct xpad_data XPAD_current[4];
 struct xpad_data XPAD_last[4];
 
-struct xpad_info
-{
+struct xpad_info {
     struct urb *urb;
     int num;
     unsigned char data[32];
@@ -44,12 +41,12 @@ static void xpad_irq(struct urb *urb, struct pt_regs *regs)
      * first xpad - avoids problems iterating over multiple xpads
      * as the xpi->num entries are not reused when xpads are
      * connected, then removed */
-
     struct xpad_data *xp=&XPAD_current[0];
     struct xpad_data *xpo=&XPAD_last[0];
 
-    if (xpi->num<0 || xpi->num>3)
+    if (xpi->num<0 || xpi->num>3) {
         return;
+    }
 
     memcpy(xpo,xp,sizeof(struct xpad_data));
 
@@ -72,8 +69,7 @@ static void xpad_irq(struct urb *urb, struct pt_regs *regs)
 
 }
 /*------------------------------------------------------------------------*/
-static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id)
-{
+static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id) {
     struct urb *urb;
     struct usb_device *udev = interface_to_usbdev (intf);
     struct usb_endpoint_descriptor *ep_irq_in;
@@ -82,18 +78,22 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
     usbprintk("entering xpad_probe\n");
 
     xpi=kmalloc(sizeof(struct xpad_info),GFP_KERNEL);
-    if (!xpi) return -1;
+    if (!xpi) {
+        return -1;
+    }
 
     urb=usb_alloc_urb(0,0);
-    if (!urb) return -1;
+    if (!urb) {
+        return -1;
+    }
 
     xpi->urb=urb;
     xpi->num=xpad_num;
     ep_irq_in = &intf->altsetting[0].endpoint[0].desc;
     usb_fill_int_urb(urb, udev,
-                         usb_rcvintpipe(udev, ep_irq_in->bEndpointAddress),
-                         xpi->data, 32, xpad_irq,
-                         xpi, 32);
+                     usb_rcvintpipe(udev, ep_irq_in->bEndpointAddress),
+                     xpi->data, 32, xpad_irq,
+                     xpi, 32);
 
     usb_submit_urb(urb,GFP_ATOMIC);
 
@@ -128,62 +128,59 @@ static void xpad_disconnect(struct usb_interface *intf)
 /*------------------------------------------------------------------------*/
 //Taken from X-CHanger 2.5 source code. Will add mine in the future, I promise...
 static struct usb_device_id xpad_ids [] = {
-    { USB_DEVICE(0x044f, 0x0f07) }, //Thrustmaster, Inc. Controller
-    { USB_DEVICE(0x045e, 0x0202) }, //Microsoft Xbox Controller
-    { USB_DEVICE(0x045e, 0x0285) }, //Microsoft Xbox Controller S
-    { USB_DEVICE(0x045e, 0x0287) }, //Microsoft XBox Controller S
-    { USB_DEVICE(0x045e, 0x0289) }, //Microsoft Xbox Controller S
-    { USB_DEVICE(0x046d, 0xca84) }, //Logitech Cordless Controller for Xbox
-    { USB_DEVICE(0x046d, 0xca88) }, //Logitech Compact Controller for Xbox
-    { USB_DEVICE(0x05fd, 0x1007) }, //???Mad Catz Controller???
-    { USB_DEVICE(0x05fd, 0x107a) }, //InterAct PowerPad Pro
-    { USB_DEVICE(0x0738, 0x4516) }, //Mad Catz Control Pad
-    { USB_DEVICE(0x0738, 0x4522) }, //Mad Catz LumiCON
-    { USB_DEVICE(0x0738, 0x4526) }, //Mad Catz Control Pad Pro
-    { USB_DEVICE(0x0738, 0x4536) }, //Mad Catz MicroCON
-    { USB_DEVICE(0x0738, 0x4540) }, //Mad Catz Beat Pad
-    { USB_DEVICE(0x0738, 0x4556) }, //Mad Catz Lynx Wireless Controller
-    { USB_DEVICE(0x0738, 0x6040) }, //Mad Catz Beat Pad pro
-    { USB_DEVICE(0x0c12, 0x8802) }, //Zeroplus, Hama, Bigben
-    { USB_DEVICE(0x0c12, 0x8809) }, //Level Six Xbox DDR Dancepad
-    { USB_DEVICE(0x0c12, 0x880a) }, //2-Tech Crystal Controller
-    { USB_DEVICE(0x0c12, 0x8810) }, //Zeroplus Xbox Controller
-    { USB_DEVICE(0x0c12, 0x9902) }, //HAMA VibraX - *FAULTY HARDWARE*
-    { USB_DEVICE(0x0e4c, 0x1097) }, //Radica Gamester Controller
-    { USB_DEVICE(0x0e4c, 0x2390) }, //Radica Games Jtech Controller
-    { USB_DEVICE(0x0e6f, 0x0003) }, //Logic3 Freebird wireless Controller
-    { USB_DEVICE(0x0e6f, 0x0005) }, //Eclipse wireless Controller
-    { USB_DEVICE(0x0e6f, 0x0006) }, //Edge wireless Controller
-    { USB_DEVICE(0x0e8f, 0x0201) }, //SmartJoy Frag Xpad/PS2 adaptor", 0, XTYPE_XBOX },
-    { USB_DEVICE(0x0e8f, 0x3008) }, //Generic xbox control (dealextreme)", 0, XTYPE_XBOX },
-    { USB_DEVICE(0x0f30, 0x0107) }, //Hama Thunder
-    { USB_DEVICE(0x0f30, 0x0202) }, //Joytech Advanced Controller
-    { USB_DEVICE(0x0f30, 0x0208) }, //Hama Thunder
-    { USB_DEVICE(0x0f30, 0x8888) }, //BigBen XBMiniPad Controller", 0, XTYPE_XBOX },
-    { USB_DEVICE(0x102c, 0xff0c) }, //Joytech Wireless Advanced Controller
-    { USB_DEVICE(0x10c6, 0x8015) }, //Intec Cyber Shock
-    { USB_DEVICE(0x12ab, 0x8809) }, //Xbox DDR dancepad
-    { USB_DEVICE(0xffff, 0xffff) }, //Chinese-made Xbox Controller
-    { USB_DEVICE(0x0000, 0xb1a5) }, //Cheap Chinese-made Xbox Controller
+    { USB_DEVICE(0x044f, 0x0f07) }, // Thrustmaster, Inc. Controller
+    { USB_DEVICE(0x045e, 0x0202) }, // Microsoft Xbox Controller
+    { USB_DEVICE(0x045e, 0x0285) }, // Microsoft Xbox Controller S
+    { USB_DEVICE(0x045e, 0x0287) }, // Microsoft XBox Controller S
+    { USB_DEVICE(0x045e, 0x0289) }, // Microsoft Xbox Controller S
+    { USB_DEVICE(0x046d, 0xca84) }, // Logitech Cordless Controller for Xbox
+    { USB_DEVICE(0x046d, 0xca88) }, // Logitech Compact Controller for Xbox
+    { USB_DEVICE(0x05fd, 0x1007) }, // ???Mad Catz Controller???
+    { USB_DEVICE(0x05fd, 0x107a) }, // InterAct PowerPad Pro
+    { USB_DEVICE(0x0738, 0x4516) }, // Mad Catz Control Pad
+    { USB_DEVICE(0x0738, 0x4522) }, // Mad Catz LumiCON
+    { USB_DEVICE(0x0738, 0x4526) }, // Mad Catz Control Pad Pro
+    { USB_DEVICE(0x0738, 0x4536) }, // Mad Catz MicroCON
+    { USB_DEVICE(0x0738, 0x4540) }, // Mad Catz Beat Pad
+    { USB_DEVICE(0x0738, 0x4556) }, // Mad Catz Lynx Wireless Controller
+    { USB_DEVICE(0x0738, 0x6040) }, // Mad Catz Beat Pad pro
+    { USB_DEVICE(0x0c12, 0x8802) }, // Zeroplus, Hama, Bigben
+    { USB_DEVICE(0x0c12, 0x8809) }, // Level Six Xbox DDR Dancepad
+    { USB_DEVICE(0x0c12, 0x880a) }, // 2-Tech Crystal Controller
+    { USB_DEVICE(0x0c12, 0x8810) }, // Zeroplus Xbox Controller
+    { USB_DEVICE(0x0c12, 0x9902) }, // HAMA VibraX - *FAULTY HARDWARE*
+    { USB_DEVICE(0x0e4c, 0x1097) }, // Radica Gamester Controller
+    { USB_DEVICE(0x0e4c, 0x2390) }, // Radica Games Jtech Controller
+    { USB_DEVICE(0x0e6f, 0x0003) }, // Logic3 Freebird wireless Controller
+    { USB_DEVICE(0x0e6f, 0x0005) }, // Eclipse wireless Controller
+    { USB_DEVICE(0x0e6f, 0x0006) }, // Edge wireless Controller
+    { USB_DEVICE(0x0e8f, 0x0201) }, // SmartJoy Frag Xpad/PS2 adaptor
+    { USB_DEVICE(0x0e8f, 0x3008) }, // Generic xbox control (dealextreme)
+    { USB_DEVICE(0x0f30, 0x0107) }, // Hama Thunder
+    { USB_DEVICE(0x0f30, 0x0202) }, // Joytech Advanced Controller
+    { USB_DEVICE(0x0f30, 0x0208) }, // Hama Thunder
+    { USB_DEVICE(0x0f30, 0x8888) }, // BigBen XBMiniPad Controller
+    { USB_DEVICE(0x102c, 0xff0c) }, // Joytech Wireless Advanced Controller
+    { USB_DEVICE(0x10c6, 0x8015) }, // Intec Cyber Shock
+    { USB_DEVICE(0x12ab, 0x8809) }, // Xbox DDR dancepad
+    { USB_DEVICE(0xffff, 0xffff) }, // Chinese-made Xbox Controller
+    { USB_DEVICE(0x0000, 0xb1a5) }, // Cheap Chinese-made Xbox Controller
     { USB_DEVICE(0x0000, 0x0000) }, // nothing detected - FAIL
-    { }                            /* Terminating entry */
+    { }                             // Terminating entry
 };
 
 
 static struct usb_driver xpad_driver = {
-    .owner =    THIS_MODULE,
-    .name =        "XPAD",
-    .probe =    xpad_probe,
-    .disconnect =    xpad_disconnect,
-    .id_table =    xpad_ids,
+    .owner =      THIS_MODULE,
+    .name =       "XPAD",
+    .probe =      xpad_probe,
+    .disconnect = xpad_disconnect,
+    .id_table =   xpad_ids,
 };
 
-/*------------------------------------------------------------------------*/
-void XPADInit(void)
-{
+void XPADInit(void) {
     int n;
-    for(n=0;n<4;n++)
-    {
+    for(n=0;n<4;n++) {
         memset(&XPAD_current[n], 0, sizeof(struct xpad_data));
         memset(&XPAD_last[n], 0, sizeof(struct xpad_data));
     }
@@ -196,12 +193,7 @@ void XPADInit(void)
         return;
     }
 }
-/*------------------------------------------------------------------------*/
+
 void XPADRemove(void) {
     usb_deregister(&xpad_driver);
 }
-
-/*------------------------------------------------------------------------*/
-
-
-

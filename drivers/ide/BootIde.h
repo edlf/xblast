@@ -86,8 +86,8 @@ bool driveMasterPasswordUnlock(unsigned uIoBase, const int driveId, const char *
 int BootIdeReadSector(const int nDriveIndex, void * pbBuffer, const uint64_t block, int byte_offset, int n_bytes);
 int BootIdeReadData(unsigned uIoBase, void * buf, size_t size);
 
-int BootIdeWriteSector(const int nDriveIndex, void * pbBuffer, const uint64_t block, unsigned char retry);
-int BootIdeWriteMultiple(const int nDriveIndex, void * pbBuffer, const uint64_t startLBA, unsigned short len, unsigned char retry);
+int BootIdeWriteSector(const int nDriveIndex, const void * pbBuffer, const uint64_t block, unsigned char retry);
+int BootIdeWriteMultiple(const int nDriveIndex, const void * pbBuffer, const uint64_t startLBA, unsigned short len, unsigned char retry);
 
 bool driveToggleSMARTFeature(const int nDriveIndex, unsigned short smart_cmd);
 int driveSMARTRETURNSTATUS(const int nDriveIndex);
