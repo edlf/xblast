@@ -192,7 +192,7 @@ void HDDFormatMenuDynamic(void* drive) {
     sprintf(menuPtr->szCaption, "Partition format menu : %s", *nDriveIndex ? "Slave":"Master");
 
     // MBR contains standard basic partition entries
-    if(tsaHarddiskInfo[*nDriveIndex].m_fHasMbr != -1) {
+    if(tsaHarddiskInfo[*nDriveIndex].m_fHasPartitionTable != -1) {
         //FORMAT C: drive
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption,"Format C drive");

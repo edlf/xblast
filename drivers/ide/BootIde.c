@@ -356,7 +356,7 @@ int BootIdeDriveInit(unsigned uIoBase, const int nIndexDrive) {
     tsaHarddiskInfo[nIndexDrive].m_enumDriveType=EDT_UNKNOWN;
     tsaHarddiskInfo[nIndexDrive].m_fAtapi=false;
     tsaHarddiskInfo[nIndexDrive].m_wAtaRevisionSupported=0;
-    tsaHarddiskInfo[nIndexDrive].m_fHasMbr=0;
+    tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable=0;
     tsaHarddiskInfo[nIndexDrive].m_securitySettings = 0;
     tsaHarddiskInfo[nIndexDrive].m_masterPassSupport = 0;
     tsaHarddiskInfo[nIndexDrive].m_bIORDY = 0;
@@ -668,9 +668,9 @@ int BootIdeDriveInit(unsigned uIoBase, const int nIndexDrive) {
 	if(!(tsaHarddiskInfo[nIndexDrive].m_securitySettings&0x0004)){
 	    debugSPIPrint(DEBUG_IDE_DRIVER,"HDD is not locked. Attempting to read FATX magic string\n");
             if(FATXCheckFATXMagic(nIndexDrive)){
-                // report on the MBR-ness of the drive contents
+                // report on the PartitionTable-ness of the drive contents
                 debugSPIPrint(DEBUG_IDE_DRIVER,"Drive is FATX.\n");
-                tsaHarddiskInfo[nIndexDrive].m_fHasMbr = FATXCheckMBR(nIndexDrive);
+                tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable = FATXCheckMBR(nIndexDrive);
             }
         }
 

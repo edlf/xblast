@@ -176,7 +176,7 @@ extern void BootResetAction ( void )
 
     //Set to NULL as it's not used yet.
     //gobalGenericPtr = NULL;
-    
+
     xF70ELPCRegister = 0x03;       //Assume no control over the banks but we are booting from bank3
     x00FFLPCRegister = ReadFromIO(XODUS_CONTROL);       //Read A15 and D0 states.
                                                         //Should return 0x04 on normal boot, 0x08 on TSOP recovery.
@@ -204,7 +204,7 @@ extern void BootResetAction ( void )
 
     VIDEO_CURSOR_POSX=40;
     VIDEO_CURSOR_POSY=140;
-        
+
     VIDEO_AV_MODE = 0xff;
     nInteruptable = 0;
 
@@ -220,7 +220,7 @@ extern void BootResetAction ( void )
     // initialize the PCI devices
     //bprintf("BOOT: starting PCI init\n\r");
     BootPciPeripheralInitialization();
-    
+
 
     I2CTransmitWord(0x10, 0x1901); // no reset on eject
     if(I2CTransmitByteGetReturn(0x10, 0x03) & 0x01)
@@ -351,9 +351,9 @@ extern void BootResetAction ( void )
     BootEepromReadEntireEEPROM();
     memcpy(&origEeprom, &eeprom, sizeof(EEPROMDATA));
     debugSPIPrint(DEBUG_BOOT_LOG, "Initial EEprom read.\n");
-        
+
     I2CTransmitWord(0x10, 0x1b04); // unknown
-        
+
     //Let's set that up right here.
     settingsTrackerInit();
     setCFGFileTransferPtr(&LPCmodSettings, &settingsPtrStruct);
@@ -574,9 +574,8 @@ extern void BootResetAction ( void )
                         DrawLargeHDDTextMenu(i);//Launch LargeHDDMenuInit textmenu.
                     }
 
-                    if(tsaHarddiskInfo[i].m_fHasMbr == 0)       //No MBR
-                    {
-                        FATXSetInitMBR(i); // Since I'm such a nice program, I will integrate the partition table to the MBR.
+                    if(tsaHarddiskInfo[i].m_fHasPartitionTable == 0) {
+                        FATXSetInitMBR(i); // Since I'm such a nice program, I will write the partition table
                     }
                     debugSPIPrint(DEBUG_BOOT_LOG, "HDD format done.\n");
                 }
@@ -585,8 +584,8 @@ extern void BootResetAction ( void )
             }
         }
     }
-    
-    
+
+
 //    printk("i2C=%d SMC=%d, IDE=%d, tick=%d una=%d unb=%d\n", nCountI2cinterrupts, nCountInterruptsSmc, nCountInterruptsIde, BIOS_TICK_COUNT, nCountUnusedInterrupts, nCountUnusedInterruptsPic2);
     IconMenuInit();
     debugSPIPrint(DEBUG_BOOT_LOG, "Starting IconMenu.\n");

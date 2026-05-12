@@ -942,7 +942,7 @@ bool FATXCheckMBR(unsigned char driveId) {
         return 0;
     } else {
         // Check magic
-        for(unsigned char i = 0; i < XboxPartitionTableMagicSize; i++) {
+        for(unsigned char i = 0; i < LBA48_Partition_Table_Magic_Size; i++) {
             if(ba[i] != LBA48_Partition_Table_Magic[i]) {
                 return 0;
             }
@@ -971,7 +971,7 @@ void FATXSetMBR(unsigned char driveId, XboxPartitionTable *p_table){
         cromwellWarning();
         return;
     }
-    tsaHarddiskInfo[driveId].m_fHasMbr = 1;
+    tsaHarddiskInfo[driveId].m_fHasPartitionTable = 1;
 }
 
 void FATXSetInitMBR(unsigned char driveId){
@@ -980,7 +980,7 @@ void FATXSetInitMBR(unsigned char driveId){
         cromwellWarning();
         return;
     }
-    tsaHarddiskInfo[driveId].m_fHasMbr = 1;
+    tsaHarddiskInfo[driveId].m_fHasPartitionTable = 1;
 }
 
 void FATXFormatCacheDrives(int nIndexDrive, bool verbose){
@@ -1329,10 +1329,10 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uin
         chainmapSize += 1;
     }
 
-    if(tsaHarddiskInfo[driveId].m_fHasMbr == 1) { //MBR is present on HDD
+    if(tsaHarddiskInfo[driveId].m_fHasPartitionTable == 1) {
         if(BootIdeReadSector(driveId, &buffer[0], 0x00, 0, 512)) {
             VIDEO_ATTR=0xffff0000;
-            printk("\n\1                Unable to read MBR sector");
+            printk("\n\1                Unable to read Partition Table sector");
             cromwellWarning();
             return;
         }
