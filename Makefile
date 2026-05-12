@@ -211,7 +211,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/usbwrapper.o
 OBJECTS-CROM += $(TOPDIR)/obj/linuxwrapper.o
 OBJECTS-CROM += $(TOPDIR)/obj/xpad.o
 #OBJECTS-CROM += $(TOPDIR)/obj/xremote.o
-#OBJECTS-CROM += $(TOPDIR)/obj/usbkey.o
+OBJECTS-CROM += $(TOPDIR)/obj/usbkey.o
 OBJECTS-CROM += $(TOPDIR)/obj/risefall.o
 
 # NIC Drivers
