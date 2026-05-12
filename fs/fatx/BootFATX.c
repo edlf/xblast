@@ -37,6 +37,18 @@ XboxPartitionTable BackupPartTbl =
     }
 };
 
+unsigned int CalculateClusterSize(const uint64_t lba_size)
+{
+    uint32_t clusterSize = 16;
+    uint64_t compare = 0x20000000;
+    while (lba_size > compare)
+    {
+        compare = compare * 2;
+        clusterSize = clusterSize * 2;
+    }
+    return clusterSize;
+}
+
 int checkForLastDirectoryEntry(unsigned char* entry)
 {
     // if the filename length byte is 0 or 0xff, this is the last entry
@@ -1337,15 +1349,7 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
        FATXSetBRFR(driveId);
     }
 
-    if(lbaSize >= LBASIZE_512GB) {       //Need 64K clusters
-        clusterSize = 128;               //Clustersize in number of 512-byte sectors
-    }
-    else if(lbaSize >= LBASIZE_256GB) {
-        clusterSize = 64;
-    } else {
-        clusterSize = 32;
-    }
-
+    clusterSize = CalculateClusterSize(lbaSize);
 
     //Calculate size of FAT, in number of 512-byte sectors.
     chainmapSize = (lbaSize / clusterSize);       //Divide total of sectors(512 bytes) by number of sector contained in a cluster
@@ -1382,7 +1386,7 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
     header = (PARTITIONHEADER *)headerBuf;
     header->magic = FATX_PARTITION_MAGIC;       //Whoop, magic!
     header->volumeID = partition <= 5 ? 'F' : 'G';    //Goes with the HDD.
-    header->clusterSize = clusterSize;   //16KB = 32 sector/cluster. 32KB = 64 sector/cluster. 64KB = 128 sector/cluster.
+    header->clusterSize = clusterSize;          //16KB = 32 sector/cluster. 32KB = 64 sector/cluster. 64KB = 128 sector/cluster.
     header->nbFAT = 1;                          //Always 1.
     header->unknown = 0;                        //Always 0.
     memset(header->unused,0xff,4078);           //Fill unused area with 0xff.
@@ -1399,7 +1403,8 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
         ptrBuffer[1]=0xff;
         ptrBuffer[3]=0xff;
         ptrBuffer[4]=0xff;
-        if(lbaSize >= FATX16_MAXLBA){               //FATX16 stops there. Only 2-byte entries in cluster chain.
+        // FATX16 stops there. Only 2-byte entries in cluster chain
+        if(lbaSize >= FATX16_MAXLBA){
             ptrBuffer[5]=0xff;
             ptrBuffer[6]=0xff;
             ptrBuffer[7]=0xff;
@@ -1411,7 +1416,7 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
 
     printk("\n\n           Writing Boot Block.   ");
     // Starting (from 0 to 512*8 = 0x1000). Erasing Partition header data.
-    //4KB so 8*512 bytes sectors.
+    // 4KB so 8*512 bytes sectors.
     for (counter=lbaStart;counter<(lbaStart+8); counter++) {
         if(BootIdeWriteSector(driveId,buffer,counter, DEFAULT_WRITE_RETRY)){
             printk("\n           Write error, sector %u   ", counter);
@@ -1445,10 +1450,13 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
     }
 
     if(chainmapSize % 256){                       //If there's a partial WRITE MULTIPLE COMMAND to be issued.
-        if(lbaSize >= FATX16_MAXLBA)
+        if(lbaSize >= FATX16_MAXLBA) {
             memset(ptrBuffer,0xff,4*2);          //FATX32 partition, cluster entry is Dword-sized
+        }
         else
+        {
             memset(ptrBuffer,0xff,2*2);
+        }
         ptrBuffer[0]=0xf8;                        //FATX16 partitions, cluster entry is word-sized
 
         //One last time for the first 144 sectors, with initial cluster entries.

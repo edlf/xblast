@@ -161,6 +161,7 @@ typedef struct
     XboxPartitionTableEntry TableEntries[14];
 } XboxPartitionTable;
 
+unsigned int CalculateClusterSize(const uint64_t lba_size);
 int LoadFATXFile(FATXPartition *partition,char *filename, FATXFILEINFO *fileinfo);
 int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen, char *prefix);
 int FATXFindDir(FATXPartition *partition, int clusterId, char *dir);

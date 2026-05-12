@@ -20,7 +20,6 @@ typedef _LPCmodSettings_V1 _LPCmodSettings;
 extern _LPCmodSettings LPCmodSettings;
 extern _LPCmodSettings LPCmodSettingsOrigFromFlash;
 
-
 //Items below should always follow the current settings version
 #define NBTXTPARAMS 36
 #define MINPARAMLENGTH 7
