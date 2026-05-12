@@ -21,14 +21,31 @@ LWIPFOLDER := lwip-2.0.3
 #Changed from the default of 0x3000 to allow for more xcodes and flash code
 INCLUDE_ALL = -DBL_END_ADDR=0x3600 -DBUILD_RAMTEST=$(BUILD_RAMTEST) -DRAMTEST_256MB=$(RAMTEST_256MB)
 
-INCLUDE = -I$(TOPDIR)/grub -I$(TOPDIR)/include -I$(TOPDIR)/ -I./ -I$(TOPDIR)/fs/cdrom \
-	-I$(TOPDIR)/fs/fatx -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/eeprom -I$(TOPDIR)/lib/crypt \
-	-I$(TOPDIR)/drivers/video -I$(TOPDIR)/drivers/ide -I$(TOPDIR)/drivers/flash -I$(TOPDIR)/lib/misc \
-	-I$(TOPDIR)/boot_xbe/ -I$(TOPDIR)/fs/grub -I$(TOPDIR)/lib/cromwell/font \
-	-I$(TOPDIR)/startuploader -I$(TOPDIR)/drivers/cpu -I$(TOPDIR)/menu \
-	-I$(TOPDIR)/lib/jpeg/ -I$(TOPDIR)/menu/actions -I$(TOPDIR)/menu/textmenu \
-	-I$(TOPDIR)/menu/iconmenu -I$(TOPDIR)/$(LWIPFOLDER) -I$(TOPDIR)/$(LWIPFOLDER)/src/include \
-	-I$(TOPDIR)/$(LWIPFOLDER)/src/include/ipv4 -I$(TOPDIR)/$(LWIPFOLDER)/src/include/lwip/apps
+INCLUDE = \
+    -I$(TOPDIR)/ \
+	-I./ \
+	-I$(TOPDIR)/boot_xbe/ \
+    -I$(TOPDIR)/include \
+	-I$(TOPDIR)/drivers/cpu \
+	-I$(TOPDIR)/drivers/flash \
+	-I$(TOPDIR)/drivers/ide \
+	-I$(TOPDIR)/drivers/video \
+	-I$(TOPDIR)/fs/cdrom \
+	-I$(TOPDIR)/fs/fatx \
+	-I$(TOPDIR)/lib/cromwell/font \
+	-I$(TOPDIR)/lib/crypt \
+	-I$(TOPDIR)/lib/eeprom \
+	-I$(TOPDIR)/lib/jpeg/ \
+	-I$(TOPDIR)/lib/misc \
+	-I$(TOPDIR)/menu \
+	-I$(TOPDIR)/menu/actions \
+	-I$(TOPDIR)/menu/iconmenu \
+	-I$(TOPDIR)/menu/textmenu \
+	-I$(TOPDIR)/startuploader \
+	-I$(TOPDIR)/$(LWIPFOLDER) \
+	-I$(TOPDIR)/$(LWIPFOLDER)/src/include \
+	-I$(TOPDIR)/$(LWIPFOLDER)/src/include/ipv4 \
+	-I$(TOPDIR)/$(LWIPFOLDER)/src/include/lwip/apps
 
 #These are intended to be non-overridable.
 CROM_CFLAGS = $(INCLUDE) $(INCLUDE_ALL)
@@ -186,6 +203,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsDefs.o
 OBJECTS-CROM += $(TOPDIR)/obj/xblastSettingsImportExport.o
 OBJECTS-CROM += $(TOPDIR)/obj/PowerManagement.o
 OBJECTS-CROM += $(TOPDIR)/obj/HardwareIdentifier.o
+OBJECTS-CROM += $(TOPDIR)/obj/arith64.o
 
 #USB
 OBJECTS-CROM += $(TOPDIR)/obj/config.o

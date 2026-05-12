@@ -10,7 +10,7 @@
 
 #include "BootEEPROM.h"
 
-//Configuration parameters saved in flash
+// Configuration parameters saved in flash
 typedef struct {
     unsigned char    activeBank;        //Default Flash bank to load BIOS from.
     unsigned char    altBank;          //Alternative BIOS bank to boot holding black button
