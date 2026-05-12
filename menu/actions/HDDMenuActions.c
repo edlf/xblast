@@ -390,9 +390,9 @@ void DisplayHDDInfo(void* driveId) {
             //VIDEO_ATTR=0xffff0000;
             printk("\n                Unable to read MBR sector...\n");
         } else {
-            for(i = 0; i < 7; i++) {    //Print only info for C, E, F, G, X, Y and Z
-                if(mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0) {   //Valid partition entry only
-                    printk("\n                 %s", mbr->TableEntries[i].Name);
+            for(i = 0; i < XboxPartitionTableEntryCount; i++) {
+                if(mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0) {   // Valid partition entry only
+                    printk("\n%02d               %s", i, mbr->TableEntries[i].Name);
                     printk("\n                     Active: %s", mbr->TableEntries[i].Flags == PE_PARTFLAGS_IN_USE ? "Yes" : "No");
 
 
@@ -400,7 +400,7 @@ void DisplayHDDInfo(void* driveId) {
                     size = (size << 32) | mbr->TableEntries[i].LBASize;
                     clusterSize = CalculateClusterSize(size);
 
-                    partSize = size / 2048;      //in MB
+                    partSize = size / 2048; //in MB
                     printk("    Size: %uMB   Cluster: %uKB", partSize, clusterSize);
                 }
             }
@@ -410,44 +410,42 @@ void DisplayHDDInfo(void* driveId) {
     UIFooter();
 }
 
-void FormatDriveFG(void* driveId)
-{
-    unsigned char nDriveIndex = (*(unsigned char *)driveId) & 0x0f;
-    unsigned char formatOption = (*(unsigned char *)driveId) & 0xf0;
+void FormatDriveFG(void* driveId) {
+    const unsigned char nDriveIndex = (*(unsigned char *)driveId) & 0x0f;
+    const unsigned char formatOption = (*(unsigned char *)driveId) & 0xf0;
     uint64_t fsize,gstart = SECTOR_EXTEND,gsize = 0;
     unsigned char buffer[512];                                  //Multi purpose
     XboxPartitionTable* mbr = (XboxPartitionTable *)buffer;
 
     uint64_t nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
 
-    switch(formatOption)
-    {
-        case F_GEQUAL:                                  //Split amount of sectors evenly on 2 partitions
-            if(nExtendSectors % 2)                      //Odd number of sectors
-            {                                           //F: will be 1 sector bigger than G:            //Sorry G:
+    // Clamp hdd size to the max of LBA48
+    if (nExtendSectors > LBA_MAX_SIZE) {
+        nExtendSectors = LBA_MAX_SIZE;
+    }
+
+    switch(formatOption) {
+        case F_GEQUAL:
+            // Split amount of sectors evenly on 2 partitions
+            if(nExtendSectors % 2) //Odd number of sectors
+            {
+                //F: will be 1 sector bigger than G:
                 fsize = (nExtendSectors + 1) >> 1;
             }
             else
             {
                 fsize = nExtendSectors >> 1;
             }
-
-            if(fsize >= LBASIZE_1024GB)
-            {
-                fsize = LBASIZE_1024GB - 1;
-            }
-
             sprintf(buffer, "%s", "Confirm format:\n\2F:, G: Split evenly?");
             break;
-        case FMAX_G:            //F = LBASIZE_1024GB - 1 and G: takes the rest
-            fsize = LBASIZE_1024GB - 1;
-            sprintf(buffer, "%s", "Confirm format:\n\2Max F:, G: takes the rest?");
-            break;
-        case F137_G:            //F = LBASIZE_137GB and G takes the rest
+
+        case F137_G:
+            // F = LBASIZE_137GB and G takes the rest (legacy)
             fsize = LBASIZE_137GB;
             sprintf(buffer, "%s", "Confirm format:\n\2F: = 120GB, G: takes the rest?");
             break;
-        case F_NOG:             //F < LBASIZE_1024GB - 1.
+        case F_NOG:
+            // F takes all
             fsize = nExtendSectors;
             sprintf(buffer, "%s", "Confirm format:\n\2F: take all, no G:?");
             break;
@@ -459,10 +457,6 @@ void FormatDriveFG(void* driveId)
     gstart = SECTOR_EXTEND + fsize;
     gsize = nExtendSectors - fsize;
 
-    if(gsize >= LBASIZE_1024GB)
-    {
-        gsize = LBASIZE_1024GB - 1;
-    }
 
     if(ConfirmDialog(buffer, 1) == false)
     {

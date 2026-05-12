@@ -105,57 +105,19 @@ void HDDOperationsMenuDynamic(void* drive){
 }
 
 
-void LargeHDDMenuDynamic(void* drive)
-{
+void LargeHDDMenuDynamic(void* drive) {
     TEXTMENUITEM* itemPtr;
     TEXTMENU* menuPtr;
     unsigned char nDriveIndex = *(unsigned char *)drive;
-    
+
     //Amount of free sectors after standard partitions
     unsigned long nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     sprintf(menuPtr->szCaption, "Large HDD format options : %s", nDriveIndex ? "Slave":"Master");
 
-    //If lbacount >= minimum amount per partition.
-    if(nExtendSectors > (SECTORS_SYSTEM + SECTORS_SYSTEM))
-    {
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        sprintf(itemPtr->szCaption,"F:, G: Split evenly");
-        itemPtr->functionPtr = FormatDriveFG;
-        itemPtr->functionDataPtr = malloc(sizeof(unsigned char));
-        *(unsigned char *)itemPtr->functionDataPtr = nDriveIndex | F_GEQUAL;
-        itemPtr->dataPtrAlloc = true;
-        TextMenuAddItem(menuPtr, itemPtr);
-    }
-
-    //If lbacount is high enough to max out a F: partition and still have enough left to create a G partition
-    if(nExtendSectors > (LBASIZE_1024GB + SECTORS_SYSTEM))
-    {
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        sprintf(itemPtr->szCaption,"Max F:, G: takes the rest");
-        itemPtr->functionPtr = FormatDriveFG;
-        itemPtr->functionDataPtr = malloc(sizeof(unsigned char));
-        *(unsigned char *)itemPtr->functionDataPtr = nDriveIndex | FMAX_G;
-        itemPtr->dataPtrAlloc = true;
-        TextMenuAddItem(menuPtr, itemPtr);
-    }
-
-    //if lbacount is high enough to create G: partition but not too high to waste space because G: would be maxed out.
-    if((nExtendSectors > (LBASIZE_137GB + SECTORS_SYSTEM)) && ((nExtendSectors - LBASIZE_137GB) < LBASIZE_1024GB))
-    {
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        sprintf(itemPtr->szCaption,"F: = 120GB, G: takes the rest");
-        itemPtr->functionPtr = FormatDriveFG;
-        itemPtr->functionDataPtr = malloc(sizeof(unsigned char));
-        *(unsigned char *)itemPtr->functionDataPtr = nDriveIndex | F137_G;
-        itemPtr->dataPtrAlloc = true;
-        TextMenuAddItem(menuPtr, itemPtr);
-    }
-
     //If lbacount is not too high to waste space because F: can't get bigger.
-    if(nExtendSectors < LBASIZE_1024GB)
-    {
+    if(nExtendSectors > (SECTORS_SYSTEM + SECTORS_SYSTEM)) {
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption,"F: take all, no G:");
         itemPtr->functionPtr = FormatDriveFG;
@@ -165,11 +127,32 @@ void LargeHDDMenuDynamic(void* drive)
         TextMenuAddItem(menuPtr, itemPtr);
     }
 
+    // If we have more than 127GB
+    if(nExtendSectors > LBASIZE_137GB) {
+        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+        sprintf(itemPtr->szCaption,"F:, G: Split evenly");
+        itemPtr->functionPtr = FormatDriveFG;
+        itemPtr->functionDataPtr = malloc(sizeof(unsigned char));
+        *(unsigned char *)itemPtr->functionDataPtr = nDriveIndex | F_GEQUAL;
+        itemPtr->dataPtrAlloc = true;
+        TextMenuAddItem(menuPtr, itemPtr);
+    }
+
+    // if lbacount is high enough to create G: partition with a LBA28 capped F: for old bioses
+    if((nExtendSectors > (LBASIZE_137GB + SECTORS_SYSTEM))) {
+        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+        sprintf(itemPtr->szCaption,"F: = 120GB, G: takes the rest (legacy)");
+        itemPtr->functionPtr = FormatDriveFG;
+        itemPtr->functionDataPtr = malloc(sizeof(unsigned char));
+        *(unsigned char *)itemPtr->functionDataPtr = nDriveIndex | F137_G;
+        itemPtr->dataPtrAlloc = true;
+        TextMenuAddItem(menuPtr, itemPtr);
+    }
+
     ResetDrawChildTextMenu(menuPtr);
 }
 
-void HDDSMARTOperationsMenuDynamic(void* drive)
-{
+void HDDSMARTOperationsMenuDynamic(void* drive) {
     TEXTMENUITEM* itemPtr;
     TEXTMENU* menuPtr;
     unsigned char nDriveIndex = *(unsigned char *) drive;
@@ -182,9 +165,7 @@ void HDDSMARTOperationsMenuDynamic(void* drive)
     if(tsaHarddiskInfo[nDriveIndex].m_fSMARTEnabled)
     {
         sprintf(itemPtr->szCaption,"Disable");
-    }
-    else
-    {
+    } else {
         sprintf(itemPtr->szCaption,"Enable");
     }
     sprintf(itemPtr->szParameter, " S.M.A.R.T.");
@@ -206,9 +187,7 @@ void HDDSMARTOperationsMenuDynamic(void* drive)
     ResetDrawChildTextMenu(menuPtr);
 }
 
-
-void HDDFormatMenuDynamic(void* drive)
-{
+void HDDFormatMenuDynamic(void* drive) {
     TEXTMENUITEM* itemPtr;
     TEXTMENU* menuPtr;
     unsigned char* nDriveIndex = malloc(sizeof(unsigned char));
@@ -217,8 +196,8 @@ void HDDFormatMenuDynamic(void* drive)
     menuPtr = calloc(1, sizeof(TEXTMENU));
     sprintf(menuPtr->szCaption, "Partition format menu : %s", *nDriveIndex ? "Slave":"Master");
 
-    if(tsaHarddiskInfo[*nDriveIndex].m_fHasMbr != -1)     //MBR contains standard basic partition entries.
-    {
+    // MBR contains standard basic partition entries
+    if(tsaHarddiskInfo[*nDriveIndex].m_fHasMbr != -1) {
         //FORMAT C: drive
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption,"Format C drive");
@@ -254,9 +233,7 @@ void HDDFormatMenuDynamic(void* drive)
             itemPtr->dataPtrAlloc = true;
             TextMenuAddItem(menuPtr, itemPtr);
         }
-    }
-    else
-    {
+    } else {
         //Print message.
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption,"Unsupported partition scheme...");
@@ -277,8 +254,7 @@ void HDDFormatMenuDynamic(void* drive)
     ResetDrawChildTextMenu(menuPtr);
 }
 
-void HDDLockUnlockMenuDynamic(void* drive)
-{
+void HDDLockUnlockMenuDynamic(void* drive) {
     TEXTMENUITEM* itemPtr;
     TEXTMENU* menuPtr;
     LockUnlockCommonParams* inputParam = malloc(sizeof(LockUnlockCommonParams));
@@ -290,12 +266,9 @@ void HDDLockUnlockMenuDynamic(void* drive)
     //This drive is locked - produce an unlock menu
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    if((tsaHarddiskInfo[inputParam->driveIndex].m_securitySettings & 0x0002) == 0x0002)
-    {
+    if((tsaHarddiskInfo[inputParam->driveIndex].m_securitySettings & 0x0002) == 0x0002) {
         sprintf(itemPtr->szCaption,"Unl");
-    }
-    else
-    {
+    } else {
         sprintf(itemPtr->szCaption,"L");
     }
     inputParam->string1 = itemPtr->szCaption;
@@ -306,12 +279,9 @@ void HDDLockUnlockMenuDynamic(void* drive)
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    if((tsaHarddiskInfo[inputParam->driveIndex].m_securitySettings & 0x0002) == 0x0002)
-    {
+    if((tsaHarddiskInfo[inputParam->driveIndex].m_securitySettings & 0x0002) == 0x0002) {
         sprintf(itemPtr->szCaption,"Unl");
-    }
-    else
-    {
+    } else {
         sprintf(itemPtr->szCaption,"L");
     }
     inputParam->string2 = itemPtr->szCaption;

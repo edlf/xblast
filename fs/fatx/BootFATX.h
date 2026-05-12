@@ -29,6 +29,9 @@
 #define SECTORS_CACHE3   (SECTOR_SYSTEM - SECTOR_CACHE3)
 
 #define XboxPartitionTableMagicSize 0x10
+#define XboxPartitionTableEntryCount 14
+
+#define XBOX_PART_F_LBA_START = (0xabe80000 + STORE_SIZE);
 
 #define LBA48_Partition_Table_Magic "****PARTINFO****"
 #define LBA48_Partition_Name_C      "XBOX SHELL C"
@@ -39,16 +42,13 @@
 #define LBA48_Partition_Name_F      "XBOX EXTRA F"
 #define LBA48_Partition_Name_G      "XBOX EXTRA G"
 
-#define LBASIZE_512GB   1073741824UL                      // Switch to 64K clusters beyond that
-#define LBASIZE_1024GB  2147483645UL                      // Max LBA size supported by Xbox (without cerb)
-#define LBASIZE_16TB    0x800000000                       // Max LBA size supported by Xbox (with cerb)
-#define LBASIZE_256GB   536870912UL                       // Switch to 32K clusters beyond that
 #define LBASIZE_137GB   (0x0FFFFFFFUL - SECTOR_EXTEND)    // LBA28 limited F: drive size.
 
 #define FATX16_MAXLBA   2096800UL                         // Max number of sectors possible of a FATX16 partition. Higher than that is FATX32.
 
-#define LBA_LOWER_BITS   0xFFFFFFFF
+#define LBA_MAX_SIZE     0x0000FFFFFFFFFFFF
 #define LBA_HIGHER_BITS  0x0000FFFF
+#define LBA_LOWER_BITS   0xFFFFFFFF
 
 /*Taken from XBPartitionner*/
 // This flag (part of PARTITION_ENTRY.pe_flags) tells you whether/not a
