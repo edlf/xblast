@@ -28,11 +28,12 @@
 #define SECTORS_CACHE2   (SECTOR_CACHE3 - SECTOR_CACHE2)
 #define SECTORS_CACHE3   (SECTOR_SYSTEM - SECTOR_CACHE3)
 
-#define XboxPartitionTableMagicSize 0x10
+
 #define XboxPartitionTableEntryCount 14
 
-#define XBOX_PART_F_LBA_START = (0xabe80000 + STORE_SIZE);
+#define XBOX_PART_F_LBA_START (0xabe80000 + STORE_SIZE)
 
+#define LBA48_Partition_Table_Magic_Size  0x10
 #define LBA48_Partition_Table_Magic "****PARTINFO****"
 #define LBA48_Partition_Name_C      "XBOX SHELL C"
 #define LBA48_Partition_Name_E      "XBOX DATA E"

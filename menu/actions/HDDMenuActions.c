@@ -231,7 +231,7 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
         if(FATXCheckFATXMagic(nIndexDrive))
         {
             // report on the MBR-ness of the drive contents
-            tsaHarddiskInfo[nIndexDrive].m_fHasMbr = FATXCheckMBR(nIndexDrive);
+            tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable = FATXCheckMBR(nIndexDrive);
         }
         if(verbose)
         {
@@ -383,18 +383,17 @@ void DisplayHDDInfo(void* driveId) {
     printk("\n           # conductors : %u ", tsaHarddiskInfo[nIndexDrive].m_bCableConductors);
     printk("\n           Lock Status : %s ", ((tsaHarddiskInfo[nIndexDrive].m_securitySettings &0x0002)==0x0002) ? "Locked" : "Unlocked");
     printk("\n           FATX Formatted? : %s ", tsaHarddiskInfo[nIndexDrive].m_enumDriveType==EDT_XBOXFS ? "Yes" : "No");
-    printk("\n           Xbox MBR on HDD? : %s", tsaHarddiskInfo[nIndexDrive].m_fHasMbr ? "Yes" : "No");
+    printk("\n           Xbox MBR on HDD? : %s", tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable ? "Yes" : "No");
 
-    if(tsaHarddiskInfo[nIndexDrive].m_fHasMbr) {
+    if(tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable) {
         if(BootIdeReadSector(nIndexDrive, MBRBuffer, 0x00, 0, 512)) {
             //VIDEO_ATTR=0xffff0000;
             printk("\n                Unable to read MBR sector...\n");
         } else {
             for(i = 0; i < XboxPartitionTableEntryCount; i++) {
                 if(mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0) {   // Valid partition entry only
-                    printk("\n%02d               %s", i, mbr->TableEntries[i].Name);
+                    printk("\n             %02d: %s", i, mbr->TableEntries[i].Name);
                     printk("\n                     Active: %s", mbr->TableEntries[i].Flags == PE_PARTFLAGS_IN_USE ? "Yes" : "No");
-
 
                     uint64_t size = (uint64_t) mbr->TableEntries[i].LBASize_high;
                     size = (size << 32) | mbr->TableEntries[i].LBASize;
@@ -472,7 +471,7 @@ void FormatDriveFG(void* driveId) {
         }
         else       //Print G drive entry in partition table being inactive and of null size.
         {
-            if(tsaHarddiskInfo[nDriveIndex].m_fHasMbr == 1)        //No need to do anything if no MBR is on disk.
+            if(tsaHarddiskInfo[nDriveIndex].m_fHasPartitionTable == 1)        //No need to do anything if no MBR is on disk.
             {
                if(BootIdeReadSector(nDriveIndex, &buffer[0], 0x00, 0, 512))
                {
