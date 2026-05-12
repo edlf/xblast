@@ -15,7 +15,6 @@ TSOPCTRL := 0
 
 # Generates VGA enabled by default image. Does not override existing setting in flash.
 VGA := 0
-ETHERBOOT := yes
 LWIPFOLDER := lwip-2.0.3
 
 # Changed from the default of 0x3000 to allow for more xcodes and flash code
@@ -51,7 +50,7 @@ INCLUDE = \
 CROM_CFLAGS = $(INCLUDE) $(INCLUDE_ALL)
 
 #You can override these if you wish.
-CFLAGS = $(INCLUDE_ALL) -Os -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member -fno-zero-initialized-in-bss -fno-stack-protector -U_FORTIFY_SOURCE -fno-PIC
+CFLAGS = $(INCLUDE_ALL) -Os -march=pentium3 -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer  -DIPv4 -fpack-struct -ffreestanding -Wno-address-of-packed-member -fno-zero-initialized-in-bss -fno-stack-protector -U_FORTIFY_SOURCE -fno-PIC
 2BL_CFLAGS = -O2 -march=pentium -m32 -Werror -Wstrict-prototypes -Wreturn-type -pipe -fomit-frame-pointer -fpack-struct -ffreestanding -fno-zero-initialized-in-bss -fno-stack-protector -fno-PIC -Wall
 
 LD      = ${PREFIX}ld
@@ -61,13 +60,11 @@ export CC
 
 TOPDIR  := $(shell /bin/pwd)
 SUBDIRS	= fs drivers lib boot menu $(LWIPFOLDER) xblast
-#### Etherboot specific stuff
-ifeq ($(ETHERBOOT), yes)
+# NIC Drivers
 ETH_SUBDIRS = etherboot
-CROM_CFLAGS	+= -DETHERBOOT
-ETH_INCLUDE = 	-I$(TOPDIR)/etherboot/include -I$(TOPDIR)/etherboot/arch/i386/include -I$(TOPDIR)
-ETH_CFLAGS  = 	-Os -march=pentium -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding -fno-stack-protector -U_FORTIFY_SOURCE -fno-zero-initialized-in-bss -fno-PIC -Wall
-endif
+CROM_CFLAGS    += -DETHERBOOT
+ETH_INCLUDE =  -I$(TOPDIR)/etherboot/include -I$(TOPDIR)/etherboot/arch/i386/include -I$(TOPDIR)
+ETH_CFLAGS  =  -Os -march=pentium3 -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding -fno-stack-protector -U_FORTIFY_SOURCE -fno-zero-initialized-in-bss -fno-PIC -Wall
 
 ifeq ($(DEBUG), 1)
 DEBUG_FLAGS = -DDEV_FEATURES -DSPITRACE
@@ -88,18 +85,10 @@ LDFLAGS-ROM     = -s -S -T $(TOPDIR)/scripts/ldscript-crom.ld
 LDFLAGS-XBEBOOT = -s -S -T $(TOPDIR)/scripts/xbeboot.ld
 LDFLAGS-ROMBOOT = -s -S -T $(TOPDIR)/boot_rom/bootrom.ld
 LDFLAGS-VMLBOOT = -s -S -T $(TOPDIR)/boot_vml/vml_start.ld
-ifeq ($(ETHERBOOT), yes)
-LDFLAGS-ETHBOOT = -s -S -T $(TOPDIR)/boot_eth/eth_start.ld
-endif
-
-#### End Etherboot specific stuff
 
 OBJECTS-XBE = $(TOPDIR)/boot_xbe/xbeboot.o
 
 OBJECTS-VML = $(TOPDIR)/boot_vml/vml_Startup.o
-ifeq ($(ETHERBOOT), yes)
-OBJECTS-ETH = $(TOPDIR)/boot_eth/eth_Startup.o
-endif
 
 OBJECTS-ROMBOOT = $(TOPDIR)/obj/2bBootStartup.o
 OBJECTS-ROMBOOT += $(TOPDIR)/obj/2bPicResponseAction.o
@@ -225,14 +214,12 @@ OBJECTS-CROM += $(TOPDIR)/obj/xpad.o
 #OBJECTS-CROM += $(TOPDIR)/obj/usbkey.o
 OBJECTS-CROM += $(TOPDIR)/obj/risefall.o
 
-# ETHERBOOT
-ifeq ($(ETHERBOOT), yes)
+# NIC Drivers
 OBJECTS-CROM += $(TOPDIR)/obj/nic.o
 OBJECTS-CROM += $(TOPDIR)/obj/xbox.o
 OBJECTS-CROM += $(TOPDIR)/obj/forcedeth.o
 OBJECTS-CROM += $(TOPDIR)/obj/xbox_pci.o
 OBJECTS-CROM += $(TOPDIR)/obj/etherboot_config.o
-endif
 
 OBJECTS-LWIP = $(addprefix $(TOPDIR)/obj/,def.o err.o ethernetif.o inet_chksum.o init.o mem.o memp.o netif.o pbuf.o raw.o stats.o sys.o tcp.o tcp_in.o tcp_out.o timeouts.o udp.o dhcp.o icmp.o ip4.o ip4_addr.o ip4_frag.o etharp.o fs.o httpd.o ethernet.o ip.o)
 
@@ -244,21 +231,16 @@ RESOURCES = $(TOPDIR)/obj/backdrop.elf
 export INCLUDE
 export TOPDIR
 
-ifeq ($(ETHERBOOT), yes)
-BOOT_ETH_DIR = boot_eth/ethboot
 BOOT_ETH_SUBDIRS = ethsubdirs
-endif
 
 .PHONY: all clean
 
 all: makefsdata
 	@$(MAKE) --no-print-directory resources $(BOOT_ETH_SUBDIRS) cromsubdirs xbeboot xromwell.xbe vml_startup vmlboot $(BOOT_ETH_DIR) obj/image-crom.bin cromwell.bin imagecompress 256KBBinGen crcbin INCLUDE_ALL="$(INCLUDE_ALL)"
 
-ifeq ($(ETHERBOOT), yes)
 ethsubdirs: $(patsubst %, _dir_%, $(ETH_SUBDIRS))
 $(patsubst %, _dir_%, $(ETH_SUBDIRS)) : dummy
 	$(MAKE) CFLAGS="$(ETH_CFLAGS)" -C $(patsubst _dir_%, %, $@) INCLUDE_ALL="$(INCLUDE_ALL)"
-endif
 
 cromsubdirs: $(patsubst %, _dir_%, $(SUBDIRS))
 $(patsubst %, _dir_%, $(SUBDIRS)) : dummy
@@ -308,16 +290,6 @@ vmlboot: vml_startup
 
 vml_startup:
 	$(CC) ${CFLAGS} -c -o ${OBJECTS-VML} boot_vml/vml_Startup.S
-
-ifeq ($(ETHERBOOT), yes)
-boot_eth/ethboot: ethboot obj/image-crom.bin
-	${LD} -o obj/ethboot.elf ${OBJECTS-ETH} -b binary obj/image-crom.bin ${LDFLAGS-ETHBOOT} -Map $(TOPDIR)/obj/ethboot.map
-	${OBJCOPY} --output-target=binary --strip-all obj/ethboot.elf obj/ethboot.bin
-	perl -I boot_eth boot_eth/mknbi.pl --output=$@ obj/ethboot.bin
-
-ethboot:
-	$(CC) ${CFLAGS} -c -o ${OBJECTS-ETH} boot_eth/eth_Startup.S
-endif
 
 xromwell.xbe: xbeboot
 	${LD} -o $(TOPDIR)/obj/xbeboot.elf ${OBJECTS-XBE} ${LDFLAGS-XBEBOOT}
