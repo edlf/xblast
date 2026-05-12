@@ -28,6 +28,17 @@
 #define SECTORS_CACHE2   (SECTOR_CACHE3 - SECTOR_CACHE2)
 #define SECTORS_CACHE3   (SECTOR_SYSTEM - SECTOR_CACHE3)
 
+#define XboxPartitionTableMagicSize 0x10
+
+#define LBA48_Partition_Table_Magic "****PARTINFO****"
+#define LBA48_Partition_Name_C      "XBOX SHELL C"
+#define LBA48_Partition_Name_E      "XBOX DATA E"
+#define LBA48_Partition_Name_X      "XBOX CACHE X"
+#define LBA48_Partition_Name_Y      "XBOX CACHE Y"
+#define LBA48_Partition_Name_Z      "XBOX CACHE Z"
+#define LBA48_Partition_Name_F      "XBOX EXTRA F"
+#define LBA48_Partition_Name_G      "XBOX EXTRA G"
+
 #define LBASIZE_512GB   1073741824UL                      // Switch to 64K clusters beyond that
 #define LBASIZE_1024GB  2147483645UL                      // Max LBA size supported by Xbox (without cerb)
 #define LBASIZE_16TB    0x800000000                       // Max LBA size supported by Xbox (with cerb)

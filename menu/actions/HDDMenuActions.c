@@ -369,7 +369,7 @@ void DisplayHDDInfo(void* driveId) {
     unsigned char MBRBuffer[512];
     unsigned char i;
     XboxPartitionTable* mbr = (XboxPartitionTable *)MBRBuffer;
-    unsigned char clusterSize;
+    uint32_t clusterSize;
     unsigned int partSize;
 
     VIDEO_ATTR = 0xffffffff;

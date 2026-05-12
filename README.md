@@ -87,3 +87,5 @@ Notable features only available on XBlast mod
 
 ### Notes
 * Uses [arith64](https://github.com/glitchub/arith64/)
+* Partial LBA48 support, formating not tested
+* Sends YUV over the GPU bus to match stock behavior for hdmi mods

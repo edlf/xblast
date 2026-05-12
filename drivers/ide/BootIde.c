@@ -469,7 +469,7 @@ int BootIdeDriveInit(unsigned uIoBase, int nIndexDrive)
         if (isXBE() == false)
         {
             debugSPIPrint(DEBUG_IDE_DRIVER,"Reset ATAPI device specific requirement from cold boot.\n");
-              // this is the only way to clear the ATAPI ''I have been reset'' error indication
+            // this is the only way to clear the ATAPI ''I have been reset'' error indication
             unsigned char ba[128];
             ba[2]=0x06;
             while (ba[2]==0x06)
@@ -940,8 +940,7 @@ int BootIdeInit(void)
             unsigned short waBuffer[256];
             BootIdeWaitDataReady(uIoBase);
             debugSPIPrint(DEBUG_IDE_DRIVER,"Read data back from Master drive\n");
-            if(!BootIdeReadData(uIoBase, (unsigned char *)&waBuffer[0], IDE_SECTOR_SIZE))
-            {
+            if(!BootIdeReadData(uIoBase, (unsigned char *)&waBuffer[0], IDE_SECTOR_SIZE)) {
                 if( ((waBuffer[93]&0xc000)!=0) && ((waBuffer[93]&0x8000)==0) && ((waBuffer[93]&0xe000)!=0x6000))
                 {
                     debugSPIPrint(DEBUG_IDE_DRIVER,"Detected 80-conductors IDE cable\n");
@@ -954,14 +953,12 @@ int BootIdeInit(void)
         }
     }
 
-    if(tsaHarddiskInfo[0].m_bCableConductors==40)
-    {
+    if(tsaHarddiskInfo[0].m_bCableConductors==40) {
 #ifndef SILENT_MODE
         printk("UDMA2\n");
         debugSPIPrint(DEBUG_IDE_DRIVER,"IDE cable limits UDMA support to UDMA2.\n");
 #endif
-    } else
-    {
+    } else {
         int nAta=0;
         if(tsaHarddiskInfo[0].m_wAtaRevisionSupported&2) nAta=1;
         if(tsaHarddiskInfo[0].m_wAtaRevisionSupported&4) nAta=2;
