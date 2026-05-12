@@ -185,6 +185,6 @@ void FATXSetInitMBR(unsigned char driveId);
 void FATXFormatCacheDrives(int nIndexDrive, bool verbose);
 void FATXFormatDriveC(int nIndexDrive, bool verbose);
 void FATXFormatDriveE(int nIndexDrive, bool verbose);
-void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, unsigned int lbaSize);
+void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, uint64_t lbaSize);
 
 #endif //    _BootFATX_H_

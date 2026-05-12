@@ -1321,7 +1321,7 @@ void FATXFormatDriveE(int nIndexDrive, bool verbose){
         cromwellSuccess();
 }
 
-void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, unsigned int lbaSize){
+void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, unsigned int lbaStart, uint64_t lbaSize){
     unsigned char buffer[512], headerBuf[0x1000];
     unsigned int i;
     unsigned char *ptrBuffer;
@@ -1333,15 +1333,18 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
 
     XboxPartitionTable * mbr = (XboxPartitionTable *)buffer;
 
-    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS)
+    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
        FATXSetBRFR(driveId);
+    }
 
-    if(lbaSize >= LBASIZE_512GB)         //Need 64K clusters
+    if(lbaSize >= LBASIZE_512GB) {       //Need 64K clusters
         clusterSize = 128;               //Clustersize in number of 512-byte sectors
-    else if(lbaSize >= LBASIZE_256GB)
+    }
+    else if(lbaSize >= LBASIZE_256GB) {
         clusterSize = 64;
-    else
+    } else {
         clusterSize = 32;
+    }
 
 
     //Calculate size of FAT, in number of 512-byte sectors.
@@ -1363,7 +1366,8 @@ void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uns
         }
     }
     else
-    {                                                   //If no MBR already on disk
+    {
+        //If no MBR already on disk
         memcpy(mbr, &BackupPartTbl, sizeof(BackupPartTbl)); //Copy backup in working buffer and work from there.
     }
 

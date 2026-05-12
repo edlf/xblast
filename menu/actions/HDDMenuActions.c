@@ -432,11 +432,11 @@ void FormatDriveFG(void* driveId)
 {
     unsigned char nDriveIndex = (*(unsigned char *)driveId) & 0x0f;
     unsigned char formatOption = (*(unsigned char *)driveId) & 0xf0;
-    unsigned int fsize,gstart = SECTOR_EXTEND,gsize = 0;
+    uint64_t fsize,gstart = SECTOR_EXTEND,gsize = 0;
     unsigned char buffer[512];                                  //Multi purpose
     XboxPartitionTable* mbr = (XboxPartitionTable *)buffer;
 
-    unsigned int nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
+    uint64_t nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
 
     switch(formatOption)
     {
@@ -509,7 +509,9 @@ void FormatDriveFG(void* driveId)
                 {
                     mbr->TableEntries[6].Flags = 0;
                     mbr->TableEntries[6].LBAStart = SECTOR_EXTEND;
+                    mbr->TableEntries[6].LBAStart_high = 0;
                     mbr->TableEntries[6].LBASize = 0;
+                    mbr->TableEntries[6].LBASize_high = 0;
                     FATXSetMBR(nDriveIndex, mbr);
                 }
             }
