@@ -146,7 +146,7 @@ int usb_device_remove(struct device *dev)
  * interfaces will be rescanned whenever a new driver is added, allowing
  * the new driver to attach to any recognized devices.
  * Returns a negative error code on failure and 0 on success.
- * 
+ *
  * NOTE: if you want your driver to use the USB major number, you must call
  * usb_register_dev() to enable that functionality.  This function no longer
  * takes care of that.
@@ -184,7 +184,7 @@ int usb_register(struct usb_driver *new_driver)
  * Context: !in_interrupt (), must be called with BKL held
  *
  * Unlinks the specified driver from the internal USB driver list.
- * 
+ *
  * NOTE: If you called usb_register_dev(), you still need to call
  * usb_deregister_dev() to clean up your driver's allocated minor numbers,
  * this * call will no longer do it for you.
@@ -230,7 +230,7 @@ struct usb_interface *usb_ifnum_to_if(struct usb_device *dev, unsigned ifnum)
  * usb_driver_release_interface - unbind a driver from an interface
  * @driver: the driver to be unbound
  * @iface: the interface from which it will be unbound
- * 
+ *
  * This should be used by drivers to release their claimed interfaces.
  * It is normally called in their disconnect() methods, and only for
  * drivers that bound to more than one interface in their probe().
@@ -278,7 +278,7 @@ void usb_driver_release_interface(struct usb_driver *driver, struct usb_interfac
  * only a nonzero "driver_info" field.  If you do this, the USB device
  * driver's probe() routine should use additional intelligence to
  * decide whether to bind to the specified interface.
- * 
+ *
  * What Makes Good usb_device_id Tables:
  *
  * The match algorithm is very simple, so that intelligence in
@@ -299,19 +299,19 @@ void usb_driver_release_interface(struct usb_driver *driver, struct usb_interfac
  * are slightly more general; use the USB_DEVICE_INFO macro, or
  * its siblings.  These are used with single-function devices
  * where bDeviceClass doesn't specify that each interface has
- * its own class. 
+ * its own class.
  *
  * Matches based on interface class/subclass/protocol are the
  * most general; they let drivers bind to any interface on a
  * multiple-function device.  Use the USB_INTERFACE_INFO
- * macro, or its siblings, to match class-per-interface style 
+ * macro, or its siblings, to match class-per-interface style
  * devices (as recorded in bDeviceClass).
- *  
+ *
  * Within those groups, remember that not all combinations are
  * meaningful.  For example, don't give a product version range
  * without vendor and product IDs; or specify a protocol without
  * its associated class and subclass.
- */   
+ */
 const struct usb_device_id *
 usb_match_id(struct usb_interface *interface, const struct usb_device_id *id)
 {
@@ -387,6 +387,8 @@ usb_match_id(struct usb_interface *interface, const struct usb_device_id *id)
         return id;
     }
     usbprintk("USB named \"%s\" not found... Vendor:0x%04X  Product:0x%04X\n", dev->dev.name, dev->descriptor.idVendor, dev->descriptor.idProduct);
+
+    (void) intf;
     return NULL;
 }
 
@@ -395,7 +397,7 @@ usb_match_id(struct usb_interface *interface, const struct usb_device_id *id)
  * @drv: the driver whose current configuration is considered
  * @minor: the minor number of the desired device
  *
- * This walks the driver device list and returns a pointer to the interface 
+ * This walks the driver device list and returns a pointer to the interface
  * with the matching minor.  Note, this only works for devices that share the
  * USB major number.
  */
@@ -420,7 +422,7 @@ struct usb_interface *usb_find_interface(struct usb_driver *drv, int minor)
     }
 
     /* no device found that matches */
-    return NULL;    
+    return NULL;
 }
 
 static int usb_device_match (struct device *dev, struct device_driver *drv)
@@ -439,7 +441,7 @@ static int usb_device_match (struct device *dev, struct device_driver *drv)
 
     usb_drv = to_usb_driver(drv);
     id = usb_drv->id_table;
-    
+
     id = usb_match_id (intf, usb_drv->id_table);
     if (id)
         return 1;
@@ -479,13 +481,13 @@ static int usb_hotplug (struct device *dev, char **envp, int num_envp,
         return -ENODEV;
 
     /* Must check driver_data here, as on remove driver is always NULL */
-    if ((dev->driver == &usb_generic_driver) || 
+    if ((dev->driver == &usb_generic_driver) ||
         (dev->driver_data == &usb_generic_driver_data))
         return 0;
 
     intf = to_usb_interface(dev);
     usb_dev = interface_to_usbdev (intf);
-    
+
     if (usb_dev->devnum < 0) {
         dbg ("device already deleted ??");
         return -ENODEV;
@@ -631,7 +633,7 @@ struct usb_device *usb_get_dev (struct usb_device *dev)
         return NULL;
 
     tmp = get_device(&dev->dev);
-    if (tmp)        
+    if (tmp)
         return to_usb_device(tmp);
     else
         return NULL;
@@ -657,49 +659,17 @@ void usb_put_dev(struct usb_device *dev)
  * Will be called only by the device core when all users of this usb device are
  * done.
  */
-static void usb_release_dev(struct device *dev)
-{
+static void usb_release_dev(struct device *dev) {
     struct usb_device *udev;
 
     udev = to_usb_device(dev);
 
-    if (udev->bus && udev->bus->op && udev->bus->op->deallocate)
+    if (udev->bus && udev->bus->op && udev->bus->op->deallocate) {
         udev->bus->op->deallocate(udev);
+    }
     usb_destroy_configuration (udev);
     usb_bus_put (udev->bus);
     kfree (udev);
-}
-
-
-static struct usb_device *match_device(struct usb_device *dev,
-                       unsigned short vendor_id, unsigned short product_id)
-{
-    struct usb_device *ret_dev = NULL;
-    int child;
-
-    dbg("looking at vendor %d, product %d\n",
-        dev->descriptor.idVendor,
-        dev->descriptor.idProduct);
-
-    /* see if this device matches */
-    if ((dev->descriptor.idVendor == vendor_id) &&
-        (dev->descriptor.idProduct == product_id)) {
-        dbg ("found the device!");
-        ret_dev = usb_get_dev(dev);
-        goto exit;
-    }
-
-    /* look through all of the children of this device */
-    for (child = 0; child < dev->maxchild; ++child) {
-        if (dev->children[child]) {
-            ret_dev = match_device(dev->children[child],
-                           vendor_id, product_id);
-            if (ret_dev)
-                goto exit;
-        }
-    }
-exit:
-    return ret_dev;
 }
 
 
@@ -799,11 +769,11 @@ void usb_connect(struct usb_device *dev)
 {
     int devnum;
     // FIXME needs locking for SMP!!
-    /* why? this is called only from the hub thread, 
+    /* why? this is called only from the hub thread,
      * which hopefully doesn't run on multiple CPU's simultaneously 8-)
      * ... it's also called from modprobe/rmmod/apmd threads as part
-     * of virtual root hub init/reinit.  In the init case, the hub code 
-     * won't have seen this, but not so for reinit ... 
+     * of virtual root hub init/reinit.  In the init case, the hub code
+     * won't have seen this, but not so for reinit ...
      */
     dev->descriptor.bMaxPacketSize0 = 8;  /* Start off at 8 bytes  */
 
@@ -857,7 +827,7 @@ static void set_device_description (struct usb_device *dev)
 
     if (!(buf = kmalloc(256 * 2, GFP_KERNEL)))
         return;
-    
+
     prod_str = (char *) buf;
     mfgr_str = (char *) buf + 256;
 
@@ -1016,7 +986,7 @@ int usb_new_device(struct usb_device *dev, struct device *parent)
         else
             dev_err(&dev->dev, "USB device descriptor short read (expected %Zi, got %i)\n",
                 sizeof(dev->descriptor), err);
-    
+
         clear_bit(dev->devnum, dev->bus->devmap.devicemap);
         dev->devnum = -1;
         return 1;
@@ -1142,7 +1112,7 @@ void *usb_buffer_alloc (
  *
  * This reclaims an I/O buffer, letting it be reused.  The memory must have
  * been allocated using usb_buffer_alloc(), and the parameters must match
- * those provided in that allocation request. 
+ * those provided in that allocation request.
  */
 void usb_buffer_free (
     struct usb_device *dev,

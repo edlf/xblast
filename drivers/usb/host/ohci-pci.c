@@ -3,17 +3,17 @@
  *
  * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
  * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * 
+ *
  * [ Initialisation is based on Linus'  ]
  * [ uhci code and gregs ohci fragments ]
  * [ (C) Copyright 1999 Linus Torvalds  ]
  * [ (C) Copyright 1999 Gregory P. Smith]
- * 
+ *
  * PCI Bus Glue
  *
  * This file is licenced under the GPL.
  */
- 
+
 #ifdef CONFIG_PMAC_PBOOK
 #include <asm/machdep.h>
 #include <asm/pmac_feature.h>
@@ -83,7 +83,7 @@ ohci_pci_start (struct usb_hcd *hcd)
                 ohci_info (ohci, "Using NSC SuperIO setup\n");
             }
         }
-    
+
     }
 
         memset (ohci->hcca, 0, sizeof (struct ohci_hcca));
@@ -141,7 +141,7 @@ static int ohci_pci_suspend (struct usb_hcd *hcd, unsigned int state)
     mdelay (1);
     if (!readl (&ohci->regs->intrstatus) & OHCI_INTR_SF)
         mdelay (1);
-        
+
 #ifdef CONFIG_PMAC_PBOOK
     if (_machine == _MACH_Pmac)
         disable_irq (hcd->pdev->irq);
@@ -183,7 +183,7 @@ static int ohci_pci_suspend (struct usb_hcd *hcd, unsigned int state)
 #ifdef CONFIG_PMAC_PBOOK
     {
            struct device_node    *of_node;
- 
+
         /* Disable USB PAD & cell clock */
         of_node = pci_device_to_OF_node (hcd->pdev);
         if (of_node)
@@ -222,7 +222,7 @@ static int ohci_pci_resume (struct usb_hcd *hcd)
 
     /* Re-enable bus mastering */
     pci_set_master (ohci->hcd.pdev);
-    
+
     switch (temp) {
 
     case OHCI_USB_RESET:    // lost power
@@ -275,7 +275,7 @@ static int ohci_pci_resume (struct usb_hcd *hcd)
         writel (OHCI_INTR_SF, &ohci->regs->intrenable);
 
         /* Check for a pending done list */
-        writel (OHCI_INTR_WDH, &ohci->regs->intrdisable);    
+        writel (OHCI_INTR_WDH, &ohci->regs->intrdisable);
         (void) readl (&ohci->regs->intrdisable);
         spin_unlock_irqrestore (&ohci->lock, flags);
 
@@ -285,7 +285,7 @@ static int ohci_pci_resume (struct usb_hcd *hcd)
 #endif
         if (ohci->hcca->done_head)
             dl_done_list (ohci, dl_reverse_done_list (ohci), NULL);
-        writel (OHCI_INTR_WDH, &ohci->regs->intrenable); 
+        writel (OHCI_INTR_WDH, &ohci->regs->intrenable);
 
         /* assume there are TDs on the bulk and control lists */
         writel (OHCI_BLF | OHCI_CLF, &ohci->regs->cmdstatus);
@@ -369,7 +369,8 @@ static const struct pci_device_id __devinitdata pci_ids [] = { {
 };
 MODULE_DEVICE_TABLE (pci, pci_ids);
 
-/* pci driver glue; this is a "new style" PCI driver module */
+/*
+// pci driver glue; this is a "new style" PCI driver module
 static struct pci_driver ohci_pci_driver = {
     .name =        (char *) hcd_name,
     .id_table =    pci_ids,
@@ -383,8 +384,8 @@ static struct pci_driver ohci_pci_driver = {
 #endif
 };
 
- 
-static int __init ohci_hcd_pci_init (void) 
+
+static int __init ohci_hcd_pci_init (void)
 {
     printk (KERN_DEBUG "%s: " DRIVER_INFO " (PCI)\n", hcd_name);
     if (usb_disabled())
@@ -394,12 +395,13 @@ static int __init ohci_hcd_pci_init (void)
         sizeof (struct ed), sizeof (struct td));
     return pci_module_init (&ohci_pci_driver);
 }
-module_init (ohci_hcd_pci_init);
 
+module_init (ohci_hcd_pci_init);
+*/
 /*-------------------------------------------------------------------------*/
 
-static void __exit ohci_hcd_pci_cleanup (void) 
-{    
+static void __exit ohci_hcd_pci_cleanup (void)
+{
     pci_unregister_driver (&ohci_pci_driver);
 }
 module_exit (ohci_hcd_pci_cleanup);

@@ -1,9 +1,9 @@
 /*
  * OHCI HCD (Host Controller Driver) for USB.
- * 
+ *
  * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
  * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * 
+ *
  * This file is licenced under GPL
  */
 
@@ -71,7 +71,7 @@ ohci_hub_status_data (struct usb_hcd *hcd, char *buf)
     struct ohci_hcd    *ohci = hcd_to_ohci (hcd);
     int        ports, i, changed = 0, length = 1;
 
-    ports = roothub_a (ohci) & RH_A_NDP; 
+    ports = roothub_a (ohci) & RH_A_NDP;
     if (ports > MAX_ROOT_PORTS) {
         if (ohci->disabled)
             return -ESHUTDOWN;
@@ -116,7 +116,7 @@ ohci_hub_descriptor (
     struct usb_hub_descriptor    *desc
 ) {
     unsigned int        rh = roothub_a (ohci);
-    int        ports = rh & RH_A_NDP; 
+    int        ports = rh & RH_A_NDP;
     unsigned short        temp;
 
     desc->bDescriptorType = 0x29;
@@ -141,7 +141,7 @@ ohci_hub_descriptor (
     desc->bitmap [0] = rh & RH_B_DR;
     if (ports > 7) {
         desc->bitmap [1] = (rh & RH_B_DR) >> 8;
-        desc->bitmap [2] = desc->bitmap [3] = 0xff;
+        desc->bitmap [2] = 0xff;
     } else
         desc->bitmap [1] = 0xff;
 }
@@ -153,7 +153,7 @@ static int ohci_hub_control (
     unsigned short        typeReq,
     unsigned short        wValue,
     unsigned short        wIndex,
-    char        *buf,
+    unsigned char        *buf,
     unsigned short        wLength
 ) {
     struct ohci_hcd    *ohci = hcd_to_ohci (hcd);
