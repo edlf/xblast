@@ -223,11 +223,9 @@ int BootIdeReadData(unsigned uIoBase, void * buf, size_t size)
 
 // issues a block of data ATA-style
 
-int BootIdeWriteData(unsigned uIoBase, void * buf, unsigned int size) {
+int BootIdeWriteData(unsigned uIoBase, const void * buf, unsigned int size) {
     register unsigned short * ptr = (unsigned short *) buf;
-    int n;
-
-    n=BootIdeWaitDataReady(uIoBase);
+    int n = BootIdeWaitDataReady(uIoBase);
 
     while (size > 1) {
         IoOutputWord(IDE_REG_DATA(uIoBase), *ptr);
@@ -235,21 +233,19 @@ int BootIdeWriteData(unsigned uIoBase, void * buf, unsigned int size) {
         ptr++;
     }
 
-
     n=BootIdeWaitNotBusy(uIoBase);
     if(n) {
         debugSPIPrint(DEBUG_IDE_DRIVER,"Waiting for good status reg returned error : %d\n", n);
         return n;
     }
 
-    if(IoInputByte(IDE_REG_STATUS(uIoBase)) & 0x01) return 2;     //ERR flag raised.
+    if(IoInputByte(IDE_REG_STATUS(uIoBase)) & 0x01) {
+        // ERR flag raised
+        return 2;
+    }
 
     return 0;
 }
-
-
-
-
 
 /* -------------------------------------------------------------------------------- */
 
@@ -1194,7 +1190,7 @@ int BootIdeReadSector(const int nDriveIndex, void * pbBuffer, const uint64_t blo
 //
 // !!!!! EXPERIMENTAL
 
-int BootIdeWriteSector(const int nDriveIndex, void * pbBuffer, const uint64_t block, unsigned char retry) {
+int BootIdeWriteSector(const int nDriveIndex, const void * pbBuffer, const uint64_t block, unsigned char retry) {
     tsIdeCommandParams tsicp = IDE_DEFAULT_COMMAND;
     unsigned uIoBase;
     unsigned int track;
@@ -1300,7 +1296,7 @@ int BootIdeWriteSector(const int nDriveIndex, void * pbBuffer, const uint64_t bl
 // "retry" is the number of time to try to write in the event the command would fail the first time.
 //              Value of 3 will write once and retry 2 times if previously failed.
 
-int BootIdeWriteMultiple(const int nDriveIndex, void * pbBuffer, const uint64_t startLBA, unsigned short len, unsigned char retry) {
+int BootIdeWriteMultiple(const int nDriveIndex, const void * pbBuffer, const uint64_t startLBA, unsigned short len, unsigned char retry) {
     tsIdeCommandParams tsicp = IDE_DEFAULT_COMMAND;
     unsigned short remainingLen = (len == 0)? 256 : (len > 256) ? 256 : len;   //Set remainingLen to 256 if len == 0.
     unsigned char partialBlock = len % tsaHarddiskInfo[nDriveIndex].m_maxBlockTransfer;     //Size in sector of partial block.

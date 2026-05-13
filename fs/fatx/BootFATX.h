@@ -102,28 +102,28 @@ typedef struct {
   int nDriveIndex;
 
   // The starting byte of the partition
-  unsigned long long partitionStart;
+  uint64_t partitionStart;
 
   // The size of the partition in bytes
-  unsigned long long partitionSize;
+  uint64_t partitionSize;
 
   // The cluster size of the partition
-  unsigned long clusterSize;
+  uint32_t clusterSize;
 
   // Number of clusters in the partition
-  unsigned long clusterCount;
+  uint32_t clusterCount;
 
   // Size of entries in the cluster chain map
-  unsigned long chainMapEntrySize;
+  uint32_t chainMapEntrySize;
 
   // The cluster chain map table (which may be in words OR dwords)
   union {
-    unsigned short *words;
-    unsigned long  *dwords;
+    uint16_t *words;
+    uint32_t *dwords;
   } clusterChainMap;
 
   // Address of cluster 1
-  unsigned long long cluster1Address;
+  uint64_t cluster1Address;
 
 } FATXPartition;
 
@@ -139,8 +139,8 @@ typedef struct {                                        //Also known as FATX Sup
 typedef struct {
     char filename[FATX_FILENAME_MAX];
     int clusterId;
-    unsigned long fileSize;
-    unsigned long fileRead;
+    uint32_t fileSize;
+    uint32_t fileRead;
     unsigned char *buffer;
 } FATXFILEINFO;
 
@@ -171,36 +171,45 @@ typedef struct
 
 typedef struct
 {
-    unsigned char           Magic[16];
-    char                    Res0[32];
-    XboxPartitionTableEntry TableEntries[14];
+    unsigned char           Magic[LBA48_Partition_Table_Magic_Size];
+    unsigned char           Res0[32];
+    XboxPartitionTableEntry TableEntries[XboxPartitionTableEntryCount];
 } XboxPartitionTable;
 
+// Partition Table
+void PrintFATXPartitionTable(const unsigned char driveId);
+void FATXSetBRFR(const unsigned char driveId);
+bool FATXCheckMBR(const unsigned char driveId);
+void FATXSetMBR(const unsigned char driveId, const XboxPartitionTable *p_table);
+void FATXSetInitMBR(const unsigned char driveId);
+
+// Format
 unsigned int CalculateClusterSize(const uint64_t lba_size);
-int LoadFATXFile(FATXPartition *partition,char *filename, FATXFILEINFO *fileinfo);
+void FATXFormatCacheDrives(const unsigned char driveId, const bool verbose);
+void FATXFormatDriveC(const unsigned char driveId, const bool verbose);
+void FATXFormatDriveE(const unsigned char driveId, const bool verbose);
+void FATXFormatExtendedDrive(const unsigned char driveId, const unsigned char partition, const uint64_t lbaStart, const uint64_t lbaSize);
+
+// Open/Close/Check
+bool hasFATXSignature(const unsigned char driveId, const uint64_t block);
+bool FATXCheckFATXMagic(const unsigned char driveId);
+FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partitionOffset, uint64_t partitionSize);
+void CloseFATXPartition(FATXPartition* partition);
+bool FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo);
+
+// File/folder OPs
+bool LoadFATXFile(FATXPartition *partition, char *filename, FATXFILEINFO *fileinfo);
 int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen, char *prefix);
 int FATXFindDir(FATXPartition *partition, int clusterId, char *dir);
-void PrintFATXPartitionTable(int nDriveIndex);
-int FATXSignature(int nDriveIndex,unsigned int block);
-FATXPartition *OpenFATXPartition(int nDriveIndex,unsigned int partitionOffset, uint64_t partitionSize);
-int FATXRawRead (int drive, int sector, unsigned long long byte_offset, int byte_len, unsigned char *buf);
-void DumpFATXTree(FATXPartition *partition);
-void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting);
-void LoadFATXCluster(FATXPartition* partition, int clusterId, unsigned char* clusterData);
-unsigned long getNextClusterInChain(FATXPartition* partition, int clusterId);
-void CloseFATXPartition(FATXPartition* partition);
 int FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXFILEINFO *fileinfo);
 int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXFILEINFO *fileinfo);
-int FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo);
-void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned int entryNumber, unsigned int cluster);
-int FATXCheckFATXMagic(unsigned char driveId);
-void FATXSetBRFR(unsigned char drive);
-bool FATXCheckMBR(unsigned char driveId);
-void FATXSetMBR(unsigned char driveId, XboxPartitionTable *p_table);
-void FATXSetInitMBR(unsigned char driveId);
-void FATXFormatCacheDrives(int nIndexDrive, bool verbose);
-void FATXFormatDriveC(int nIndexDrive, bool verbose);
-void FATXFormatDriveE(int nIndexDrive, bool verbose);
-void FATXFormatExtendedDrive(unsigned char driveId, unsigned char partition, uint64_t lbaStart, uint64_t lbaSize);
+void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned int entryNumber, uint32_t cluster);
+
+// Others
+int FATXRawRead(const unsigned char driveId, uint64_t sector, uint64_t byte_offset, int byte_len, unsigned char *buf);
+void DumpFATXTree(FATXPartition *partition);
+void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting);
+void LoadFATXCluster(const FATXPartition* partition, const int clusterId, unsigned char* clusterData);
+uint32_t getNextClusterInChain(FATXPartition* partition, int clusterId);
 
 #endif //    _BootFATX_H_
