@@ -769,14 +769,14 @@ int DriveSecurityChange(unsigned uIoBase, const int driveId, ide_command_t ide_c
 }
 
 int CalculateDrivePassword(const int driveId, unsigned char *key, unsigned char *eepromPtr) {
-
     unsigned char baMagic[0x200], baKeyFromEEPROM[0x10], baEeprom[0x30];
     int nVersionHashing=0;
     //Ick - forward decl. Should remove this.
     unsigned int BootHddKeyGenerateEepromKeyData(unsigned char *eeprom_data,unsigned char *HDKey);
 
-    if(eepromPtr == NULL || key == NULL)
+    if(eepromPtr == NULL || key == NULL) {
         return 1;
+    }
 
     memcpy(baEeprom, eepromPtr, 0x30); // first 0x30 bytes from EEPROM image we picked up earlier
 
@@ -791,7 +791,9 @@ int CalculateDrivePassword(const int driveId, unsigned char *key, unsigned char 
          tsaHarddiskInfo[driveId].s_length);
 
     //Failed to generate a key
-    if (nVersionHashing==0 || nVersionHashing == 13) return 1;
+    if (nVersionHashing==0 || nVersionHashing == 13) {
+        return 1;
+    }
 
     memcpy(key,&baMagic[2],20);
     return 0;

@@ -42,7 +42,6 @@ struct pci_dev xx_ohci_dev={
 };
 
 void BootStartUSB(void) {
-    int n;
     nousb=0;
 
     init_wrapper();
@@ -51,11 +50,10 @@ void BootStartUSB(void) {
     usb_hcd_pci_probe(&xx_ohci_dev, module_table_pci_ids);
     XPADInit();
 
-    //XRemoteInit();
+    // XRemoteInit();
+    // UsbKeyBoardInit();
 
-    UsbKeyBoardInit();
-
-    for(n=0;n<30;n++) {
+    for(int n=0;n<30;n++) {
         USBGetEvents();
         wait_ms(1);
     }
@@ -72,8 +70,8 @@ void BootStopUSB(void) {
     int n;
 
     XPADRemove();
-    //XRemoteRemove();
-    UsbKeyBoardRemove();
+    // XRemoteRemove();
+    // UsbKeyBoardRemove();
 
     for(n=0;n<100;n++) {
         USBGetEvents();

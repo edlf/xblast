@@ -104,7 +104,7 @@ TEXTMENU* RunScriptMenuInit(void)
     FATXFILEINFO fileinfo;
     FATXPartition *partition;
 
-    char *fnames[FATX_MAX_FILES_FOLDER]; //Because Each dir can have up to 4096 files when not in root of partition.
+    char *fnames[FATX_MAX_FILES_FOLDER] = {NULL}; //Because Each dir can have up to 4096 files when not in root of partition.
     short n=0, i=0;
     int bioses=0;
     int res;
@@ -112,7 +112,6 @@ TEXTMENU* RunScriptMenuInit(void)
     char *path="\\XBlast\\scripts\\";      //And we're not in root.
     char fullPath[25];
     char *fullPathptr = fullPath;
-    memset(fnames[0], 0, sizeof(char) * FATX_MAX_FILES_FOLDER);
     memset(fullPath, 0, sizeof(char) * 25);
 
     // Generate the menu title.
@@ -200,7 +199,7 @@ TEXTMENU* SaveScriptMenuInit(void) {
     FATXFILEINFO fileinfo;
     FATXPartition *partition;
 
-    char *fnames[FATX_MAX_FILES_FOLDER]; //Because Each dir can have up to 4096 files when not in root of partition.
+    char *fnames[FATX_MAX_FILES_FOLDER] = {NULL}; //Because Each dir can have up to 4096 files when not in root of partition.
     short n=0, i=0;
     int bioses=0;
     int res;
@@ -208,7 +207,6 @@ TEXTMENU* SaveScriptMenuInit(void) {
     char *path="\\XBlast\\scripts\\";      //And we're not in root.
     char fullPath[25];
     char *fullPathptr = fullPath;
-    memset(fnames[0], 0, sizeof(char) * FATX_MAX_FILES_FOLDER);
     memset(fullPath, 0, sizeof(char) * 25);
 
     // Generate the menu title.

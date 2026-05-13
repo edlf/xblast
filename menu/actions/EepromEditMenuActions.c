@@ -260,7 +260,7 @@ void restoreEEPROMFromFile(void *fname)
 int updateEEPROMEditBufferFromInputBuffer(unsigned char *buffer, unsigned int size, bool verbose)
 {
     int res = 0;
-    EEPROM_EncryptVersion newVersion, hostVersion;
+    EEPROM_EncryptVersion newVersion, hostVersion = EEPROM_EncryptInvalid;
     unsigned char decryptedData[0x30];
     EEPROMDATA result;
 
@@ -277,15 +277,13 @@ int updateEEPROMEditBufferFromInputBuffer(unsigned char *buffer, unsigned int si
         newVersion = EepromSanityCheck((EEPROMDATA *)buffer);
         debugSPIPrint(DEBUG_GENERAL_UI, "Input EEPROM image version : %u\n", newVersion);
 
-        if(newVersion >= EEPROM_EncryptV1_0 && newVersion <= EEPROM_EncryptV1_6)   //Current content in eeprom is valid.
-        {
+        if(newVersion >= EEPROM_EncryptV1_0 && newVersion <= EEPROM_EncryptV1_6){   //Current content in eeprom is valid.
             memcpy(&result, buffer, sizeof(EEPROMDATA));
             memset(decryptedData, 0, 0x30);
             decryptEEPROMData((unsigned char *)&result, decryptedData);
 
             //Prepare to encrypt for the right motherboard version
-            switch(getMotherboardRevision())
-            {
+            switch(getMotherboardRevision()) {
             case XboxMotherboardRevision_DEBUGKIT:
             case XboxMotherboardRevision_DEVKIT:
             case XboxMotherboardRevision_1_0:
@@ -306,10 +304,8 @@ int updateEEPROMEditBufferFromInputBuffer(unsigned char *buffer, unsigned int si
                 break;
             }
 
-            if(hostVersion != newVersion)
-            {
-                if(ConfirmDialog("EEPROM versions mismatch!\n\2Continue anyway?", true))
-                {
+            if(hostVersion != newVersion) {
+                if(ConfirmDialog("EEPROM versions mismatch!\n\2Continue anyway?", true)) {
                     res = -2;
                     goto endExec;
                 }

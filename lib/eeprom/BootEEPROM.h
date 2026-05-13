@@ -12,7 +12,7 @@
  *                                                                         *
  ***************************************************************************/
 
- 
+
 #ifndef _BootEEPROM_H_
 #define _BootEEPROM_H_
 
@@ -20,7 +20,7 @@
 #include <stdbool.h>
 
 //EEPROM Data struct value enum
-typedef enum { 
+typedef enum {
     EEPROM_DVDRegion0        = 0x00, //Region Clear
     EEPROM_DVDRegion1        = 0x01, //USA
     EEPROM_DVDRegion2        = 0x02, //Europe
@@ -82,7 +82,7 @@ typedef struct {
    unsigned char VideoStandard[4];         // 0x58 - 0x5B  ** 0x00014000 = NTSC, 0x00038000 = PAL, 0x00400100 = EEPROM_VideoStandardNTSC_J
 
    unsigned char UNKNOWN3[4];              // 0x5C - 0x5F  Unknown Padding ?
-  
+
    //Comes configured up to here from factory..  everything after this can be zero'd out...
    //To reset XBOX to Factory settings, Make checksum3 0xFFFFFFFF and zero all data below (0x64-0xFF)
    //Doing this will Reset XBOX and upon startup will get Language & Setup screen...
@@ -99,14 +99,14 @@ typedef struct {
    unsigned char TimeZoneDltBias[4];       // 0x8C - 0x8F Daylight Bias?
 
    unsigned char LanguageID[4];            // 0x90 - 0x93 Language ID
-  
+
    unsigned char VideoFlags[4];            // 0x94 - 0x97 Video Settings - 0x96 b0==widescreen 0x96 b4 == letterbox
    unsigned char AudioFlags[4];            // 0x98 - 0x9B Audio Settings
-  
+
    unsigned char ParentalControlGames[4];  // 0x9C - 0x9F 0=MAX rating
    unsigned char ParentalControlPwd[4];    // 0xA0 - 0xA3 7=X, 8=Y, B=LTrigger, C=RTrigger
    unsigned char ParentalControlMovies[4]; // 0xA4 - 0xA7 0=Max rating
-  
+
    unsigned char XBOXLiveIPAddress[4];     // 0xA8 - 0xAB XBOX Live IP Address..
    unsigned char XBOXLiveDNS[4];           // 0xAC - 0xAF XBOX Live DNS Server..
    unsigned char XBOXLiveGateWay[4];       // 0xB0 - 0xB3 XBOX Live Gateway Address..
@@ -115,7 +115,7 @@ typedef struct {
 
    unsigned char DVDPlaybackKitZone[4];    // 0xBC - 0xBF DVD Playback Kit Zone
 
-   unsigned char UNKNOWN6[64];             // 0xC0 - 0xFF Unknown Codes / Memory timing data ?
+   unsigned char MemoryTiming[64];         // 0xC0 - 0xFF Memory timing data for 1.6
 }__attribute__((packed)) EEPROMDATA;
 
 extern EEPROMDATA eeprom;
