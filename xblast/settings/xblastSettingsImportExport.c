@@ -119,7 +119,7 @@ int LPCMod_ReadCFGFromHDD(_LPCmodSettings *LPCmodSettingsPtr, _settingsPtrStruct
                     valueStartPtr = 0;
                     CRdetected = fileinfo.buffer[stringStopPtr - 1] == '\r' ? 1 : 0;    //Dos formatted line?
                     //Copy line in compareBuf.
-                    strncpy(compareBuf, &fileinfo.buffer[stringStartPtr], stringStopPtr - CRdetected - stringStartPtr);
+                    strncpy(compareBuf, (char *) &fileinfo.buffer[stringStartPtr], stringStopPtr - CRdetected - stringStartPtr);
                     //Manually append terminating character at the end of the string
                     compareBuf[stringStopPtr - CRdetected - stringStartPtr] = '\0';
                     //if(compareBuf[0] != '\0')
@@ -230,7 +230,7 @@ int LPCMod_SaveCFGToHDD(void){
     int res = false;
     char * filebuf;
     char tempString[22];
-    unsigned int cursorpos, totalbytes = 0;
+    unsigned int cursorpos;
     int dcluster, i;
     const char *cfgFileName = "\\XBlast\\xblast.cfg";
 
@@ -261,11 +261,8 @@ int LPCMod_SaveCFGToHDD(void){
                 strncpy(&filebuf[cursorpos],tempString, strlen(tempString));    //Skip terminating character.
                 //filebuf[cursorpos] = 0x0A;
                 //cursorpos += 1;
-                totalbytes += cursorpos;
             }
             filebuf[cursorpos] = 0;     //Terminating character at the end of file.
-
-
             free(filebuf);
         }
         UiHeader("Saved settings to C:\\XBlast\\xblast.cfg");
