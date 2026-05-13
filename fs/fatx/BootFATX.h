@@ -210,6 +210,6 @@ int FATXRawRead(const unsigned char driveId, uint64_t sector, uint64_t byte_offs
 void DumpFATXTree(FATXPartition *partition);
 void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting);
 void LoadFATXCluster(const FATXPartition* partition, const int clusterId, unsigned char* clusterData);
-uint32_t getNextClusterInChain(FATXPartition* partition, int clusterId);
+uint32_t getNextClusterInChain(const FATXPartition* partition, const int clusterId);
 
 #endif //    _BootFATX_H_

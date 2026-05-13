@@ -37,28 +37,24 @@ XboxPartitionTable BackupPartTbl =
     }
 };
 
-unsigned int CalculateClusterSize(const uint64_t lba_size)
-{
+unsigned int CalculateClusterSize(const uint64_t lba_size) {
     uint32_t clusterSize = 16;
     uint64_t compare = 0x20000000;
-    while (lba_size > compare)
-    {
+    while (lba_size > compare) {
         compare = compare * 2;
         clusterSize = clusterSize * 2;
     }
     return clusterSize;
 }
 
-int checkForLastDirectoryEntry(unsigned char* entry)
-{
+bool checkForLastDirectoryEntry(const unsigned char* entry) {
     // if the filename length byte is 0 or 0xff, this is the last entry
-    if ((entry[0] == 0xff) || (entry[0] == 0))
-    {
-        return 1;
+    if ((entry[0] == 0xff) || (entry[0] == 0)) {
+        return true;
     }
 
     // wasn't last entry
-    return 0;
+    return false;
 }
 
 int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen, char *prefix) {
@@ -71,8 +67,7 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
     uint32_t filenameSize;
     int sortNotOver = 1;
 
-    while(clusterId != -1)
-    {
+    while(clusterId != -1) {
         // load cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
@@ -153,14 +148,12 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // loop through it, outputing entries
-        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++)
-        {
+        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
             // work out the currentEntry
             curEntry = clusterData + (i * FATX_DIRECTORYENTRY_SIZE);
 
             // first of all, check that it isn't an end of directory marker
-            if (checkForLastDirectoryEntry(curEntry))
-            {
+            if (checkForLastDirectoryEntry(curEntry)) {
                 return -1;
             }
 
@@ -168,14 +161,12 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
             filenameSize = curEntry[0];
 
             // check if file is deleted
-            if (filenameSize == 0xE5)
-            {
+            if (filenameSize == 0xE5) {
                 continue;
             }
 
             // check size is OK
-            if ((filenameSize < 1) || (filenameSize > FATX_FILENAME_MAX))
-            {
+            if ((filenameSize < 1) || (filenameSize > FATX_FILENAME_MAX)) {
 #ifdef FATX_INFO
                 printk("Invalid filename size: %i\n", filenameSize);
 #endif
@@ -193,14 +184,10 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
 
             // is it what we're looking for...  We use _strncasecmp since fatx
             // isnt case sensitive.
-            if (strlen(dir)==strlen(foundFilename) && _strncasecmp(foundFilename, dir,strlen(dir)) == 0)
-            {
-                if (flags & FATX_FILEATTR_DIRECTORY)
-                {
+            if (strlen(dir)==strlen(foundFilename) && _strncasecmp(foundFilename, dir,strlen(dir)) == 0) {
+                if (flags & FATX_FILEATTR_DIRECTORY) {
                     return entryClusterId;
-                }
-                else
-                {
+                } else {
                     return -1;
                 }
             }
@@ -208,7 +195,7 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
         // Find next cluster
         clusterId = getNextClusterInChain(partition, clusterId);
     }
-    return 0;           //Keep compiler happy.
+    return 0; //Keep compiler happy.
 }
 
 bool LoadFATXFile(FATXPartition *partition, char *filename, FATXFILEINFO *fileinfo) {
@@ -693,7 +680,7 @@ int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXF
     return false;
 }
 
-uint32_t getNextClusterInChain(FATXPartition* partition, int clusterId) {
+uint32_t getNextClusterInChain(const FATXPartition* partition, const int clusterId) {
     int nextClusterId = 0;
     uint32_t eocMarker = 0;
     uint32_t rootFatMarker = 0;

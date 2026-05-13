@@ -160,7 +160,6 @@ OBJECTS-CROM += $(TOPDIR)/obj/NetworkMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/EepromEditMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/XBlastScriptMenuActions.o
 OBJECTS-CROM += $(TOPDIR)/obj/UncommittedChangesMenuActions.o
-OBJECTS-CROM += $(TOPDIR)/obj/LoadLinux.o
 OBJECTS-CROM += $(TOPDIR)/obj/setup.o
 OBJECTS-CROM += $(TOPDIR)/obj/iso9660.o
 OBJECTS-CROM += $(TOPDIR)/obj/BootLibrary.o
