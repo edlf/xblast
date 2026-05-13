@@ -251,44 +251,44 @@ int BootIdeWriteData(unsigned uIoBase, const void * buf, unsigned int size) {
 
 int BootIdeWriteAtapiData(unsigned uIoBase, void * buf, size_t size) {
     unsigned short * ptr = (unsigned short *) buf;
-    unsigned short w;
-    int n;
-
-    n=BootIdeWaitDataReady(uIoBase);
+    int n = BootIdeWaitDataReady(uIoBase);
 
     wait_us_blocking(1);
 
-    w=IoInputByte(IDE_REG_CYLINDER_LSB(uIoBase));
-    w|=(IoInputByte(IDE_REG_CYLINDER_MSB(uIoBase)))<<8;
+    IoInputByte(IDE_REG_CYLINDER_LSB(uIoBase));
+    IoInputByte(IDE_REG_CYLINDER_MSB(uIoBase));
 
-    n=IoInputByte(IDE_REG_STATUS(uIoBase));
+    n = IoInputByte(IDE_REG_STATUS(uIoBase));
     if(n&1) { // error
         return 1;
     }
 
     while (size > 1) {
-
         IoOutputWord(IDE_REG_DATA(uIoBase), *ptr);
         size -= 2;
         ptr++;
     }
-    n=IoInputByte(IDE_REG_STATUS(uIoBase));
+
+    n = IoInputByte(IDE_REG_STATUS(uIoBase));
     if(n&1) { // error
         return 1;
     }
+
     wait_us_blocking(1);
-    n=BootIdeWaitNotBusy(uIoBase);
+
+    n = BootIdeWaitNotBusy(uIoBase);
     if(n) {
         debugSPIPrint(DEBUG_IDE_DRIVER,"Waiting for good status reg returned error : %d\n", n);
         return n;
     }
     wait_us_blocking(1);
 
-   if(IoInputByte(IDE_REG_STATUS(uIoBase)) & 0x01) return 2;
+    if(IoInputByte(IDE_REG_STATUS(uIoBase)) & 0x01) {
+        return 2;
+    }
 
     return 0;
 }
-
 
 /* -------------------------------------------------------------------------------- */
 

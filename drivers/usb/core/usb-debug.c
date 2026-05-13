@@ -172,6 +172,9 @@ void usb_show_endpoint_descriptor(struct usb_endpoint_descriptor *desc)
         usbprintk("      bRefresh            =   %02x", desc->bRefresh);
         usbprintk("      bSynchAddress       =   %02x", desc->bSynchAddress);
     }
+
+    (void) LengthCommentString;
+    (void) EndpointType;
 }
 
 void usb_show_string(struct usb_device *dev, char *id, int index)

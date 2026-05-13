@@ -248,7 +248,7 @@ static int usb_parse_interface(struct usb_interface *interface, unsigned char *b
     return parsed;
 }
 
-int usb_parse_configuration(struct usb_host_config *config, char *buffer)
+int usb_parse_configuration(struct usb_host_config *config, unsigned char *buffer)
 {
     int i, retval, size;
     struct usb_descriptor_header *header;
@@ -282,7 +282,7 @@ int usb_parse_configuration(struct usb_host_config *config, char *buffer)
 
     for (i = 0; i < config->desc.bNumInterfaces; i++) {
         int numskipped, len;
-        char *begin;
+        unsigned char *begin;
 
         /* Skip over the rest of the Class Specific or Vendor */
         /*  Specific descriptors */
@@ -428,7 +428,7 @@ int usb_get_configuration(struct usb_device *dev)
     memset(dev->config, 0, dev->descriptor.bNumConfigurations *
         sizeof(struct usb_host_config));
 
-    dev->rawdescriptors = (char **)kmalloc(sizeof(char *) *
+    dev->rawdescriptors = (unsigned char **)kmalloc(sizeof(unsigned char *) *
         dev->descriptor.bNumConfigurations, GFP_KERNEL);
     if (!dev->rawdescriptors) {
         usbprintk("out of memory\n");

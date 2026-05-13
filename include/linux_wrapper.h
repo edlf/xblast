@@ -314,16 +314,6 @@ struct usbdevfs_hub_portinfo
 #define unlikely(x) (x)
 #define prefetch(x) 1
 
-/* The kernel macro for list_for_each_entry makes nonsense (have no clue
- * why, this is just the same definition...) */
-
-#undef list_for_each_entry
-#define list_for_each_entry(pos, head, member)                          \
-        for (pos = list_entry((head)->next, typeof(*pos), member),      \
-                     prefetch(pos->member.next);                        \
-             &pos->member != (head);                                    \
-             pos = list_entry(pos->member.next, typeof(*pos), member),  \
-                     prefetch(pos->member.next))
 
 /*------------------------------------------------------------------------*/
 /* function wrapper macros */
@@ -479,7 +469,6 @@ void my_wait_for_completion(struct completion*);
 #define signal_pending(x)      1  // fall through threads
 #define complete_and_exit(a,b) return 0
 
-#define kill_proc(a,b,c)     0
 #define yield() do {} while(0)
 #define cpu_relax() do {} while(0)
 
@@ -581,7 +570,7 @@ void usb_hcd_pci_remove (struct pci_dev *dev);
 #define my_udelay(x) wait_ms(x)
 #define udelay(x) my_udelay(x)
 
-#define my_mdelay(x) wait_ms(1+x/1000);
+#define my_mdelay(x) wait_ms(1 + (x/1000));
 #define mdelay(x) my_mdelay(x);
 
 #define pci_find_slot(a,b) my_pci_find_slot(a,b)

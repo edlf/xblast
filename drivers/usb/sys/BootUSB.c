@@ -82,5 +82,4 @@ void BootStopUSB(void) {
 
     module_exit_usb_exit();
     usb_hcd_pci_remove(&xx_ohci_dev);
-
 }
