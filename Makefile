@@ -84,11 +84,8 @@ endif
 LDFLAGS-ROM     = -s -S -T $(TOPDIR)/scripts/ldscript-crom.ld
 LDFLAGS-XBEBOOT = -s -S -T $(TOPDIR)/scripts/xbeboot.ld
 LDFLAGS-ROMBOOT = -s -S -T $(TOPDIR)/boot_rom/bootrom.ld
-LDFLAGS-VMLBOOT = -s -S -T $(TOPDIR)/boot_vml/vml_start.ld
 
 OBJECTS-XBE = $(TOPDIR)/boot_xbe/xbeboot.o
-
-OBJECTS-VML = $(TOPDIR)/boot_vml/vml_Startup.o
 
 OBJECTS-ROMBOOT = $(TOPDIR)/obj/2bBootStartup.o
 OBJECTS-ROMBOOT += $(TOPDIR)/obj/2bPicResponseAction.o
@@ -235,7 +232,7 @@ BOOT_ETH_SUBDIRS = ethsubdirs
 .PHONY: all clean
 
 all: makefsdata
-	@$(MAKE) --no-print-directory resources $(BOOT_ETH_SUBDIRS) cromsubdirs xbeboot xromwell.xbe vml_startup vmlboot $(BOOT_ETH_DIR) obj/image-crom.bin cromwell.bin imagecompress 256KBBinGen crcbin INCLUDE_ALL="$(INCLUDE_ALL)"
+	@$(MAKE) --no-print-directory resources $(BOOT_ETH_SUBDIRS) cromsubdirs xbeboot xromwell.xbe $(BOOT_ETH_DIR) obj/image-crom.bin cromwell.bin imagecompress 256KBBinGen crcbin INCLUDE_ALL="$(INCLUDE_ALL)"
 
 ethsubdirs: $(patsubst %, _dir_%, $(ETH_SUBDIRS))
 $(patsubst %, _dir_%, $(ETH_SUBDIRS)) : dummy
@@ -271,7 +268,6 @@ clean:
 	rm -f $(TOPDIR)/bin/crcbin*
 	rm -f $(TOPDIR)/bin/scriptChecker*
 	rm -f $(TOPDIR)/bin/makefsdata
-	rm -f $(TOPDIR)/boot_vml/disk/vmlboot
 	rm -f $(TOPDIR)/$(LWIPFOLDER)/src/apps/httpd/fsdata.c
 	rm -f boot_eth/ethboot
 	mkdir -p $(TOPDIR)/xbe
@@ -282,13 +278,6 @@ clean:
 obj/image-crom.bin: cromsubdirs resources
 	${LD} -o obj/image-crom.elf ${OBJECTS-CROM} ${RESOURCES} ${LDFLAGS-ROM} -Map $(TOPDIR)/obj/image-crom.map
 	${OBJCOPY} --output-target=binary --strip-all obj/image-crom.elf $@
-
-vmlboot: vml_startup
-	${LD} -o $(TOPDIR)/obj/vmlboot.elf ${OBJECTS-VML} ${LDFLAGS-VMLBOOT}
-	${OBJCOPY} --output-target=binary --strip-all $(TOPDIR)/obj/vmlboot.elf $(TOPDIR)/boot_vml/disk/$@
-
-vml_startup:
-	$(CC) ${CFLAGS} -c -o ${OBJECTS-VML} boot_vml/vml_Startup.S
 
 xromwell.xbe: xbeboot
 	${LD} -o $(TOPDIR)/obj/xbeboot.elf ${OBJECTS-XBE} ${LDFLAGS-XBEBOOT}
@@ -324,7 +313,6 @@ imagecompress: obj/image-crom.bin bin/imagebld
 	cp obj/image-crom.bin obj/c
 	gzip -9 obj/c
 	bin/imagebld -xbe xbe/XBlast\ OS.xbe obj/image-crom.bin
-	bin/imagebld -vml boot_vml/disk/vmlboot obj/image-crom.bin f
 
 256KBBinGen: imagecompress crcbin cromwell.bin
 	bin/imagebld -rom obj/2blimage.bin obj/c.gz image/cromwell.bin
@@ -335,4 +323,3 @@ makefsdata: clean
 	gcc -o bin/makefsdata obj/makefsdata.o
 	bin/makefsdata "$(TOPDIR)/$(LWIPFOLDER)/src/apps/httpd/fs" -e -nossi
 	mv fsdata.c "$(TOPDIR)/$(LWIPFOLDER)/src/apps/httpd/fsdata.c"
-
