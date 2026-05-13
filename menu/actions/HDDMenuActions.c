@@ -54,23 +54,18 @@ void AssertLockUnlockFromNetwork(void* customStructPtr)
     LockUnlockCommonParams* tempItemPtr = (LockUnlockCommonParams*)customStructPtr;
     unsigned char nIndexDrive = tempItemPtr->driveIndex;
     WebServerOps temp = WebServerOps_HDD1Lock;
-    unsigned char *eepromPtr;
 
-    if(nIndexDrive == 0)
-    {
+    if(nIndexDrive == 0) {
         temp = WebServerOps_HDD0Lock;
     }
 
     enableNetflash((void *)&temp);
 
-    if((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002)
-    {
+    if((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002) {
         sprintf(tempItemPtr->string1, "Unl");
         sprintf(tempItemPtr->string2, "Unl");
 
-    }
-    else
-    {
+    } else {
         sprintf(tempItemPtr->string1, "L");
         sprintf(tempItemPtr->string2, "L");
     }
@@ -178,17 +173,13 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
     if((tsaHarddiskInfo[nIndexDrive].m_securitySettings&0x0004)==0x0004)
     {
         //Do not try Master password unlock if eeprom pointer isn't pointing to internal eeprom image.
-        if(internalEEPROM)
-        {
+        if(internalEEPROM) {
             printk("\n\n           Something's wrong with the drive!\n           Jumping to Master Password Unlock sequence.");
 
-            if(masterPasswordUnlockSequence(nIndexDrive))
-            {
+            if(masterPasswordUnlockSequence(nIndexDrive)) {
                 result = 0;	//Sucess
                 verbose = true;
-            }
-            else
-            {
+            } else {
                 result = -1;
             }
 
@@ -196,8 +187,7 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
         }
         else
         {
-            if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_UNLOCK, userPassword, false))
-            {
+            if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_UNLOCK, (char*) userPassword, false)) {
                 printk("\n\n           Unlock drive failed. Supplied EEPROM is not good!");
        	        result = -1;
 
@@ -207,41 +197,34 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
     }
 
 
-    if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_DISABLE, userPassword, false))
+    if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_DISABLE, (char*) userPassword, false))
     {
         printk("\n\n           Unlock drive failed.");
         printk("\n           Password used was:");
 
-        for(i = 0; i < strlen(userPassword); i++)
-        {
+        for(i = 0; i < strlen((char*) userPassword); i++) {
             printk(" %02X", userPassword[i]);
         }
     	result = -1;
 
     	goto endExec;
-    }
-    else
-    {
+    } else {
         result = 0;
     }
 
-    if(result == 0)
-    {
+    if(result == 0) {
         //Unlock successful, read if there's a MBR, only if FATX formatted drive.
-        if(FATXCheckFATXMagic(nIndexDrive))
-        {
+        if(FATXCheckFATXMagic(nIndexDrive)) {
             // report on the MBR-ness of the drive contents
             tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable = FATXCheckMBR(nIndexDrive);
         }
-        if(verbose)
-        {
+        if(verbose) {
             printk("\n\n\n           This drive is now unlocked.\n\n");
         }
     }
 
 endExec:
-    if(verbose)
-    {
+    if(verbose) {
         UIFooter();
     }
 
@@ -413,7 +396,7 @@ void FormatDriveFG(void* driveId) {
     const unsigned char nDriveIndex = (*(unsigned char *)driveId) & 0x0f;
     const unsigned char formatOption = (*(unsigned char *)driveId) & 0xf0;
     uint64_t fsize,gstart = SECTOR_EXTEND,gsize = 0;
-    unsigned char buffer[512];                                  //Multi purpose
+    char buffer[512];                                  //Multi purpose
     XboxPartitionTable* mbr = (XboxPartitionTable *)buffer;
 
     uint64_t nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;

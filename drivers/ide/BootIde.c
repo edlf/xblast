@@ -251,44 +251,44 @@ int BootIdeWriteData(unsigned uIoBase, const void * buf, unsigned int size) {
 
 int BootIdeWriteAtapiData(unsigned uIoBase, void * buf, size_t size) {
     unsigned short * ptr = (unsigned short *) buf;
-    unsigned short w;
-    int n;
-
-    n=BootIdeWaitDataReady(uIoBase);
+    int n = BootIdeWaitDataReady(uIoBase);
 
     wait_us_blocking(1);
 
-    w=IoInputByte(IDE_REG_CYLINDER_LSB(uIoBase));
-    w|=(IoInputByte(IDE_REG_CYLINDER_MSB(uIoBase)))<<8;
+    IoInputByte(IDE_REG_CYLINDER_LSB(uIoBase));
+    IoInputByte(IDE_REG_CYLINDER_MSB(uIoBase));
 
-    n=IoInputByte(IDE_REG_STATUS(uIoBase));
+    n = IoInputByte(IDE_REG_STATUS(uIoBase));
     if(n&1) { // error
         return 1;
     }
 
     while (size > 1) {
-
         IoOutputWord(IDE_REG_DATA(uIoBase), *ptr);
         size -= 2;
         ptr++;
     }
-    n=IoInputByte(IDE_REG_STATUS(uIoBase));
+
+    n = IoInputByte(IDE_REG_STATUS(uIoBase));
     if(n&1) { // error
         return 1;
     }
+
     wait_us_blocking(1);
-    n=BootIdeWaitNotBusy(uIoBase);
+
+    n = BootIdeWaitNotBusy(uIoBase);
     if(n) {
         debugSPIPrint(DEBUG_IDE_DRIVER,"Waiting for good status reg returned error : %d\n", n);
         return n;
     }
     wait_us_blocking(1);
 
-   if(IoInputByte(IDE_REG_STATUS(uIoBase)) & 0x01) return 2;
+    if(IoInputByte(IDE_REG_STATUS(uIoBase)) & 0x01) {
+        return 2;
+    }
 
     return 0;
 }
-
 
 /* -------------------------------------------------------------------------------- */
 
@@ -769,14 +769,14 @@ int DriveSecurityChange(unsigned uIoBase, const int driveId, ide_command_t ide_c
 }
 
 int CalculateDrivePassword(const int driveId, unsigned char *key, unsigned char *eepromPtr) {
-
     unsigned char baMagic[0x200], baKeyFromEEPROM[0x10], baEeprom[0x30];
     int nVersionHashing=0;
     //Ick - forward decl. Should remove this.
     unsigned int BootHddKeyGenerateEepromKeyData(unsigned char *eeprom_data,unsigned char *HDKey);
 
-    if(eepromPtr == NULL || key == NULL)
+    if(eepromPtr == NULL || key == NULL) {
         return 1;
+    }
 
     memcpy(baEeprom, eepromPtr, 0x30); // first 0x30 bytes from EEPROM image we picked up earlier
 
@@ -791,7 +791,9 @@ int CalculateDrivePassword(const int driveId, unsigned char *key, unsigned char 
          tsaHarddiskInfo[driveId].s_length);
 
     //Failed to generate a key
-    if (nVersionHashing==0 || nVersionHashing == 13) return 1;
+    if (nVersionHashing==0 || nVersionHashing == 13) {
+        return 1;
+    }
 
     memcpy(key,&baMagic[2],20);
     return 0;

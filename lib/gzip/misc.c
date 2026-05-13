@@ -63,14 +63,8 @@ static unsigned outcnt = 0;  /* bytes in output buffer */
 
 static int  fill_inbuf(void);
 static void flush_window(void);
-static void error(char *m);
 static void gzip_mark(void **);
 static void gzip_release(void **);
-
-/*
- * This is set up by the setup-routine at boot-time
- */
-static unsigned char *real_mode; /* Pointer to real-mode data */
 
 unsigned char *input_data;
 int input_len;

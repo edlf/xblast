@@ -150,15 +150,12 @@ void printMainMenuHeader(void)
 //
 //  BootResetAction()
 
-extern void BootResetAction ( void )
-{
-    bool fMbrPresent=false;
-    bool fFirstBoot=false;                    //Flag to indicate first boot since flash update
-    int nTempCursorX, nTempCursorY;
-    int n, nx, i, returnValue = 255;
+extern void BootResetAction ( void ) {
+    bool fFirstBoot=false; //Flag to indicate first boot since flash update
+    int nTempCursorX = 0, nTempCursorY = 0;
+    int i, returnValue = 255;
     unsigned char tempFanSpeed = 20;
     int res, dcluster;
-    _LPCmodSettings *tempLPCmodSettings;
     FATXPartition *partition;
     FATXFILEINFO fileinfo;
 
@@ -252,9 +249,7 @@ extern void BootResetAction ( void )
     I2CTransmitByteGetReturn(0x10, 0x11);       // dummy Query IRQ
     I2CTransmitWord(0x10, 0x1a01); // Enable PIC interrupts. Cannot be deactivated once set.
 
-    unsigned char readUSB = 0;
-    if(EjectButtonPressed == 0 && isXBE() == false)
-    {
+    if(EjectButtonPressed == 0 && isXBE() == false) {
         setLED("rrrr");       //Signal the user to press Eject button to avoid Quickboot.
     }
     wait_us_blocking(760000);

@@ -25,7 +25,7 @@ struct list_head {
 } while (0)
 
 /*
- * Insert a new entry between two known consecutive entries. 
+ * Insert a new entry between two known consecutive entries.
  *
  * This is only for internal list manipulation where we know
  * the prev/next entries already!
@@ -98,7 +98,7 @@ static inline void list_del(struct list_head *entry)
 static inline void list_del_init(struct list_head *entry)
 {
     __list_del(entry->prev, entry->next);
-    INIT_LIST_HEAD(entry); 
+    INIT_LIST_HEAD(entry);
 }
 
 /**
@@ -199,7 +199,7 @@ static inline void list_splice_init(struct list_head *list,
 #define list_for_each_prev(pos, head) \
     for (pos = (head)->prev; pos != (head); \
             pos = pos->prev)
-            
+
 /**
  * list_for_each_safe    -    iterate over a list safe against removal of list entry
  * @pos:    the &struct list_head to use as a loop counter.
@@ -211,14 +211,52 @@ static inline void list_splice_init(struct list_head *list,
         pos = n, n = pos->next)
 
 /**
+ * list_is_head - tests whether @list is the list @head
+ * @list: the entry to test
+ * @head: the head of the list
+ */
+static inline int list_is_head(const struct list_head *list, const struct list_head *head)
+{
+	return list == head;
+}
+
+/**
+ * list_first_entry - get the first element from a list
+ * @ptr:	the list head to take the element from.
+ * @type:	the type of the struct this is embedded in.
+ * @member:	the name of the list_head within the struct.
+ *
+ * Note, that list is expected to be not empty.
+ */
+#define list_first_entry(ptr, type, member) \
+	list_entry((ptr)->next, type, member)
+
+/**
+ * list_entry_is_head - test if the entry points to the head of the list
+ * @pos:	the type * to cursor
+ * @head:	the head for your list.
+ * @member:	the name of the list_head within the struct.
+ */
+#define list_entry_is_head(pos, head, member)				\
+	list_is_head(&pos->member, (head))
+
+/**
+ * list_next_entry - get the next element in list
+ * @pos:	the type * to cursor
+ * @member:	the name of the list_head within the struct.
+ */
+#define list_next_entry(pos, member) \
+	list_entry((pos)->member.next, typeof(*(pos)), member)
+
+/**
  * list_for_each_entry    -    iterate over list of given type
  * @pos:    the type * to use as a loop counter.
  * @head:    the head for your list.
  * @member:    the name of the list_struct within the struct.
  */
-#define list_for_each_entry(pos, head, member)                \
-    for (pos = list_entry((head)->next, typeof(*pos), member)    \
-         &pos->member != (head);                     \
-         pos = list_entry(pos->member.next, typeof(*pos), member))
+#define list_for_each_entry(pos, head, member)				\
+	for (pos = list_first_entry(head, typeof(*pos), member);	\
+	     !list_entry_is_head(pos, head, member);			\
+	     pos = list_next_entry(pos, member))
 
 #endif

@@ -287,9 +287,7 @@ blueColorDraw:
     return true;
 }
 
-bool BootVideoJpegUnpackAsRgb(unsigned char *pbaJpegFileImage, JPEG * pJpeg, int size)
-{
-    int i;
+bool BootVideoJpegUnpackAsRgb(unsigned char *pbaJpegFileImage, JPEG * pJpeg, int size) {
     unsigned char *tempPtr;
     njInit();
     if (njDecode(pbaJpegFileImage, size))
@@ -354,7 +352,6 @@ void BootVideoClearScreen(JPEG *pJpeg, int nStartLine, int nEndLine)
 }
 
 int VideoDumpAddressAndData(unsigned int dwAds, const unsigned char * baData, unsigned int dwCountBytesUsable) { // returns bytes used
-    int nCountUsed=0;
     while(dwCountBytesUsable)
     {
         unsigned int dw=(dwAds & 0xfffffff0);
@@ -376,7 +373,6 @@ int VideoDumpAddressAndData(unsigned int dwAds, const unsigned char * baData, un
                 unsigned char b=*baData++;
                 n+=sprintf(&sz[n], "%02X ", b);
                 if((b<32) || (b>126)) szAscii[nBytes]='.'; else szAscii[nBytes]=b;
-                nCountUsed++;
                 dwCountBytesUsable--;
             }
             nBytes++;

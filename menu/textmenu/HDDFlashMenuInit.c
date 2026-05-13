@@ -22,15 +22,14 @@ void HDDFlashMenuDynamic(void* unused)
     FATXFILEINFO fileinfo;
     FATXPartition* partition;
 
-    char* fnames[FATX_MAX_FILES_FOLDER]; //Because Each dir can have up to 4096 files when not in root of partition.
-    short n = 0, i = 0;
+    char* fnames[FATX_MAX_FILES_FOLDER] = {NULL}; //Because Each dir can have up to 4096 files when not in root of partition.
+    short n = 0;
     int bioses = 0;
     int res;
     int dcluster;
     char* path = "\\BIOS\\";      //And we're not in root.
     char fullPath[20];
     char* fullPathptr = fullPath;
-    memset(fnames[0], 0, sizeof(char) * FATX_MAX_FILES_FOLDER);
     memset(fullPath, 0, sizeof(char) * 20);
 
     // Generate the menu title.
@@ -54,7 +53,7 @@ void HDDFlashMenuDynamic(void* unused)
         if((dcluster != -1) && (dcluster != 1)) {
             n = FATXListDir(partition, dcluster, &fnames[0], FATX_MAX_FILES_FOLDER, path);
 
-            for (i = 0; i < n; i++) {
+            for (int i = 0; i < n; i++) {
                 // Check the file.
                 res = FATXFindFile(partition, fnames[i], FATX_ROOT_FAT_CLUSTER, &fileinfo);
 

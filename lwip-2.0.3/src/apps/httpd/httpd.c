@@ -561,7 +561,7 @@ http_write(struct tcp_pcb *pcb, const void* ptr, u16_t *length, u8_t apiflags)
       } else {
         len /= 2;
       }
-      LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, 
+      LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE,
         ("Send failed, trying less (%d bytes)\n", len));
     }
   } while ((err == ERR_MEM) && (len > 1));
@@ -889,7 +889,7 @@ get_http_headers(struct http_state *hs, const char *uri)
     hs->hdrs[HDR_STRINGS_IDX_HTTP_STATUS] = g_psHTTPHeaderStrings[HTTP_HDR_OK];
   }
 
-  /* Determine if the URI has any variables and, if so, temporarily remove 
+  /* Determine if the URI has any variables and, if so, temporarily remove
       them. */
   vars = strchr(uri, '?');
   if(vars) {
@@ -2099,7 +2099,7 @@ badrequest:
 static err_t
 http_find_file(struct http_state *hs, const char *uri, int is_09)
 {
-  size_t loop;
+  // size_t loop;
   struct fs_file *file = NULL;
   char *params = NULL;
   err_t err;
@@ -2715,8 +2715,8 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
     memset(hs->boundaryKey, 0x00, 70);
     if(boundaryKey > 0)
     {
-        strcpy(hs->boundaryKey, "--");
-        strcpy(hs->boundaryKey + strlen("--"), boundaryKey);
+        strcpy((char*) hs->boundaryKey, "--");
+        strcpy((char*) hs->boundaryKey + strlen("--"), boundaryKey);
     }
     LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Boundary Key = %s\n", hs->boundaryKey));
 
@@ -2789,13 +2789,13 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
 
     if (hs->post_data_start != NULL)
     {
-        for(i = 0; i < (hs->post_data_len - strlen(hs->boundaryKey)); i++)
+        for(i = 0; i < (hs->post_data_len - strlen((char*) hs->boundaryKey)); i++)
         {
             boundaryDetected = false;
-            if(strncmp(hs->post_data_start + i, hs->boundaryKey, strlen(hs->boundaryKey)) == false)
+            if(strncmp((char*) hs->post_data_start + i, (char*) hs->boundaryKey, strlen((char*) hs->boundaryKey)) == false)
             {
                 LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Boundary at pos %u\n", i));
-                i += strlen(hs->boundaryKey) - 1;
+                i += strlen((char*) hs->boundaryKey) - 1;
                 boundaryDetected = true;
             }
 
@@ -2811,13 +2811,13 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
                     break;
             case BufParseState_ParseNameField:
 
-                if(strncmp(hs->post_data_start + i, biosNameMarker, strlen(biosNameMarker)) == false)
+                if(strncmp((char*) hs->post_data_start + i, biosNameMarker, strlen(biosNameMarker)) == false)
                 {
                     LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Bios Name Marker at pos %u\n", i));
                     i += strlen(biosNameMarker) - 1;
                     parseState = BufParseState_WaitForBiosNameStart;
                 }
-                else if(strncmp(hs->post_data_start + i, biosDataMarker, strlen(biosDataMarker)) == false)
+                else if(strncmp((char*) hs->post_data_start + i, biosDataMarker, strlen(biosDataMarker)) == false)
                 {
                     LWIP_DEBUGF(HTTPD_DEBUG | LWIP_DBG_TRACE, ("Bios Data Marker at pos %u\n", i));
                     i += strlen(biosDataMarker) - 1;
@@ -2826,7 +2826,7 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
                 //Add other field names parsing here
                 break;
             case BufParseState_WaitForBiosNameStart:
-                if(strncmp(hs->post_data_start + i, CRLF CRLF, strlen(CRLF CRLF)) == false)
+                if(strncmp((char*) hs->post_data_start + i, CRLF CRLF, strlen(CRLF CRLF)) == false)
                 {
                     i += strlen(CRLF CRLF) - 1;
                     parseState = BufParseState_GetBiosName;
@@ -2839,7 +2839,7 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
             case BufParseState_GetBiosName:
                 if(boundaryDetected)
                  {
-                    if(strncmp(hs->post_data_start + (i - strlen(hs->boundaryKey) - 1), CRLF, strlen(CRLF)) == false)
+                    if(strncmp((char*) hs->post_data_start + (i - strlen((char*) hs->boundaryKey) - 1), CRLF, strlen(CRLF)) == false)
                     {
                         biosNameSize -= strlen(CRLF);
                     }
@@ -2856,7 +2856,7 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
                  }
                 break;
             case BufParseState_WaitForBiosDataStart:
-                if(strncmp(hs->post_data_start + i, CRLF CRLF, strlen(CRLF CRLF)) == false)
+                if(strncmp((char*) hs->post_data_start + i, CRLF CRLF, strlen(CRLF CRLF)) == false)
                 {
                     i += strlen(CRLF CRLF);
 
@@ -2873,8 +2873,8 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
             case BufParseState_GetBiosData:
                 if(boundaryDetected)
                 {
-                    biosDataEnd = i - (strlen(hs->boundaryKey) - 1);
-                    if(strncmp(hs->post_data_start + i - strlen(hs->boundaryKey) - 1, CRLF, strlen(CRLF)) == false)
+                    biosDataEnd = i - (strlen((char*) hs->boundaryKey) - 1);
+                    if(strncmp((char*) hs->post_data_start + i - strlen((char*) hs->boundaryKey) - 1, CRLF, strlen(CRLF)) == false)
                     {
                         biosDataEnd -= strlen(CRLF);
                     }
@@ -3002,7 +3002,12 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
                 strcpy(response_uri, "/okHDDLOCK.html");
             }
             break;
+        case WebServerOps_NoOp:
+          break;
+        default:
+          break;
         }
+
     }
 }
 
