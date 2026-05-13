@@ -63,7 +63,7 @@ void AddIcon(ICON *newIcon)
         currentIcon = iconPtr;
         iconPtr = iconPtr->nextIcon;
     }
-    
+
     if (currentIcon == NULL)
     {
         //This is the first icon in the chain
@@ -75,7 +75,7 @@ void AddIcon(ICON *newIcon)
     }
     iconPtr = newIcon;
     iconPtr->nextIcon = NULL;
-    iconPtr->previousIcon = currentIcon; 
+    iconPtr->previousIcon = currentIcon;
 }
 
 static void IconMenuDraw(int nXOffset, int nYOffset)
@@ -239,7 +239,7 @@ static void IconMenuDraw(int nXOffset, int nYOffset)
         {
             opaqueness = TRANSPARENTNESS;
         }
-        
+
         BootVideoJpegBlitBlend(
             (unsigned char *)(FB_START+((vmode.width * (nYOffset-74))+tempX) * 4),
             vmode.width, // dest bytes per line
@@ -318,25 +318,24 @@ bool IconMenu(void)
     int oldIconTimeRemain = 0;
     char bankString[20];
 
-    extern int nTempCursorMbrX, nTempCursorMbrY; 
+    extern int nTempCursorMbrX, nTempCursorMbrY;
     int nTempCursorResumeX, nTempCursorResumeY ;
-    int nTempCursorX, nTempCursorY;
-    int nModeDependentOffset=(vmode.width-640)/2;  
+    int nTempCursorY;
+    int nModeDependentOffset=(vmode.width-640)/2;
     unsigned int varBootTimeWait = LPCmodSettings.OSsettings.bootTimeout * 1000;        //Just to have a default value.
     char timeoutString[21];                            //To display timeout countdown on xLCD
     timeoutString[20] = 0;
-    
+
     nTempCursorResumeX=nTempCursorMbrX;
     nTempCursorResumeY=nTempCursorMbrY;
 
-    nTempCursorX=VIDEO_CURSOR_POSX;
     nTempCursorY=vmode.height-80;
-    
+
 
     // We save the complete framebuffer to memory (we restore at exit)
     //videosavepage = malloc(FB_SIZE);
     memcpy(videosavepage,(void*)FB_START,FB_SIZE);
-    
+
     VIDEO_CURSOR_POSX=((252+nModeDependentOffset)<<2);
     VIDEO_CURSOR_POSY=nTempCursorY-100;
 
@@ -410,14 +409,14 @@ bool IconMenu(void)
                 memcpy((void*)FB_START,videosavepage,FB_SIZE);
             }
         }
-        
-        if ((risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_A) == 1) || risefall_xpad_STATE(XPAD_STATE_START) == 1 || 
+
+        if ((risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_A) == 1) || risefall_xpad_STATE(XPAD_STATE_START) == 1 ||
             (temp > varBootTimeWait && varBootTimeWait > 0))
         {
             memcpy((void*)FB_START,videosavepage,FB_SIZE);
             VIDEO_CURSOR_POSX=nTempCursorResumeX;
             VIDEO_CURSOR_POSY=nTempCursorResumeY;
-            
+
 
             // Display custom boot message on LCD
             if(xLCD.enable == 1)

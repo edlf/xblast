@@ -105,7 +105,6 @@ TEXTMENU* EEPROMFileRestoreMenuInit(void)
     char* path = "\\XBlast\\eeproms\\";      //And we're not in root.
     char fullPath[25];
     char* fullPathptr = fullPath;
-    memset(fnames[0], 0, sizeof(char) * FATX_MAX_FILES_FOLDER);
     memset(fullPath, 0, 20);
 
     // Generate the menu title.

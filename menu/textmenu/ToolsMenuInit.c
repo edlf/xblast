@@ -16,11 +16,9 @@
 #include "xblast/HardwareIdentifier.h"
 
 
-TEXTMENU *ToolsMenuInit(void)
-{
+TEXTMENU *ToolsMenuInit(void) {
     TEXTMENUITEM *itemPtr;
     TEXTMENU *menuPtr;
-    int i=0;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "Tools");

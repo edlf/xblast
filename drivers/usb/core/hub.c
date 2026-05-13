@@ -260,7 +260,7 @@ void usb_hub_tt_clear_buffer (struct usb_device *dev, int pipe)
             : (USB_ENDPOINT_XFER_BULK << 11);
     if (usb_pipein (pipe))
         clear->devinfo |= 1 << 15;
-    
+
     /* tell keventd to clear state for this TT */
     spin_lock_irqsave (&tt->lock, flags);
     list_add_tail (&clear->clear_list, &tt->clear_list);
@@ -297,7 +297,7 @@ static int hub_hub_status(struct usb_hub *hub,
             "%s failed (err = %d)\n", __FUNCTION__, ret);
     else {
         *status = le16_to_cpu(hub->status->hub.wHubStatus);
-        *change = le16_to_cpu(hub->status->hub.wHubChange); 
+        *change = le16_to_cpu(hub->status->hub.wHubChange);
         ret = 0;
     }
     return ret;
@@ -357,18 +357,21 @@ static int hub_configure(struct usb_hub *hub,
 
     le16_to_cpus(&hub->descriptor->wHubCharacteristics);
 
+    #ifdef DEBUG_MODE
     if (hub->descriptor->wHubCharacteristics & HUB_CHAR_COMPOUND) {
         int    i;
         char    portstr [USB_MAXCHILDREN + 1];
 
-        for (i = 0; i < dev->maxchild; i++)
+        for (i = 0; i < dev->maxchild; i++) {
             portstr[i] = hub->descriptor->DeviceRemovable
                     [((i + 1) / 8)] & (1 << ((i + 1) % 8))
                 ? 'F' : 'R';
+        }
         portstr[dev->maxchild] = 0;
         dev_dbg(hub_dev, "compound device; port removable status: %s\n", portstr);
-    } else
+    } else {
         dev_dbg(hub_dev, "standalone hub\n");
+    }
 
     switch (hub->descriptor->wHubCharacteristics & HUB_CHAR_LPSM) {
         case 0x00:
@@ -395,6 +398,7 @@ static int hub_configure(struct usb_hub *hub,
             dev_dbg(hub_dev, "no over-current protection\n");
                         break;
     }
+    #endif
 
     spin_lock_init (&hub->tt.lock);
     INIT_LIST_HEAD (&hub->tt.clear_list);
@@ -433,7 +437,7 @@ static int hub_configure(struct usb_hub *hub,
             break;
     }
 
-    dev_dbg(hub_dev, "Port indicators are %s supported\n", 
+    dev_dbg(hub_dev, "Port indicators are %s supported\n",
         (hub->descriptor->wHubCharacteristics & HUB_CHAR_PORTIND)
             ? "" : "not");
 
@@ -487,8 +491,9 @@ static int hub_configure(struct usb_hub *hub,
     return 0;
 
 fail:
-    dev_err (&hub->intf->dev, "config failed, %s (err %d)\n",
-            message, ret);
+    dev_err (&hub->intf->dev, "config failed, %s (err %d)\n", message, ret);
+
+    (void) message; // keep compiler happy
     /* hub_disconnect() frees urb and descriptor */
     return ret;
 }
@@ -613,6 +618,8 @@ descriptor_error:
         return 0;
     }
 
+    (void) dev;
+
     hub_disconnect (intf);
     return -ENODEV;
 }
@@ -672,7 +679,7 @@ static int hub_reset(struct usb_hub *hub)
     if (usb_reset_device(dev))
         return -1;
 
-    hub->urb->dev = dev;                                                    
+    hub->urb->dev = dev;
     if (usb_submit_urb(hub->urb, GFP_KERNEL))
         return -1;
 
@@ -711,7 +718,7 @@ static int hub_port_status(struct usb_device *dev, int port,
             "%s failed (err = %d)\n", __FUNCTION__, ret);
     else {
         *status = le16_to_cpu(hub->status->port.wPortStatus);
-        *change = le16_to_cpu(hub->status->port.wPortChange); 
+        *change = le16_to_cpu(hub->status->port.wPortChange);
         ret = 0;
     }
     return ret;
@@ -826,7 +833,7 @@ int hub_port_disable(struct usb_device *hub, int port)
  * Between connect detection and reset signaling there must be a delay
  * of 100ms at least for debounce and power-settling. The corresponding
  * timer shall restart whenever the downstream port detects a disconnect.
- * 
+ *
  * Apparently there are some bluetooth and irda-dongles and a number
  * of low-speed devices which require longer delays of about 200-400ms.
  * Not covered by the spec - but easy to deal with.
@@ -1076,7 +1083,7 @@ static void hub_events(void)
                  * EM interference sometimes causes badly
                  * shielded USB devices to be shutdown by
                  * the hub, this hack enables them again.
-                 * Works at least with mouse driver. 
+                 * Works at least with mouse driver.
                  */
                 if (!(portstatus & USB_PORT_STAT_ENABLE)
                     && (portstatus & USB_PORT_STAT_CONNECTION)
@@ -1098,7 +1105,7 @@ static void hub_events(void)
                 clear_port_feature(dev,
                     i + 1,  USB_PORT_FEAT_C_SUSPEND);
             }
-            
+
             if (portchange & USB_PORT_STAT_C_OVERCURRENT) {
                 dev_err (&hub->intf->dev,
                     "over-current change on port %d\n",
@@ -1149,9 +1156,9 @@ static int hub_thread(void *__hub)
     allow_signal(SIGKILL);
     /* Send me a signal to get me die (for debugging) */
     do {
-        
+
         hub_events();
-        wait_event_interruptible(khubd_wait, !list_empty(&hub_event_list)); 
+        wait_event_interruptible(khubd_wait, !list_empty(&hub_event_list));
 
         if (current->flags & PF_FREEZE)
             refrigerator(PF_IOTHREAD);
@@ -1207,12 +1214,9 @@ int usb_hub_init(void)
     return -1;
 }
 
-void usb_hub_cleanup(void)
-{
-    int ret;
-
+void usb_hub_cleanup(void) {
     /* Kill the thread */
-    ret = kill_proc(khubd_pid, SIGKILL, 1);
+    // kill_proc(khubd_pid, SIGKILL, 1);
 
     wait_for_completion(&khubd_exited);
 
@@ -1375,7 +1379,7 @@ int usb_reset_device(struct usb_device *udev)
 {
     //struct device *gdev = &udev->dev;
     int r;
-    
+
     down_read(&gdev->bus->subsys.rwsem);
     r = usb_physical_reset_device(udev);
     up_read(&gdev->bus->subsys.rwsem);

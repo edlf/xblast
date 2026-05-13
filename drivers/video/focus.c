@@ -26,7 +26,7 @@ typedef struct _focus_pll_settings
     int tv_vtotal;
 } focus_pll_settings;
 
-int focus_calc_pll_settings(focus_pll_settings *settings, char *regs);
+int focus_calc_pll_settings(focus_pll_settings *settings, unsigned char *regs);
 
 static const unsigned char focus_defaults[0xc4] =
 {
@@ -64,21 +64,21 @@ int focus_calc_hdtv_mode(
     )
 {
     unsigned char *regs;
-    
+
     //This can be reduced
     *encoder_regs = (void *) malloc(256*sizeof(char));
     regs=(unsigned char *)*encoder_regs;
-    memcpy(regs,focus_defaults,sizeof(focus_defaults));    
+    memcpy(regs,focus_defaults,sizeof(focus_defaults));
     /* Uncomment for HDTV 480p colour bars */
     //regs[0x0d]|=0x02;
-    
+
     /* Turn on bridge bypass */
     regs[0x0a] |= 0x10;
-    /* Turn on the HDTV clock, and turn off the SDTV one */    
+    /* Turn on the HDTV clock, and turn off the SDTV one */
     regs[0xa1] = 0x04;
     /* HDTV Hor start */
     regs[0xb8] = 0xbe;
-    
+
     /* Set up video mode to HDTV, progressive */
     regs[0x92] = 0x1a;
     /* Enable YUV matrix bypass */
@@ -192,7 +192,7 @@ int focus_calc_hdtv_mode(
 int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
 {
     unsigned char b;
-    
+
     unsigned char* regs;
     int tv_htotal, tv_vtotal, tv_vactive, tv_hactive;
     int vga_htotal, vga_vtotal;
@@ -202,12 +202,12 @@ int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
 
     riva_out->encoder_regs = (void *)malloc(256*sizeof(char));
     regs=(unsigned char *)riva_out->encoder_regs;
-    
+
     memcpy(regs,focus_defaults,sizeof(focus_defaults));
-    
+
     /* Uncomment for SDTV colour bars */
     //regs[0x45]=0x02;
-    
+
     switch(mode->tv_encoding)
     {
     case TV_ENC_NTSC:
@@ -290,7 +290,7 @@ int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
         /*Nothing as yet */
         break;
     }
-    
+
     tv_vactive = tv_vactive * (1.0f-mode->voc);
     vga_vtotal = mode->yres * ((float)tv_vtotal/tv_vactive);
     vga_htotal = mode->xres * 1.25f;
@@ -343,17 +343,17 @@ int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
     pll_settings.vga_vtotal = vga_vtotal;
     pll_settings.tv_htotal = tv_htotal;
     pll_settings.tv_vtotal = tv_vtotal;
-    
-    if(focus_calc_pll_settings(&pll_settings,regs) == false)
+
+    if(focus_calc_pll_settings(&pll_settings, regs) == false)
     {
-        //Unable to calculate a valid PLL solution    
+        //Unable to calculate a valid PLL solution
         return 1;
     }
 
     /* Guesswork */
     riva_out->ext.vsyncstart = vga_vtotal * 0.95;
     riva_out->ext.hsyncstart = vga_htotal * 0.95;
-    
+
     riva_out->ext.width = mode->xres;
     riva_out->ext.height = mode->yres;
     riva_out->ext.htotal = vga_htotal - 1;
@@ -376,13 +376,13 @@ int focus_calc_mode(xbox_video_mode * mode, struct riva_regs * riva_out)
     return 1;
 }
 
-int focus_calc_pll_settings(focus_pll_settings *settings, char *regs)
+int focus_calc_pll_settings(focus_pll_settings *settings, unsigned char *regs)
 {
     int m, n;
     long dotclock = (*settings).dotclock;
     int pll_multiplier;
     long ncon, ncod;
-    
+
     ncon = (*settings).vga_htotal * (*settings).vga_vtotal;
 
     //Multipliers between 1 and 6 are the limit as output clock cant be >150MHz
@@ -437,9 +437,9 @@ int focus_calc_pll_settings(focus_pll_settings *settings, char *regs)
                     }
                 }
             }
-        }    
+        }
     }
-    //Seems no valid solution was possible 
+    //Seems no valid solution was possible
     return 0;
 }
 

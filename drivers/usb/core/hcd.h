@@ -106,7 +106,7 @@ struct usb_hcd {    /* usb_bus.hcpriv points to this */
 
     /* more shared queuing code would be good; it should support
      * smarter scheduling, handle transaction translators, etc;
-     * input size of periodic table to an interrupt scheduler. 
+     * input size of periodic table to an interrupt scheduler.
      * (ohci 32, uhci 1024, ehci 256/512/1024).
      */
 };
@@ -204,7 +204,7 @@ struct hc_driver {
     int        (*hub_status_data) (struct usb_hcd *hcd, char *buf);
     int        (*hub_control) (struct usb_hcd *hcd,
                 unsigned short typeReq, unsigned short wValue, unsigned short wIndex,
-                char *buf, unsigned short wLength);
+                unsigned char *buf, unsigned short wLength);
 };
 
 extern void usb_hcd_giveback_urb (struct usb_hcd *hcd, struct urb *urb, struct pt_regs *regs);

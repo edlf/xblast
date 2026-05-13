@@ -52,20 +52,23 @@ int usb_hcd_pci_probe (struct pci_dev *dev, const struct pci_device_id *id)
     char            *bufp = buf;
 #endif
 
-    if (usb_disabled())
+    if (usb_disabled()) {
         return -ENODEV;
+    }
 
-    if (!id || !(driver = (struct hc_driver *) id->driver_data))
+    if (!id || !(driver = (struct hc_driver *) id->driver_data)) {
         return -EINVAL;
+    }
 
-    if (pci_enable_device (dev) < 0)
+    if (pci_enable_device (dev) < 0) {
         return -ENODEV;
+    }
 
-        if (!dev->irq) {
-            err ("Found HC with no IRQ.  Check BIOS/PCI %s setup!",
-            dev->slot_name);
-               return -ENODEV;
-        }
+    if (!dev->irq) {
+        err ("Found HC with no IRQ.  Check BIOS/PCI %s setup!",
+        dev->slot_name);
+       return -ENODEV;
+    }
 
     if (driver->flags & HCD_MEMORY) {    // EHCI, OHCI
         region = 0;

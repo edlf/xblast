@@ -16,7 +16,6 @@
 TEXTMENU *InfoMenuInit(void) {
     TEXTMENUITEM *itemPtr;
     TEXTMENU *menuPtr;
-    int i=0;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "Info Menu");
@@ -50,6 +49,6 @@ TEXTMENU *InfoMenuInit(void) {
     sprintf(itemPtr->szCaption,"Uncommitted change(s)");
     itemPtr->functionPtr = UncommittedChangesMenuDynamic;
     TextMenuAddItem(menuPtr, itemPtr);
-        
+
     return menuPtr;
 }
