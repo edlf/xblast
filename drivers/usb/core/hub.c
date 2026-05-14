@@ -303,9 +303,7 @@ static int hub_hub_status(struct usb_hub *hub,
     return ret;
 }
 
-static int hub_configure(struct usb_hub *hub,
-    struct usb_endpoint_descriptor *endpoint)
-{
+static int hub_configure(struct usb_hub *hub, struct usb_endpoint_descriptor *endpoint) {
     struct usb_device *dev = interface_to_usbdev (hub->intf);
     struct device *hub_dev;
     unsigned short hubstatus, hubchange;
@@ -313,8 +311,7 @@ static int hub_configure(struct usb_hub *hub,
     int maxp, ret;
     char *message;
 
-    hub->buffer = usb_buffer_alloc(dev, sizeof(*hub->buffer), GFP_KERNEL,
-            &hub->buffer_dma);
+    hub->buffer = usb_buffer_alloc(dev, sizeof(*hub->buffer), GFP_KERNEL, &hub->buffer_dma);
     if (!hub->buffer) {
         message = "can't allocate hub irq buffer";
         ret = -ENOMEM;
@@ -339,8 +336,7 @@ static int hub_configure(struct usb_hub *hub,
      * hub->descriptor can handle USB_MAXCHILDREN ports,
      * but the hub can/will return fewer bytes here.
      */
-    ret = get_hub_descriptor(dev, hub->descriptor,
-            sizeof(*hub->descriptor));
+    ret = get_hub_descriptor(dev, hub->descriptor, sizeof(*hub->descriptor));
     if (ret < 0) {
         message = "can't read hub descriptor";
         goto fail;
@@ -352,8 +348,7 @@ static int hub_configure(struct usb_hub *hub,
 
     hub_dev = hubdev(dev);
     dev->maxchild = hub->descriptor->bNbrPorts;
-    dev_info (hub_dev, "%d port%s detected\n", dev->maxchild,
-        (dev->maxchild == 1) ? "" : "s");
+    dev_info (hub_dev, "%d port%s detected\n", dev->maxchild, (dev->maxchild == 1) ? "" : "s");
 
     le16_to_cpus(&hub->descriptor->wHubCharacteristics);
 
@@ -441,10 +436,8 @@ static int hub_configure(struct usb_hub *hub,
         (hub->descriptor->wHubCharacteristics & HUB_CHAR_PORTIND)
             ? "" : "not");
 
-    dev_dbg(hub_dev, "power on to power good time: %dms\n",
-        hub->descriptor->bPwrOn2PwrGood * 2);
-    dev_dbg(hub_dev, "hub controller current requirement: %dmA\n",
-        hub->descriptor->bHubContrCurrent);
+    dev_dbg(hub_dev, "power on to power good time: %dms\n", hub->descriptor->bPwrOn2PwrGood * 2);
+    dev_dbg(hub_dev, "hub controller current requirement: %dmA\n", hub->descriptor->bHubContrCurrent);
 
     ret = hub_hub_status(hub, &hubstatus, &hubchange);
     if (ret < 0) {
@@ -521,8 +514,9 @@ static void hub_disconnect(struct usb_interface *intf)
     up(&hub->khubd_sem);
 
     /* assuming we used keventd, it must quiesce too */
-    if (hub->tt.hub)
+    if (hub->tt.hub) {
         flush_scheduled_work ();
+    }
 
     if (hub->urb) {
         usb_unlink_urb(hub->urb);
@@ -551,8 +545,7 @@ static void hub_disconnect(struct usb_interface *intf)
     kfree(hub);
 }
 
-static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
-{
+static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id) {
     struct usb_host_interface *desc;
     struct usb_endpoint_descriptor *endpoint;
     struct usb_device *dev;

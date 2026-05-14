@@ -3,20 +3,20 @@
  *
  * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
  * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * 
+ *
  * [ Initialisation is based on Linus'  ]
  * [ uhci code and gregs ohci fragments ]
  * [ (C) Copyright 1999 Linus Torvalds  ]
  * [ (C) Copyright 1999 Gregory P. Smith]
- * 
- * 
+ *
+ *
  * OHCI is the main "non-Intel/VIA" standard for USB 1.1 host controller
  * interfaces (though some non-x86 Intel chips use it).  It supports
  * smarter hardware than UHCI.  A download link for the spec available
  * through the http://www.usb.org website.
  *
  * History:
- * 
+ *
  * 2003/02/24 show registers in sysfs (Kevin Brosius)
  *
  * 2002/09/03 get rid of ed hashtables, rework periodic scheduling and
@@ -55,24 +55,24 @@
  * 2000/earlier:  fixes for NEC/Lucent chips; suspend/resume handling
  *    when the controller loses power; handle UE; cleanup; ...
  *
- * v5.2 1999/12/07 URB 3rd preview, 
+ * v5.2 1999/12/07 URB 3rd preview,
  * v5.1 1999/11/30 URB 2nd preview, cpia, (usb-scsi)
- * v5.0 1999/11/22 URB Technical preview, Paul Mackerras powerbook susp/resume 
- *     i386: HUB, Keyboard, Mouse, Printer 
+ * v5.0 1999/11/22 URB Technical preview, Paul Mackerras powerbook susp/resume
+ *     i386: HUB, Keyboard, Mouse, Printer
  *
  * v4.3 1999/10/27 multiple HCs, bulk_request
  * v4.2 1999/09/05 ISO API alpha, new dev alloc, neg Error-codes
  * v4.1 1999/08/27 Randy Dunlap's - ISO API first impl.
- * v4.0 1999/08/18 
- * v3.0 1999/06/25 
+ * v4.0 1999/08/18
+ * v3.0 1999/06/25
  * v2.1 1999/05/09  code clean up
- * v2.0 1999/05/04 
+ * v2.0 1999/05/04
  * v1.0 1999/04/27 initial release
  *
  * This file is licenced under the GPL.
  */
 
-#if 0 
+#if 0
 #include <linux/config.h>
 
 #ifdef CONFIG_USB_DEBUG
@@ -169,11 +169,11 @@ static int ohci_urb_enqueue (
     int        i, size = 0;
     unsigned long    flags;
     int        retval = 0;
-    
+
 #ifdef OHCI_VERBOSE_DEBUG
     urb_print (urb, "SUB", usb_pipein (pipe));
 #endif
-    
+
     /* every endpoint has a ed, locate and maybe (re)initialize it */
     if (! (ed = ed_get (ohci, urb->dev, pipe, urb->interval)))
         return -ENOMEM;
@@ -219,7 +219,7 @@ static int ohci_urb_enqueue (
 
     /* fill the private part of the URB */
     urb_priv->length = size;
-    urb_priv->ed = ed;    
+    urb_priv->ed = ed;
 
     /* allocate the TDs (deferring hash chain updates) */
     for (i = 0; i < size; i++) {
@@ -229,7 +229,7 @@ static int ohci_urb_enqueue (
             urb_free_priv (ohci, urb_priv);
             return -ENOMEM;
         }
-    }    
+    }
 
     spin_lock_irqsave (&ohci->lock, flags);
 
@@ -284,10 +284,10 @@ static int ohci_urb_dequeue (struct usb_hcd *hcd, struct urb *urb)
 {
     struct ohci_hcd        *ohci = hcd_to_ohci (hcd);
     unsigned long        flags;
-    
+
 #ifdef OHCI_VERBOSE_DEBUG
     urb_print (urb, "UNLINK", 1);
-#endif          
+#endif
 
     spin_lock_irqsave (&ohci->lock, flags);
     if (!ohci->disabled) {
@@ -299,7 +299,7 @@ static int ohci_urb_dequeue (struct usb_hcd *hcd, struct urb *urb)
          */
         urb_priv = urb->hcpriv;
         if (urb_priv) {
-            urb_priv->state = URB_DEL; 
+            urb_priv->state = URB_DEL;
             if (urb_priv->ed->state == ED_OPER)
                 start_urb_unlink (ohci, urb_priv->ed);
         }
@@ -394,7 +394,7 @@ static int hc_reset (struct ohci_hcd *ohci)
     unsigned int temp;
     unsigned int ints;
     unsigned int control;
-    
+
     /* Disable HC interrupts */
     writel (OHCI_INTR_MIE, &ohci->regs->intrdisable);
     // acknowledge all pending interrupts
@@ -452,7 +452,7 @@ static int hc_reset (struct ohci_hcd *ohci)
 #define LSTHRESH    0x628        /* lowspeed bit threshold */
 
 /* Start an OHCI controller, set the BUS operational
- * enable interrupts 
+ * enable interrupts
  * connect the virtual root hub
  */
 static int hc_start (struct ohci_hcd *ohci)
@@ -522,7 +522,7 @@ static int hc_start (struct ohci_hcd *ohci)
 
     // POTPGT delay is bits 24-31, in 2 ms units.
     mdelay ((roothub_a (ohci) >> 23) & 0x1fe);
- 
+
     /* connect the virtual root hub */
     bus = hcd_to_bus (&ohci->hcd);
     bus->root_hub = udev = usb_alloc_dev (NULL, bus);
@@ -557,7 +557,7 @@ static void ohci_irq (struct usb_hcd *hcd, struct pt_regs *ptregs)
 {
     struct ohci_hcd        *ohci = hcd_to_ohci (hcd);
     struct ohci_regs    *regs = ohci->regs;
-     int            ints; 
+     int            ints;
 
     /* we can eliminate a (slow) readl() if _only_ WDH caused this irq */
     if ((ohci->hcca->done_head != 0)
@@ -573,7 +573,7 @@ static void ohci_irq (struct usb_hcd *hcd, struct pt_regs *ptregs)
     /* interrupt for some other device? */
     } else if ((ints &= readl (&regs->intrenable)) == 0) {
         return;
-    } 
+    }
 
     if (ints & OHCI_INTR_UE) {
         disable (ohci);
@@ -583,13 +583,13 @@ static void ohci_irq (struct usb_hcd *hcd, struct pt_regs *ptregs)
         ohci_dump (ohci, 1);
         hc_reset (ohci);
     }
-  
+
     if (ints & OHCI_INTR_WDH) {
-        writel (OHCI_INTR_WDH, &regs->intrdisable);    
+        writel (OHCI_INTR_WDH, &regs->intrdisable);
         dl_done_list (ohci, dl_reverse_done_list (ohci), ptregs);
-        writel (OHCI_INTR_WDH, &regs->intrenable); 
+        writel (OHCI_INTR_WDH, &regs->intrenable);
     }
-  
+
     /* could track INTR_SO to reduce available PCI/... bandwidth */
 
     /* handle any pending URB/ED unlinks, leaving INTR_SF enabled
@@ -600,11 +600,11 @@ static void ohci_irq (struct usb_hcd *hcd, struct pt_regs *ptregs)
         finish_unlinks (ohci, le16_to_cpu (ohci->hcca->frame_no),
                 ptregs);
     if ((ints & OHCI_INTR_SF) != 0 && !ohci->ed_rm_list)
-        writel (OHCI_INTR_SF, &regs->intrdisable);    
+        writel (OHCI_INTR_SF, &regs->intrdisable);
     spin_unlock (&ohci->lock);
 
     writel (ints, &regs->intrstatus);
-    writel (OHCI_INTR_MIE, &regs->intrenable);    
+    writel (OHCI_INTR_MIE, &regs->intrenable);
     // flush those pci writes
     (void) readl (&ohci->regs->control);
 }
@@ -612,7 +612,7 @@ static void ohci_irq (struct usb_hcd *hcd, struct pt_regs *ptregs)
 /*-------------------------------------------------------------------------*/
 
 static void ohci_stop (struct usb_hcd *hcd)
-{    
+{
     struct ohci_hcd        *ohci = hcd_to_ohci (hcd);
     struct ohci_regs    *regs = ohci->regs;
     int ints;
@@ -627,13 +627,13 @@ static void ohci_stop (struct usb_hcd *hcd)
         hc_reset (ohci);
 
     // Disable all interrupts
-    writel (OHCI_INTR_MIE, &regs->intrdisable);    
+    writel (OHCI_INTR_MIE, &regs->intrdisable);
     // acknowledge all pending interrupts
     ints = readl(&regs->intrstatus);
     writel (ints, &regs->intrstatus);
     // flush register writes
     (void) readl (&ohci->regs->control);
-    
+
     remove_debug_files (ohci);
     ohci_mem_cleanup (ohci);
     if (ohci->hcca) {
@@ -652,38 +652,6 @@ static void ohci_stop (struct usb_hcd *hcd)
 /* controller died; cleanup debris, then restart */
 /* must not be called from interrupt context */
 
-#ifdef CONFIG_PM
-static int hc_restart (struct ohci_hcd *ohci)
-{
-    int temp;
-    int i;
-
-    ohci->disabled = 1;
-    ohci->sleeping = 0;
-    if (hcd_to_bus (&ohci->hcd)->root_hub)
-        usb_disconnect (&hcd_to_bus (&ohci->hcd)->root_hub);
-    
-    /* empty the interrupt branches */
-    for (i = 0; i < NUM_INTS; i++) ohci->load [i] = 0;
-    for (i = 0; i < NUM_INTS; i++) ohci->hcca->int_table [i] = 0;
-    
-    /* no EDs to remove */
-    ohci->ed_rm_list = NULL;
-
-    /* empty control and bulk lists */     
-    ohci->ed_controltail = NULL;
-    ohci->ed_bulktail    = NULL;
-
-    if ((temp = hc_reset (ohci)) < 0 || (temp = hc_start (ohci)) < 0) {
-        ohci_err (ohci, "can't restart, %d\n", temp);
-        return temp;
-    } else
-        ohci_dbg (ohci, "restart complete\n");
-    return 0;
-}
-#endif
-
-/*-------------------------------------------------------------------------*/
 
 #define DRIVER_INFO DRIVER_VERSION " " DRIVER_DESC
 

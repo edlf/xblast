@@ -9,42 +9,33 @@
 #include <linux/delay.h>
 #include <asm/hardirq.h>
 #include <linux/pci.h>
-/*------------------------------------------------------------------------*/
- void my_wait_ms(unsigned int ms)
-{
-//        if(!in_interrupt()) {
 
-                current->state = TASK_UNINTERRUPTIBLE;
-                schedule_timeout(1 + ms * HZ / 1000);
-//        }
-//        else
-//                mdelay(ms);
+void my_wait_ms(unsigned int ms) {
+    // if(!in_interrupt()) {
+        current->state = TASK_UNINTERRUPTIBLE;
+        schedule_timeout(1 + ms * HZ / 1000);
+    // } else {
+    //     mdelay(ms);
+    // }
 }
-/*------------------------------------------------------------------------*/
-void my_mdelay(int x)
-{
+
+void my_mdelay(int x) {
     mdelay(x);
 }
-/*------------------------------------------------------------------------*/
-void my_udelay(int x)
-{
+
+void my_udelay(int x) {
     udelay(x);
 }
-/*------------------------------------------------------------------------*/
 
-/*------------------------------------------------------------------------*/
-void* zxmalloc(size_t  s)
-{
+void* zxmalloc(size_t  s) {
     return kmalloc(s,GFP_DMA);
 }
-/*------------------------------------------------------------------------*/
-void zxfree(void* x)
-{
+
+void zxfree(void* x) {
     kfree(x);
 }
-/*------------------------------------------------------------------------*/
-void zxprintf(char* fmt, ...)
-{
+
+void zxprintf(char* fmt, ...) {
     va_list ap;
     char buffer[1024];
     va_start(ap, fmt);
@@ -52,9 +43,8 @@ void zxprintf(char* fmt, ...)
     usbprintk(buffer);
     va_end(ap);
 }
-/*------------------------------------------------------------------------*/
-int zxsnprintf(char *buffer, size_t s, char* fmt, ...)
-{
+
+int zxsnprintf(char *buffer, size_t s, char* fmt, ...) {
     va_list ap;
     int x;
     va_start(ap, fmt);
@@ -62,9 +52,8 @@ int zxsnprintf(char *buffer, size_t s, char* fmt, ...)
     va_end(ap);
     return x;
 }
-/*------------------------------------------------------------------------*/
-int zxsprintf(char *buffer, char* fmt, ...)
-{
+
+int zxsprintf(char *buffer, char* fmt, ...) {
     va_list ap;
     int x;
     va_start(ap, fmt);

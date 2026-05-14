@@ -1,31 +1,28 @@
 /*
  * OHCI HCD (Host Controller Driver) for USB.
- * 
+ *
  * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
  * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * 
+ *
  * This file is licenced under the GPL.
  */
 
-static void urb_free_priv (struct ohci_hcd *hc, urb_priv_t *urb_priv)
-{
-    int        last = urb_priv->length - 1;
+static void urb_free_priv(struct ohci_hcd *hc, urb_priv_t *urb_priv) {
+    int last = urb_priv->length - 1;
 
     if (last >= 0) {
-        int        i;
         struct td    *td;
 
-        for (i = 0; i <= last; i++) {
-            td = urb_priv->td [i];
-            if (td)
-                td_free (hc, td);
+        for (int i = 0; i <= last; i++) {
+            td = urb_priv->td[i];
+            if (td) {
+                td_free(hc, td);
+            }
         }
     }
 
-    kfree (urb_priv);
+    kfree(urb_priv);
 }
-
-/*-------------------------------------------------------------------------*/
 
 /*
  * URB goes back to driver, and isn't reissued.
@@ -33,17 +30,15 @@ static void urb_free_priv (struct ohci_hcd *hc, urb_priv_t *urb_priv)
  * PRECONDITION:  no locks held, irqs blocked  (Giveback can call into HCD.)
  */
 static void
-finish_urb (struct ohci_hcd *ohci, struct urb *urb, struct pt_regs *regs)
-{
-    // ASSERT (urb->hcpriv != 0);
+finish_urb(struct ohci_hcd *ohci, struct urb *urb, struct pt_regs *regs) {
+    spin_lock(&urb->lock);
 
-    urb_free_priv (ohci, urb->hcpriv);
+    urb_free_priv(ohci, urb->hcpriv);
     urb->hcpriv = NULL;
 
-    spin_lock (&urb->lock);
-    if (likely (urb->status == -EINPROGRESS))
+    if (likely (urb->status == -EINPROGRESS)) {
         urb->status = 0;
-    spin_unlock (&urb->lock);
+    }
 
     // what lock protects these?
     switch (usb_pipetype (urb->pipe)) {
@@ -58,42 +53,42 @@ finish_urb (struct ohci_hcd *ohci, struct urb *urb, struct pt_regs *regs)
 #ifdef OHCI_VERBOSE_DEBUG
     urb_print (urb, "RET", usb_pipeout (urb->pipe));
 #endif
-    usb_hcd_giveback_urb (&ohci->hcd, urb, regs);
+    usb_hcd_giveback_urb(&ohci->hcd, urb, regs);
+    spin_unlock(&urb->lock);
 }
 
 
 /*-------------------------------------------------------------------------*
  * ED handling functions
- *-------------------------------------------------------------------------*/  
+ *-------------------------------------------------------------------------*/
 
 /* search for the right schedule branch to use for a periodic ed.
  * does some load balancing; returns the branch, or negative errno.
  */
-static int balance (struct ohci_hcd *ohci, int interval, int load)
-{
-    int    i, branch = -ENOSPC;
+static int balance (struct ohci_hcd *ohci, int interval, int load) {
+    int branch = -ENOSPC;
 
     /* iso periods can be huge; iso tds specify frame numbers */
-    if (interval > NUM_INTS)
+    if (interval > NUM_INTS) {
         interval = NUM_INTS;
+    }
 
     /* search for the least loaded schedule branch of that period
      * that has enough bandwidth left unreserved.
      */
-    for (i = 0; i < interval ; i++) {
+    for (int i = 0; i < interval ; i++) {
         if (branch < 0 || ohci->load [branch] > ohci->load [i]) {
-#if 1    /* CONFIG_USB_BANDWIDTH */
-            int    j;
-
             /* usb 1.1 says 90% of one frame */
+            int j;
             for (j = i; j < NUM_INTS; j += interval) {
-                if ((ohci->load [j] + load) > 900)
+                if ((ohci->load[j] + load) > 900) {
                     break;
+                }
             }
-            if (j < NUM_INTS)
+            if (j < NUM_INTS) {
                 continue;
-#endif
-            branch = i; 
+            }
+            branch = i;
         }
     }
     return branch;
@@ -105,17 +100,14 @@ static int balance (struct ohci_hcd *ohci, int interval, int load)
  * into the schedule tree in the apppropriate place.  most iso devices use
  * 1msec periods, but that's not required.
  */
-static void periodic_link (struct ohci_hcd *ohci, struct ed *ed)
-{
-    unsigned    i;
-
+static void periodic_link (struct ohci_hcd *ohci, struct ed *ed) {
     ohci_vdbg (ohci, "link %sed %p branch %d [%dus.], interval %d\n",
         (ed->hwINFO & ED_ISO) ? "iso " : "",
         ed, ed->branch, ed->load, ed->interval);
 
-    for (i = ed->branch; i < NUM_INTS; i += ed->interval) {
+    for (unsigned i = ed->branch; i < NUM_INTS; i += ed->interval) {
         struct ed    **prev = &ohci->periodic [i];
-        unsigned int        *prev_p = &ohci->hcca->int_table [i];
+        unsigned int *prev_p = &ohci->hcca->int_table [i];
         struct ed    *here = *prev;
 
         /* sorting each branch by period (slow before fast)
@@ -123,36 +115,39 @@ static void periodic_link (struct ohci_hcd *ohci, struct ed *ed)
          * (plus maybe: put interrupt eds before iso)
          */
         while (here && ed != here) {
-            if (ed->interval > here->interval)
+            if (ed->interval > here->interval) {
                 break;
+            }
             prev = &here->ed_next;
             prev_p = &here->hwNextED;
             here = *prev;
         }
         if (ed != here) {
             ed->ed_next = here;
-            if (here)
+            if (here) {
                 ed->hwNextED = *prev_p;
-            wmb ();
+            }
+            wmb();
             *prev = ed;
             *prev_p = cpu_to_le32p (&ed->dma);
+            wmb();
         }
         ohci->load [i] += ed->load;
     }
-    hcd_to_bus (&ohci->hcd)->bandwidth_allocated += ed->load / ed->interval;
+    hcd_to_bus(&ohci->hcd)->bandwidth_allocated += ed->load / ed->interval;
 }
 
 /* link an ed into one of the HC chains */
 
 static int ed_schedule (struct ohci_hcd *ohci, struct ed *ed)
-{     
+{
     int    branch;
 
     ed->state = ED_OPER;
     ed->ed_prev = 0;
     ed->ed_next = 0;
     ed->hwNextED = 0;
-    wmb ();
+    wmb();
 
     /* we care about rm_list when setting CLE/BLE in case the HC was at
      * work on some TD when CLE/BLE was turned off, and isn't quiesced
@@ -174,6 +169,7 @@ static int ed_schedule (struct ohci_hcd *ohci, struct ed *ed)
         }
         ed->ed_prev = ohci->ed_controltail;
         if (!ohci->ed_controltail && !ohci->ed_rm_list) {
+            wmb();
             ohci->hc_control |= OHCI_CTRL_CLE;
             writel (0, &ohci->regs->ed_controlcurrent);
             writel (ohci->hc_control, &ohci->regs->control);
@@ -190,6 +186,7 @@ static int ed_schedule (struct ohci_hcd *ohci, struct ed *ed)
         }
         ed->ed_prev = ohci->ed_bulktail;
         if (!ohci->ed_bulktail && !ohci->ed_rm_list) {
+            wmb();
             ohci->hc_control |= OHCI_CTRL_BLE;
             writel (0, &ohci->regs->ed_bulkcurrent);
             writel (ohci->hc_control, &ohci->regs->control);
@@ -209,12 +206,14 @@ static int ed_schedule (struct ohci_hcd *ohci, struct ed *ed)
             return branch;
         }
         ed->branch = branch;
-        periodic_link (ohci, ed);
-    }         
+        periodic_link(ohci, ed);
+    }
 
     /* the HC may not see the schedule updates yet, but if it does
      * then they'll be properly ordered.
      */
+
+    ed->state = ED_OPER;
     return 0;
 }
 
@@ -239,7 +238,7 @@ static void periodic_unlink (struct ohci_hcd *ohci, struct ed *ed)
             *prev = ed->ed_next;
         }
         ohci->load [i] -= ed->load;
-    }    
+    }
     hcd_to_bus (&ohci->hcd)->bandwidth_allocated -= ed->load / ed->interval;
 
     ohci_vdbg (ohci, "unlink %sed %p branch %d [%dus.], interval %d\n",
@@ -247,12 +246,12 @@ static void periodic_unlink (struct ohci_hcd *ohci, struct ed *ed)
         ed, ed->branch, ed->load, ed->interval);
 }
 
-/* unlink an ed from one of the HC chains. 
+/* unlink an ed from one of the HC chains.
  * just the link to the ed is unlinked.
  * the link from the ed still points to another operational ed or 0
  * so the HC can eventually finish the processing of the unlinked ed
  */
-static void ed_deschedule (struct ohci_hcd *ohci, struct ed *ed) 
+static void ed_deschedule (struct ohci_hcd *ohci, struct ed *ed)
 {
     ed->hwINFO |= ED_SKIP;
 
@@ -342,7 +341,7 @@ static struct ed *ed_get (
     int            is_out = !usb_pipein (pipe);
     int            type = usb_pipetype (pipe);
     struct hcd_dev        *dev = (struct hcd_dev *) udev->hcpriv;
-    struct ed        *ed; 
+    struct ed        *ed;
     unsigned        ep;
     unsigned long        flags;
 
@@ -411,7 +410,7 @@ static struct ed *ed_get (
 
 done:
     spin_unlock_irqrestore (&ohci->lock, flags);
-    return ed; 
+    return ed;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -421,7 +420,7 @@ done:
  * real work is done at the next start frame (SF) hardware interrupt
  */
 static void start_urb_unlink (struct ohci_hcd *ohci, struct ed *ed)
-{    
+{
     ed->hwINFO |= ED_DEQUEUE;
     ed->state = ED_UNLINK;
     ed_deschedule (ohci, ed);
@@ -489,7 +488,7 @@ td_fill (struct ohci_hcd *ohci, unsigned int info,
     td->ed = urb_priv->ed;
     td->next_dl_td = NULL;
     td->index = index;
-    td->urb = urb; 
+    td->urb = urb;
     td->data_dma = data;
     if (!len)
         data = 0;
@@ -500,8 +499,8 @@ td_fill (struct ohci_hcd *ohci, unsigned int info,
         td->hwPSW [0] = cpu_to_le16 ((data & 0x0FFF) | 0xE000);
         td->ed->last_iso = info & 0xffff;
     } else {
-        td->hwCBP = cpu_to_le32 (data); 
-    }            
+        td->hwCBP = cpu_to_le32 (data);
+    }
     if (data)
         td->hwBE = cpu_to_le32 (data + len - 1);
     else
@@ -744,7 +743,7 @@ ed_halted (struct ohci_hcd *ohci, struct td *td, int cc, struct td *rev)
      */
     ed->hwINFO |= ED_SKIP;
     wmb ();
-    ed->hwHeadP &= ~ED_H; 
+    ed->hwHeadP &= ~ED_H;
 
     /* put any later tds from this urb onto the donelist, after 'td',
      * order won't matter here: no errors, and nothing was transferred.
@@ -772,7 +771,7 @@ ed_halted (struct ohci_hcd *ohci, struct td *td, int cc, struct td *rev)
         info &= ~cpu_to_le32 (TD_CC);
         next->hwINFO = info;
 
-        next->next_dl_td = rev;    
+        next->next_dl_td = rev;
         rev = next;
 
         if (ed->hwTailP == cpu_to_le32 (next->td_dma))
@@ -813,7 +812,7 @@ static struct td *dl_reverse_done_list (struct ohci_hcd *ohci)
     /* get TD from hc's singly linked list, and
      * prepend to ours.  ed->td_list changes later.
      */
-    while (td_dma) {        
+    while (td_dma) {
             int        cc;
 
         td = dma_to_td (ohci, td_dma);
@@ -832,10 +831,10 @@ static struct td *dl_reverse_done_list (struct ohci_hcd *ohci)
         if (cc != TD_CC_NOERROR && (td->ed->hwHeadP & ED_H))
             td_rev = ed_halted (ohci, td, cc, td_rev);
 
-        td->next_dl_td = td_rev;    
+        td->next_dl_td = td_rev;
         td_rev = td;
         td_dma = le32_to_cpup (&td->hwNextTD);
-    }    
+    }
     spin_unlock_irqrestore (&ohci->lock, flags);
     return td_rev;
 }
@@ -935,7 +934,7 @@ rescan_this:
             goto rescan_all;
        }
 
-    /* maybe reenable control and bulk lists */ 
+    /* maybe reenable control and bulk lists */
     if (!ohci->disabled && !ohci->ed_rm_list) {
         unsigned int    command = 0, control = 0;
 
@@ -953,14 +952,14 @@ rescan_this:
                 writel (0, &ohci->regs->ed_bulkcurrent);
             }
         }
-        
+
         /* CLE/BLE to enable, CLF/BLF to (maybe) kickstart */
         if (control) {
             ohci->hc_control |= control;
-             writel (ohci->hc_control, &ohci->regs->control);   
+             writel (ohci->hc_control, &ohci->regs->control);
          }
         if (command)
-            writel (command, &ohci->regs->cmdstatus);   
+            writel (command, &ohci->regs->cmdstatus);
      }
 }
 
@@ -1009,6 +1008,6 @@ dl_done_list (struct ohci_hcd *ohci, struct td *td, struct pt_regs *regs)
         }
 
             td = td_next;
-      }  
+      }
     spin_unlock_irqrestore (&ohci->lock, flags);
 }

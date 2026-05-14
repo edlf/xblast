@@ -15,8 +15,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-
 #ifdef __KERNEL__
 
 /* This file contains declarations of usbcore internals that are mostly
@@ -26,23 +24,23 @@
 /*
  * USB Packet IDs (PIDs)
  */
-#define USB_PID_UNDEF_0            0xf0
-#define USB_PID_OUT            0xe1
-#define USB_PID_ACK            0xd2
-#define USB_PID_DATA0            0xc3
-#define USB_PID_PING            0xb4    /* USB 2.0 */
-#define USB_PID_SOF            0xa5
-#define USB_PID_NYET            0x96    /* USB 2.0 */
-#define USB_PID_DATA2            0x87    /* USB 2.0 */
-#define USB_PID_SPLIT            0x78    /* USB 2.0 */
-#define USB_PID_IN            0x69
-#define USB_PID_NAK            0x5a
-#define USB_PID_DATA1            0x4b
-#define USB_PID_PREAMBLE        0x3c    /* Token mode */
-#define USB_PID_ERR            0x3c    /* USB 2.0: handshake mode */
-#define USB_PID_SETUP            0x2d
-#define USB_PID_STALL            0x1e
-#define USB_PID_MDATA            0x0f    /* USB 2.0 */
+#define USB_PID_UNDEF_0  0xf0
+#define USB_PID_OUT      0xe1
+#define USB_PID_ACK      0xd2
+#define USB_PID_DATA0    0xc3
+#define USB_PID_PING     0xb4    /* USB 2.0 */
+#define USB_PID_SOF      0xa5
+#define USB_PID_NYET     0x96    /* USB 2.0 */
+#define USB_PID_DATA2    0x87    /* USB 2.0 */
+#define USB_PID_SPLIT    0x78    /* USB 2.0 */
+#define USB_PID_IN       0x69
+#define USB_PID_NAK      0x5a
+#define USB_PID_DATA1    0x4b
+#define USB_PID_PREAMBLE 0x3c    /* Token mode */
+#define USB_PID_ERR      0x3c    /* USB 2.0: handshake mode */
+#define USB_PID_SETUP    0x2d
+#define USB_PID_STALL    0x1e
+#define USB_PID_MDATA    0x0f    /* USB 2.0 */
 
 /*-------------------------------------------------------------------------*/
 
@@ -56,7 +54,6 @@
 /*-------------------------------------------------------------------------*/
 
 struct usb_hcd {    /* usb_bus.hcpriv points to this */
-
     /*
      * housekeeping
      */
@@ -217,14 +214,6 @@ struct pci_device_id;
 extern int usb_hcd_pci_probe (struct pci_dev *dev,
                 const struct pci_device_id *id);
 extern void usb_hcd_pci_remove (struct pci_dev *dev);
-
-#ifdef CONFIG_PM
-// FIXME:  see Documentation/power/pci.txt (2.4.6 and later?)
-// extern int usb_hcd_pci_save_state (struct pci_dev *dev, unsigned int state);
-extern int usb_hcd_pci_suspend (struct pci_dev *dev, unsigned int state);
-extern int usb_hcd_pci_resume (struct pci_dev *dev);
-// extern int usb_hcd_pci_enable_wake (struct pci_dev *dev, unsigned int state, int flg);
-#endif /* CONFIG_PM */
 
 #endif /* CONFIG_PCI */
 

@@ -64,10 +64,8 @@ static void usb_kbd_disconnect(struct usb_interface *intf) {
 
 static struct usb_device_id usb_kbd_id_table [] = {
     { USB_INTERFACE_INFO(3, 1, 1) },
-    { USB_DEVICE(0x0000, 0x0000) }, // nothing detected - FAIL
     { } /* Terminating entry */
 };
-
 
 static struct usb_driver usb_kbd_driver = {
     .owner =      THIS_MODULE,
