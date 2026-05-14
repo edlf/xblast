@@ -13,22 +13,21 @@
 #include "stdlib.h"
 #include "stdio.h"
 
-
-static int skip_atoi(const char **s)
-{
+static int skip_atoi(const char **s) {
     int i=0;
 
-    while (is_digit(**s))
+    while (is_digit(**s)) {
         i = i*10 + *((*s)++) - '0';
+    }
     return i;
 }
 
-#define ZEROPAD    1        /* pad with zero */
-#define SIGN    2        /* unsigned/signed long */
-#define PLUS    4        /* show plus */
-#define SPACE    8        /* space if plus */
-#define LEFT    16        /* left justified */
-#define SPECIAL    32        /* 0x */
+#define ZEROPAD   1        /* pad with zero */
+#define SIGN      2        /* unsigned/signed long */
+#define PLUS      4        /* show plus */
+#define SPACE     8        /* space if plus */
+#define LEFT     16        /* left justified */
+#define SPECIAL  32        /* 0x */
 #define LARGE    64        /* use 'ABCDEF' instead of 'abcdef' */
 
 #define ETH_ALEN 6
@@ -39,9 +38,7 @@ __res = ((unsigned long) n) % (unsigned) base; \
 n = ((unsigned long) n) / (unsigned) base; \
 __res; })
 
-static char * number(char * str, long num, int base, int size, int precision
-    ,int type)
-{
+static char * number(char * str, long num, int base, int size, int precision ,int type) {
     char c,sign,tmp[66];
     const char *digits="0123456789abcdefghijklmnopqrstuvwxyz";
     int i;
@@ -250,7 +247,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
             flags |= SIGN;
         case 'u':
             break;
-        case '@': 
+        case '@':
         {
             unsigned char *r;
             union {
@@ -281,7 +278,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
                 --fmt;
             continue;
         }
-  
+
         if (qualifier == 'l')
             num = va_arg(args, unsigned long);
         else if (qualifier == 'h') {

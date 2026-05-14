@@ -90,14 +90,22 @@ typedef struct {
 } tsIdeCommandParams;
 
 #define IDE_DEFAULT_COMMAND { 0xFFu, 0x01, 0x00, 0x0000, IDE_DH_DEFAULT | IDE_DH_SLAVE, 0x00, 0x00, 0x0000 }
-#define printk_debug bprintf
-
 
 const char * const szaSenseKeys[] = {
-    "No Sense", "Recovered Error", "Not Ready", "Medium Error",
-    "Hardware Error", "Illegal request", "Unit Attention", "Data Protect",
-    "Reserved 8", "Reserved 9", "Reserved 0xa", "Aborted Command",
-    "Miscompare", "Reserved 0xf"
+    "No Sense",
+    "Recovered Error",
+    "Not Ready",
+    "Medium Error",
+    "Hardware Error",
+    "Illegal request",
+    "Unit Attention",
+    "Data Protect",
+    "Reserved 8",
+    "Reserved 9",
+    "Reserved 0xa",
+    "Aborted Command",
+    "Miscompare",
+    "Reserved 0xf"
 };
 
 tsHarddiskInfo tsaHarddiskInfo[2];
@@ -107,8 +115,7 @@ tsHarddiskInfo tsaHarddiskInfo[2];
 //
 /* -------------------------------------------------------------------------------- */
 
-int BootIdeWaitNotBusy(unsigned uIoBase)
-{
+int BootIdeWaitNotBusy(unsigned uIoBase) {
     unsigned char b = 0x80;                                //Start being busy
     while ((b & 0x80) && !(b & 0x08)) {         //Device is not ready until bit7(BSY) is cleared and bit3(DRQ) is set.
         b=IoInputByte(IDE_REG_STATUS(uIoBase));

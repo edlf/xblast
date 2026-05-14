@@ -1,6 +1,7 @@
 #include "boot.h"
 #include "i2c.h"
 #include "string.h"
+#include <stdio.h>
 // by ozpaulb@hotmail.com 2002-07-14
 
 /***************************************************************************
@@ -82,33 +83,33 @@ uint32_t PciWriteDword(uint32_t bus, uint32_t dev, uint32_t func, uint32_t reg_o
 #define RTC_REG_B        11
 #define RTC_REG_C        12
 #define RTC_REG_D        13
-#define RTC_FREQ_SELECT        RTC_REG_A
-#define RTC_CONTROL        RTC_REG_B
-#define RTC_INTR_FLAGS        RTC_REG_C
+#define RTC_FREQ_SELECT  RTC_REG_A
+#define RTC_CONTROL      RTC_REG_B
+#define RTC_INTR_FLAGS   RTC_REG_C
 
 /* On PCs, the checksum is built only over bytes 16..45 */
-#define PC_CKS_RANGE_START    16
-#define PC_CKS_RANGE_END    45
-#define PC_CKS_LOC        46
+#define PC_CKS_RANGE_START 16
+#define PC_CKS_RANGE_END   45
+#define PC_CKS_LOC         46
 
-#define RTC_RATE_1024HZ        0x06
-#define RTC_REF_CLCK_32KHZ    0x20
+#define RTC_RATE_1024HZ         0x06
+#define RTC_REF_CLCK_32KHZ      0x20
 #define RTC_FREQ_SELECT_DEFAULT (RTC_REF_CLCK_32KHZ | RTC_RATE_1024HZ)
-#define RTC_24H         0x02
-#define RTC_CONTROL_DEFAULT (RTC_24H)
+#define RTC_24H                 0x02
+#define RTC_CONTROL_DEFAULT     (RTC_24H)
 
 // access to RTC CMOS memory
-uint8_t CMOS_READ(uint8_t addr) {
+uint8_t CMOS_READ(const uint8_t addr) {
     IoOutputByte(0x70,addr);
     return IoInputByte(0x71);
 }
 
-void CMOS_WRITE(uint8_t val, uint8_t addr) {
+void CMOS_WRITE(const uint8_t val, const uint8_t addr) {
     IoOutputByte(0x70,addr);
     IoOutputByte(0x71,val);
 }
 
-void BiosCmosWrite(uint8_t bAds, uint8_t bData) {
+void BiosCmosWrite(const uint8_t bAds, const uint8_t bData) {
     IoOutputByte(0x70, bAds);
     IoOutputByte(0x71, bData);
 
@@ -116,29 +117,25 @@ void BiosCmosWrite(uint8_t bAds, uint8_t bData) {
     IoOutputByte(0x73, bData);
 }
 
-uint8_t BiosCmosRead(uint8_t bAds) {
+uint8_t BiosCmosRead(const uint8_t bAds) {
     IoOutputByte(0x72, bAds);
     return IoInputByte(0x73);
 }
 
 int rtc_checksum_valid(int range_start, int range_end, int cks_loc)
 {
-    int i;
-    unsigned sum, old_sum;
-    sum = 0;
-    for(i = range_start; i <= range_end; i++) {
+    unsigned sum = 0;
+    for(int i = range_start; i <= range_end; i++) {
         sum += CMOS_READ(i);
     }
     sum = (~sum)&0x0ffff;
-    old_sum = ((CMOS_READ(cks_loc)<<8) | CMOS_READ(cks_loc+1))&0x0ffff;
+    unsigned old_sum = ((CMOS_READ(cks_loc)<<8) | CMOS_READ(cks_loc+1))&0x0ffff;
     return sum == old_sum;
 }
 
 void rtc_set_checksum(int range_start, int range_end, int cks_loc) {
-    int i;
-    unsigned sum;
-    sum = 0;
-    for(i = range_start; i <= range_end; i++) {
+    unsigned sum = 0;
+    for(int i = range_start; i <= range_end; i++) {
         sum += CMOS_READ(i);
     }
     sum = ~(sum & 0x0ffff);
@@ -147,7 +144,7 @@ void rtc_set_checksum(int range_start, int range_end, int cks_loc) {
 }
 
 // LPC code from cromwell
-void LpcSelectRegister(uint8_t index) {
+void LpcSelectRegister(const uint8_t index) {
     IoOutputByte(0x2E, index);
 }
 
@@ -159,12 +156,12 @@ void LpcExitConfiguration(void) {
 	LpcSelectRegister(0xAA);
 }
 
-uint8_t LpcReadRegister(uint8_t index) {
+uint8_t LpcReadRegister(const uint8_t index) {
 	LpcSelectRegister(index);
 	return IoInputByte(0x2F);
 }
 
-void LpcWriteRegister(uint8_t index, uint8_t value) {
+void LpcWriteRegister(const uint8_t index, const uint8_t value) {
 	LpcSelectRegister(index);
 	IoOutputByte(0x2F, value);
 }
@@ -177,7 +174,7 @@ int LpcGetSerialState(void) {
 	return LpcReadRegister(0x30);
 }
 
-void LpcSetSerialState(int enable) {
+void LpcSetSerialState(const int enable) {
 	// Select serial device
 	LpcWriteRegister(0x07, 0x04);
 
@@ -199,12 +196,37 @@ int LpcGetSerialIRQState(void) {
 	return !!(LpcReadRegister(0x70) & 0x0F);
 }
 
-void LpcSetSerialIRQState(int enable) {
+void LpcSetSerialIRQState(const int enable) {
 	// Select serial device
 	LpcWriteRegister(0x07, 0x04);
 
 	// Enable device interrupt
 	LpcWriteRegister(0x70, enable ? SERIAL_IRQ : 0x00);
+}
+
+void serial_putchar(const char ch) {
+	/* Wait for THRE (bit 5) to be high */
+	while ((IoInputByte(SERIAL_PORT + SERIAL_LSR) & (1 << 5)) == 0);
+	IoOutputByte(SERIAL_PORT + SERIAL_THR, ch);
+
+	if (ch == '\n') {
+		/* Also send carriage return to the terminal */
+		serial_putchar('\r');
+	}
+}
+
+void bprintf(const char *fmt, ...) {
+	va_list args;
+	char buf[256] = {0};
+
+	va_start(args, fmt);
+	// TODO: it should be vsnprintf...
+	vsprintf(buf, fmt, args);
+	va_end(args);
+
+	for (int i = 0; i < strlen(buf); i++) {
+		serial_putchar(buf[i]);
+	}
 }
 
 void BootAGPBUSInitialization(void) {
