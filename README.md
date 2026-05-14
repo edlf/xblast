@@ -8,6 +8,7 @@ This has been modified to build on newer gcc versions and some fixes from cromwe
 ### Notes
 * LBA48 support, can format big HDDs (takes a while). No backup partition table yet though
 * Enabled keyboard support (currently disabled till it works on 1.0)
+* Enabled DVD playback remote support
 * Sends YUV over the GPU bus to match stock behavior. This fixes the funky colors with digital hdmi mods
 * Uses [arith64](https://github.com/glitchub/arith64/) and some iPXE code to circumvent gcc shenaningans
 

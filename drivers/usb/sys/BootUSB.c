@@ -11,7 +11,7 @@
 void subsys_usb_init(void);
 void module_exit_usb_exit(void);
 
-extern struct pci_device_id  *module_table_pci_ids;
+extern struct pci_device_id* module_table_pci_ids;
 
 // straigth call...
 int usb_hcd_pci_probe (struct pci_dev *dev, const struct pci_device_id *id);
@@ -19,16 +19,14 @@ void usb_hcd_pci_remove (struct pci_dev *dev);
 
 void XPADInit(void);
 void XPADRemove(void);
-/*
 void XRemoteInit(void);
 void XRemoteRemove(void);
-*/
 
 extern int (*thread_handler)(void*);
 int (*hub_thread_handler)(void*);
 
 extern int nousb;
-//extern int xpad_num;
+extern int xpad_num;
 
 struct pci_dev xx_ohci_dev={
     .vendor = 0,
@@ -46,14 +44,14 @@ void BootStartUSB(void) {
 
     init_wrapper();
     subsys_usb_init();
-    hub_thread_handler=thread_handler;
+    hub_thread_handler = thread_handler;
     usb_hcd_pci_probe(&xx_ohci_dev, module_table_pci_ids);
-    XPADInit();
 
-    // XRemoteInit();
+    XPADInit();
+    XRemoteInit();
     // UsbKeyBoardInit();
 
-    for(int n=0;n<30;n++) {
+    for(int n=0; n < 30; n++) {
         USBGetEvents();
         wait_ms(1);
     }
@@ -67,13 +65,11 @@ void USBGetEvents(void) {
 }
 
 void BootStopUSB(void) {
-    int n;
-
     XPADRemove();
-    // XRemoteRemove();
+    XRemoteRemove();
     // UsbKeyBoardRemove();
 
-    for(n=0;n<100;n++) {
+    for(int n=0;n<100;n++) {
         USBGetEvents();
         wait_ms(1);
     }

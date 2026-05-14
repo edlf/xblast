@@ -51,8 +51,7 @@ struct xremote_info  {
  *  All other bits are unknown / now required.
  */
 
-static void xremote_irq(struct urb *urb, struct pt_regs *regs)
-{
+static void xremote_irq(struct urb *urb, struct pt_regs *regs) {
     struct xremote_info *xri = urb->context;
 
     if (urb->status) return;

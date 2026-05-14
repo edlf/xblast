@@ -63,7 +63,7 @@ SUBDIRS	= fs drivers lib boot menu $(LWIPFOLDER) xblast
 # NIC Drivers
 ETH_SUBDIRS = etherboot
 CROM_CFLAGS    += -DETHERBOOT
-ETH_INCLUDE =  -I$(TOPDIR)/etherboot/include -I$(TOPDIR)/etherboot/arch/i386/include -I$(TOPDIR)
+ETH_INCLUDE =  -I$(TOPDIR)/include/linux -I$(TOPDIR)/etherboot/include -I$(TOPDIR)/etherboot/arch/i386/include -I$(TOPDIR)
 ETH_CFLAGS  =  -Os -march=pentium3 -m32 -Werror -Wreturn-type $(ETH_INCLUDE) -Wstrict-prototypes -fomit-frame-pointer -pipe -ffreestanding -fno-stack-protector -U_FORTIFY_SOURCE -fno-zero-initialized-in-bss -fno-PIC -Wall
 
 ifeq ($(DEBUG), 1)
@@ -206,7 +206,7 @@ OBJECTS-CROM += $(TOPDIR)/obj/BootUSB.o
 OBJECTS-CROM += $(TOPDIR)/obj/usbwrapper.o
 OBJECTS-CROM += $(TOPDIR)/obj/linuxwrapper.o
 OBJECTS-CROM += $(TOPDIR)/obj/xpad.o
-#OBJECTS-CROM += $(TOPDIR)/obj/xremote.o
+OBJECTS-CROM += $(TOPDIR)/obj/xremote.o
 OBJECTS-CROM += $(TOPDIR)/obj/usbkey.o
 OBJECTS-CROM += $(TOPDIR)/obj/risefall.o
 
