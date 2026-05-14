@@ -12,21 +12,18 @@
  *                                                                         *
  ***************************************************************************/
 
-unsigned char PciReadByte(unsigned int bus, unsigned int dev, unsigned int func, unsigned int reg_off)
-{
-    unsigned int base_addr = 0x80000000;
+uint8_t PciReadByte(uint32_t bus, uint32_t dev, uint32_t func, uint32_t reg_off) {
+    uint32_t base_addr = 0x80000000;
     base_addr |= ((bus & 0xFF) << 16);    // bus #
     base_addr |= ((dev & 0x1F) << 11);    // device #
     base_addr |= ((func & 0x07) << 8);    // func #
 
-        IoOutputDword(0xcf8, (base_addr + (reg_off & 0xfc)));
-        return IoInputByte(0xcfc + (reg_off & 3));
+    IoOutputDword(0xcf8, (base_addr + (reg_off & 0xfc)));
+    return IoInputByte(0xcfc + (reg_off & 3));
 }
 
-void PciWriteByte (unsigned int bus, unsigned int dev, unsigned int func,
-        unsigned int reg_off, unsigned char byteval)
-{
-    unsigned int base_addr = 0x80000000;
+void PciWriteByte (uint32_t bus, uint32_t dev, uint32_t func, uint32_t reg_off, uint8_t byteval) {
+    uint32_t base_addr = 0x80000000;
     base_addr |= ((bus & 0xFF) << 16);    // bus #
     base_addr |= ((dev & 0x1F) << 11);    // device #
     base_addr |= ((func & 0x07) << 8);    // func #
@@ -35,22 +32,18 @@ void PciWriteByte (unsigned int bus, unsigned int dev, unsigned int func,
     IoOutputByte(0xcfc + (reg_off & 3), byteval);
 }
 
-
-unsigned short PciReadWord(unsigned int bus, unsigned int dev, unsigned int func, unsigned int reg_off)
-{
-    unsigned int base_addr = 0x80000000;
+uint16_t PciReadWord(uint32_t bus, uint32_t dev, uint32_t func, uint32_t reg_off) {
+    uint32_t base_addr = 0x80000000;
     base_addr |= ((bus & 0xFF) << 16);    // bus #
     base_addr |= ((dev & 0x1F) << 11);    // device #
     base_addr |= ((func & 0x07) << 8);    // func #
 
-        IoOutputDword(0xcf8, (base_addr + (reg_off & 0xfe)));
-        return IoInputWord(0xcfc + (reg_off & 1));
+    IoOutputDword(0xcf8, (base_addr + (reg_off & 0xfe)));
+    return IoInputWord(0xcfc + (reg_off & 1));
 }
 
-
-void PciWriteWord(unsigned int bus, unsigned int dev, unsigned int func, unsigned int reg_off, unsigned short w)
-{
-    unsigned int base_addr = 0x80000000;
+void PciWriteWord(uint32_t bus, uint32_t dev, uint32_t func, uint32_t reg_off, uint16_t w) {
+    uint32_t base_addr = 0x80000000;
     base_addr |= ((bus & 0xFF) << 16);    // bus #
     base_addr |= ((dev & 0x1F) << 11);    // device #
     base_addr |= ((func & 0x07) << 8);    // func #
@@ -59,25 +52,21 @@ void PciWriteWord(unsigned int bus, unsigned int dev, unsigned int func, unsigne
     IoOutputWord(0xcfc + (reg_off & 1), w);
 }
 
-
-unsigned int PciReadDword(unsigned int bus, unsigned int dev, unsigned int func, unsigned int reg_off)
-{
-    unsigned int base_addr = 0x80000000;
+uint32_t PciReadDword(uint32_t bus, uint32_t dev, uint32_t func, uint32_t reg_off) {
+    uint32_t base_addr = 0x80000000;
     base_addr |= ((bus & 0xFF) << 16);    // bus #
     base_addr |= ((dev & 0x1F) << 11);    // device #
     base_addr |= ((func & 0x07) << 8);    // func #
-        base_addr |= ((func & 0x07) << 8);
-        base_addr |= ((reg_off & 0xff));
+    base_addr |= ((func & 0x07) << 8);
+    base_addr |= ((reg_off & 0xff));
 
     IoOutputDword(0xcf8, base_addr);
     return IoInputDword(0xcfc);
 }
 
 
-unsigned int PciWriteDword(unsigned int bus, unsigned int dev, unsigned int func, unsigned int reg_off, unsigned int dw)
-{
-
-    unsigned int base_addr = 0x80000000;
+uint32_t PciWriteDword(uint32_t bus, uint32_t dev, uint32_t func, uint32_t reg_off, uint32_t dw) {
+    uint32_t base_addr = 0x80000000;
     base_addr |= ((bus & 0xFF) << 16);    // bus #
     base_addr |= ((dev & 0x1F) << 11);    // device #
     base_addr |= ((func & 0x07) << 8);    // func #
@@ -88,6 +77,7 @@ unsigned int PciWriteDword(unsigned int bus, unsigned int dev, unsigned int func
 
     return 0;
 }
+
 #define RTC_REG_A        10
 #define RTC_REG_B        11
 #define RTC_REG_C        12
@@ -107,19 +97,18 @@ unsigned int PciWriteDword(unsigned int bus, unsigned int dev, unsigned int func
 #define RTC_24H         0x02
 #define RTC_CONTROL_DEFAULT (RTC_24H)
 
-
 // access to RTC CMOS memory
-unsigned char CMOS_READ(unsigned char addr) {
+uint8_t CMOS_READ(uint8_t addr) {
     IoOutputByte(0x70,addr);
     return IoInputByte(0x71);
 }
 
-void CMOS_WRITE(unsigned char val, unsigned char addr) {
+void CMOS_WRITE(uint8_t val, uint8_t addr) {
     IoOutputByte(0x70,addr);
     IoOutputByte(0x71,val);
 }
 
-void BiosCmosWrite(unsigned char bAds, unsigned char bData) {
+void BiosCmosWrite(uint8_t bAds, uint8_t bData) {
     IoOutputByte(0x70, bAds);
     IoOutputByte(0x71, bData);
 
@@ -127,8 +116,7 @@ void BiosCmosWrite(unsigned char bAds, unsigned char bData) {
     IoOutputByte(0x73, bData);
 }
 
-unsigned char BiosCmosRead(unsigned char bAds)
-{
+uint8_t BiosCmosRead(uint8_t bAds) {
     IoOutputByte(0x72, bAds);
     return IoInputByte(0x73);
 }
@@ -146,8 +134,7 @@ int rtc_checksum_valid(int range_start, int range_end, int cks_loc)
     return sum == old_sum;
 }
 
-void rtc_set_checksum(int range_start, int range_end, int cks_loc)
-{
+void rtc_set_checksum(int range_start, int range_end, int cks_loc) {
     int i;
     unsigned sum;
     sum = 0;
@@ -159,31 +146,88 @@ void rtc_set_checksum(int range_start, int range_end, int cks_loc)
     CMOS_WRITE(((sum >> 0) & 0x0ff), cks_loc+1);
 }
 
-void BootAGPBUSInitialization(void)
-{
-    unsigned int temp;
-    PciWriteDword(BUS_0, DEV_1, FUNC_0, 0x54,   PciReadDword(BUS_0, DEV_1, FUNC_0, 0x54) | 0x88000000 );
+// LPC code from cromwell
+void LpcSelectRegister(uint8_t index) {
+    IoOutputByte(0x2E, index);
+}
 
-    PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x64,   (PciReadDword(BUS_0, DEV_0, FUNC_0, 0x64))| 0x88000000 );
+void LpcEnterConfiguration() {
+	LpcSelectRegister(0x55);
+}
+
+void LpcExitConfiguration() {
+	LpcSelectRegister(0xAA);
+}
+
+uint8_t LpcReadRegister(uint8_t index) {
+	LpcSelectRegister(index);
+	return IoInputByte(0x2F);
+}
+
+void LpcWriteRegister(uint8_t index, uint8_t value) {
+	LpcSelectRegister(index);
+	IoOutputByte(0x2F, value);
+}
+
+int LpcGetSerialState() {
+	// Select serial device
+	LpcWriteRegister(0x07, 0x04);
+
+	// Check whether device is enabled
+	return LpcReadRegister(0x30);
+}
+
+void LpcSetSerialState(int enable) {
+	// Select serial device
+	LpcWriteRegister(0x07, 0x04);
+
+	if (enable) {
+		// Set serial base
+		LpcWriteRegister(0x61, SERIAL_PORT & 0xFF);
+		LpcWriteRegister(0x60, SERIAL_PORT >> 8);
+	}
+
+	// Enable device
+	LpcWriteRegister(0x30, enable ? 0x01 : 0x00);
+}
+
+int LpcGetSerialIRQState() {
+	// Select serial device
+	LpcWriteRegister(0x07, 0x04);
+
+	// Check whether device has interrupt enabled
+	return !!(LpcReadRegister(0x70) & 0x0F);
+}
+
+void LpcSetSerialIRQState(int enable) {
+	// Select serial device
+	LpcWriteRegister(0x07, 0x04);
+
+	// Enable device interrupt
+	LpcWriteRegister(0x70, enable ? SERIAL_IRQ : 0x00);
+}
+
+void BootAGPBUSInitialization() {
+    uint32_t temp;
+    PciWriteDword(BUS_0, DEV_1, FUNC_0, 0x54, PciReadDword(BUS_0, DEV_1, FUNC_0, 0x54) | 0x88000000 );
+    PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x64, (PciReadDword(BUS_0, DEV_0, FUNC_0, 0x64))| 0x88000000 );
 
     temp =  PciReadDword(BUS_0, DEV_0, FUNC_0, 0x6C);
     IoOutputDword(0xcfc , temp & 0xFFFFFFFE);
     IoOutputDword(0xcfc , temp );
 
     PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x80, 0x00000100);
-
 }
 
-void BootDetectMemorySize(void)
-{
-    unsigned char *fillstring;
+void BootDetectMemorySize(void) {
+    uint8_t *fillstring;
     void *membasetop = (void*)((64*1024*1024));
     void *membaselow = (void*)((0));
     void *membase_256MBtest = (void*)((128*1024*1024));
 
     //Already set by xcodes
-    // (*(unsigned int*)(0xFD000000 + 0x100200)) = 0x03070103;
-    // (*(unsigned int*)(0xFD000000 + 0x100204)) = 0x11448000;
+    // (*(uint32_t*)(0xFD000000 + 0x100200)) = 0x03070103;
+    // (*(uint32_t*)(0xFD000000 + 0x100204)) = 0x11448000;
 
     PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x84, 0xFFFFFFF);  // 256 MB
 
@@ -235,9 +279,7 @@ void BootDetectMemorySize(void)
     free(fillstring);
 }
 
-void BootPciPeripheralInitialization()
-{
-
+void BootPciPeripheralInitialization() {
     __asm__ __volatile__ ( "cli" );
 
     // PciWriteDword(BUS_0, DEV_1, 0, 0x80, 2);  // v1.1 2BL kill ROM area (pointless)
@@ -251,60 +293,60 @@ void BootPciPeripheralInitialization()
     PciWriteByte(BUS_0, DEV_0, FUNC_0, 0x87, 3); // kern 8001FC21
     PciWriteByte(BUS_0, DEV_0, 8, 0, 0x42);       // Xbeboot-compare
 
-    IoOutputByte(0x2e, 0x55);
-    IoOutputByte(0x2e, 0x26);
+    LpcEnterConfiguration();
+    LpcSelectRegister(0x26);
     IoOutputByte(0x61, 0xff);
     IoOutputByte(0x92, 0x01);
-    IoOutputByte(0xcf9, 0x0);    // Reset Port
-    IoOutputByte(0x43, 0x36);             // Timer 0 (system time): mode 3
-    IoOutputByte(0x40, 0xA9);              // 1000.15Hz (1.19318MHz/1193)
+    IoOutputByte(0xcf9, 0x0); // Reset Port
+    IoOutputByte(0x43, 0x36); // Timer 0 (system time): mode 3
+    IoOutputByte(0x40, 0xA9); // 1000.15Hz (1.19318MHz/1193)
     IoOutputByte(0x40, 0x04);
-    IoOutputByte(0x43, 0x54);             // Timer 1 (ISA refresh): mode 2
-    IoOutputByte(0x41, 18);                // 64KHz (1.19318MHz/18)
-    IoOutputByte(0x00, 0);                 // clear base address 0
+    IoOutputByte(0x43, 0x54); // Timer 1 (ISA refresh): mode 2
+    IoOutputByte(0x41, 18);   // 64KHz (1.19318MHz/18)
+    IoOutputByte(0x00, 0);    // clear base address 0
     IoOutputByte(0x00, 0);
-    IoOutputByte(0x01, 0);                 // clear count 0
+    IoOutputByte(0x01, 0);    // clear count 0
     IoOutputByte(0x01, 0);
-    IoOutputByte(0x02, 0);                 // clear base address 1
-    IoOutputByte(0x02, 0 );
-    IoOutputByte(0x03, 0);                 // clear count 1
+    IoOutputByte(0x02, 0);    // clear base address 1
+    IoOutputByte(0x02, 0);
+    IoOutputByte(0x03, 0);    // clear count 1
     IoOutputByte(0x03, 0);
-    IoOutputByte(0x04, 0);                 // clear base address 2
+    IoOutputByte(0x04, 0);    // clear base address 2
     IoOutputByte(0x04, 0);
-    IoOutputByte(0x05, 0);                 // clear count 2
+    IoOutputByte(0x05, 0);    // clear count 2
     IoOutputByte(0x05, 0);
-    IoOutputByte(0x06, 0);                 // clear base address 3
+    IoOutputByte(0x06, 0);    // clear base address 3
     IoOutputByte(0x06, 0);
-    IoOutputByte(0x07, 0);                 // clear count 3
+    IoOutputByte(0x07, 0);    // clear count 3
     IoOutputByte(0x07, 0);
-    IoOutputByte(0x0B, 0x40);             // set channel 0 to single mode, verify transfer
-    IoOutputByte(0x0B, 0x41);             // set channel 1 to single mode, verify transfer
-    IoOutputByte(0x0B, 0x42);             // set channel 2 to single mode, verify transfer
-    IoOutputByte(0x0B, 0x43);             // set channel 3 to single mode, verify transfer
-    IoOutputByte(0x08, 0);                 // enable controller
-    IoOutputByte(0xC0, 0);                 // clear base address 0
+    IoOutputByte(0x0B, 0x40); // set channel 0 to single mode, verify transfer
+    IoOutputByte(0x0B, 0x41); // set channel 1 to single mode, verify transfer
+    IoOutputByte(0x0B, 0x42); // set channel 2 to single mode, verify transfer
+    IoOutputByte(0x0B, 0x43); // set channel 3 to single mode, verify transfer
+    IoOutputByte(0x08, 0);    // enable controller
+    IoOutputByte(0xC0, 0);    // clear base address 0
     IoOutputByte(0xC0, 0);
-    IoOutputByte(0xC2, 0);                 // clear count 0
+    IoOutputByte(0xC2, 0);    // clear count 0
     IoOutputByte(0xC2, 0);
-    IoOutputByte(0xC4, 0);                // clear base address 1
+    IoOutputByte(0xC4, 0);    // clear base address 1
     IoOutputByte(0xC4, 0);
-    IoOutputByte(0xC6, 0);                 // clear count 1
+    IoOutputByte(0xC6, 0);    // clear count 1
     IoOutputByte(0xC6, 0);
-    IoOutputByte(0xC8, 0);                 // clear base address 2
+    IoOutputByte(0xC8, 0);    // clear base address 2
     IoOutputByte(0xC8, 0);
-    IoOutputByte(0xCA, 0);                 // clear count 2
+    IoOutputByte(0xCA, 0);    // clear count 2
     IoOutputByte(0xCA, 0);
-    IoOutputByte(0xCC, 0);                 // clear base address 3
+    IoOutputByte(0xCC, 0);    // clear base address 3
     IoOutputByte(0xCC, 0);
-    IoOutputByte(0xCE, 0);                 // clear count 3
+    IoOutputByte(0xCE, 0);    // clear count 3
     IoOutputByte(0xCE, 0);
-    IoOutputByte(0xD6, 0xC0);         // set channel 0 to cascade mode
-    IoOutputByte(0xD6, 0xC1);         // set channel 1 to single mode, verify transfer
-    IoOutputByte(0xD6, 0xC2);         // set channel 2 to single mode, verify transfer
-    IoOutputByte(0xD6, 0xC3);         // set channel 3 to single mode, verify transfer
-    IoOutputByte(0xD0, 0);                 // enable controller
-    IoOutputByte(0x0E, 0);                 // enable DMA0 channels
-    IoOutputByte(0xD4, 0);                 // clear chain 4 mask
+    IoOutputByte(0xD6, 0xC0); // set channel 0 to cascade mode
+    IoOutputByte(0xD6, 0xC1); // set channel 1 to single mode, verify transfer
+    IoOutputByte(0xD6, 0xC2); // set channel 2 to single mode, verify transfer
+    IoOutputByte(0xD6, 0xC3); // set channel 3 to single mode, verify transfer
+    IoOutputByte(0xD0, 0);    // enable controller
+    IoOutputByte(0x0E, 0);    // enable DMA0 channels
+    IoOutputByte(0xD4, 0);    // clear chain 4 mask
 
     /* Setup the real time clock */
     CMOS_WRITE(RTC_CONTROL_DEFAULT, RTC_CONTROL);
@@ -345,7 +387,6 @@ void BootPciPeripheralInitialization()
     //---defined by the T13 committee concerning PCI device and registers configuration.
     //---For more information, read the T13 document 1510D.
 
-
     //---Enable access to IO space and Bus Master for Primary controller.
     PciWriteDword(BUS_0, DEV_9, FUNC_0, 4, PciReadDword(BUS_0, DEV_9, FUNC_0, 4)|5);
     //---XboxKernel sources AND the content of ProgIf register(offset:0x09 size:byte) with ~0x05 which translate to
@@ -362,9 +403,11 @@ void BootPciPeripheralInitialization()
     PciWriteDword(BUS_0, DEV_9, FUNC_0, 0x50, 0x0000C002);
     //---PIO mode 4 set for all drives, even secondary controller's...
     PciWriteDword(BUS_0, DEV_9, FUNC_0, 0x58, 0x20202020);
+
     // below reinstated by frankenregister compare with xbe boot
     //---Enable UDMA mode 2, UDMA mode enabled and ignore SET FEATURE command to enable UDMA or not. For drives and controllers
     PciWriteDword(BUS_0, DEV_9, FUNC_0, 0x60, 0xC0C0C0C0); // kern1.1 <--- this was in kern1.1 but is FATAL for good HDD access
+
 
     // Bus 0, Device 4, Function 0 = nForce MCP Networking Adapter - all verified with kern1.1
     PciWriteDword(BUS_0, DEV_4, FUNC_0, 4, PciReadDword(BUS_0, DEV_4, FUNC_0, 4) | 7 );
@@ -383,7 +426,7 @@ void BootPciPeripheralInitialization()
     PciWriteDword(BUS_0, DEV_3, FUNC_0, 4, PciReadDword(BUS_0, DEV_3, FUNC_0, 4) | 7 );
     PciWriteDword(BUS_0, DEV_3, FUNC_0, 0x10, 0xfed08000);    // memory base address 0xfed08000
     PciWriteDword(BUS_0, DEV_3, FUNC_0, 0x3c, (PciReadDword(BUS_0, DEV_3, FUNC_0, 0x3c) &0xffff0000) | 0x0009 );
-    PciWriteDword(BUS_0, DEV_3, FUNC_0, 0x50, 0x00000030);  // actually unsigned char?
+    PciWriteDword(BUS_0, DEV_3, FUNC_0, 0x50, 0x00000030);  // actually uint8_t?
 
     // Bus 0, Device 6, Function 0 = nForce Audio Codec Interface - verified with kern1.1
     PciWriteDword(BUS_0, DEV_6, FUNC_0, 4, PciReadDword(BUS_0, DEV_6, FUNC_0, 4) | 7 );
@@ -439,4 +482,14 @@ void BootPciPeripheralInitialization()
     // frankenregisters so Xromwell matches Cromwell
     PciWriteDword(BUS_1, DEV_0, FUNC_0, 0x0c, 0x0);
     PciWriteDword(BUS_1, DEV_0, FUNC_0, 0x18, 0x08);
+
+	// Enable Serial COM1 by default if not already enabled
+	if (!LpcGetSerialState()) {
+		LpcSetSerialState(1);
+
+		// Set Serial Interrupt
+		LpcSetSerialIRQState(1);
+	}
+
+	LpcExitConfiguration();
 }

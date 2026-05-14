@@ -398,25 +398,21 @@ bool IconMenu(void)
             temp = 0;
         }
         //If anybody has toggled the xpad left/right, disable the timeout.
-        if(temp != 0)
-        {
+        if(temp != 0) {
             temp = getMS() - COUNT_start;
             oldIconTimeRemain = iconTimeRemain;
             iconTimeRemain = (varBootTimeWait - temp)/1000;
-            if(oldIconTimeRemain != iconTimeRemain)
-            {
+            if(oldIconTimeRemain != iconTimeRemain) {
                 changed = 1;
                 memcpy((void*)FB_START,videosavepage,FB_SIZE);
             }
         }
 
         if ((risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_A) == 1) || risefall_xpad_STATE(XPAD_STATE_START) == 1 ||
-            (temp > varBootTimeWait && varBootTimeWait > 0))
-        {
+            (temp > varBootTimeWait && varBootTimeWait > 0)) {
             memcpy((void*)FB_START,videosavepage,FB_SIZE);
             VIDEO_CURSOR_POSX=nTempCursorResumeX;
             VIDEO_CURSOR_POSY=nTempCursorResumeY;
-
 
             // Display custom boot message on LCD
             if(xLCD.enable == 1)

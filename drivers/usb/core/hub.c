@@ -46,7 +46,7 @@
 //static spinlock_t hub_event_lock = SPIN_LOCK_UNLOCKED;
 //static DECLARE_MUTEX(usb_address0_sem);
 
-static LIST_HEAD(hub_event_list);    /* List of hubs needing servicing */
+static LIST_HEAD(hub_event_list);  /* List of hubs needing servicing */
 static LIST_HEAD(hub_list);        /* List of all hubs (for cleanup) */
 
 static DECLARE_WAIT_QUEUE_HEAD(khubd_wait);

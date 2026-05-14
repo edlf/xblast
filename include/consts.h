@@ -19,28 +19,32 @@
 #define PCI_CFG_ADDR 0x0CF8
 #define PCI_CFG_DATA 0x0CFC
 
+#define I2C_IO_BASE 0xC000
 
-#define I2C_IO_BASE 0xc000
+#define SERIAL_PORT 0x3F8
+#define SERIAL_IRQ  4
+#define SERIAL_THR  0
+#define SERIAL_LSR  5
 
 #define BUS_0 0
 #define BUS_1 1
 
-#define DEV_0 0
-#define DEV_1 1
-#define DEV_2 2
-#define DEV_3 3
-#define DEV_4 4
-#define DEV_5 5
-#define DEV_6 6
-#define DEV_7 7
-#define DEV_8 8
-#define DEV_9 9
-#define DEV_a 0xa
-#define DEV_b 0xb
-#define DEV_c 0xc
-#define DEV_d 0xd
-#define DEV_e 0xe
-#define DEV_f 0xf
+#define DEV_0 0x00
+#define DEV_1 0x01
+#define DEV_2 0x02
+#define DEV_3 0x03
+#define DEV_4 0x04
+#define DEV_5 0x05
+#define DEV_6 0x06
+#define DEV_7 0x07
+#define DEV_8 0x08
+#define DEV_9 0x09
+#define DEV_a 0x0a
+#define DEV_b 0x0b
+#define DEV_c 0x0c
+#define DEV_d 0x0d
+#define DEV_e 0x0e
+#define DEV_f 0x0f
 #define DEV_10 0x10
 #define DEV_11 0x11
 #define DEV_12 0x12
@@ -62,7 +66,7 @@
 /*
 #define boot_post_macro(value)                     \
         movb    $(value), %al                           ;\
-        outb    %al, $0x80 
+        outb    %al, $0x80
 */
 
 #endif // _Consts_H_
