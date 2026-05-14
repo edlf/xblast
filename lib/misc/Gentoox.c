@@ -61,6 +61,10 @@ void lowLED(void) {
     setLED("gggg");
 }
 
+void orangeLED(void) {
+    setLED("oooo");
+}
+
 void dots(void) {
    wait_ms(100);
    printk(".");

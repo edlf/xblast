@@ -29,6 +29,7 @@ void uberLED(void);
 void highLED(void);
 void midLED(void);
 void lowLED(void);
+void orangeLED(void);
 void dots(void);
 void cromwellError(void);
 void cromwellWarning(void);

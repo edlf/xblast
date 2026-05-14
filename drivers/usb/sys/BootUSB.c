@@ -49,6 +49,7 @@ void BootStartUSB(void) {
 
     XPADInit();
     XRemoteInit();
+    // Broken for 1.0
     // UsbKeyBoardInit();
 
     for(int n=0; n < 30; n++) {
@@ -69,7 +70,7 @@ void BootStopUSB(void) {
     XRemoteRemove();
     // UsbKeyBoardRemove();
 
-    for(int n=0;n<100;n++) {
+    for(int n = 0; n < 100; n++) {
         USBGetEvents();
         wait_ms(1);
     }

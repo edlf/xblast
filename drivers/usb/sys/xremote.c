@@ -51,17 +51,12 @@ struct xremote_info  {
  *  Key position is byte[4] bit0 (7-0 format) 0=down, 1=up
  *  All other bits are unknown / now required.
  */
-
 static void xremote_irq(struct urb *urb, struct pt_regs *regs) {
+    if (urb->status || (urb->actual_length < 6)) {
+        return;
+    }
+
     struct xremote_info *xri = urb->context;
-
-    if (urb->status) {
-        return;
-    }
-    if (urb->actual_length < 6) {
-        return;
-    }
-
     /* Messy/unnecessary, fix this */
     memcpy(xri->irpkt, urb->transfer_buffer, 6);
 

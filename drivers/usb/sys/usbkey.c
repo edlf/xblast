@@ -1,43 +1,23 @@
 #include "../usb_wrapper.h"
 
-#define keyboarddebug 0
-
-#if keyboarddebug
-extern int printe(const char *szFormat, ...);
-int ycoffset = 0;
-#endif
-
 unsigned int current_keyboard_key;
 
 #define BUFFER_LENGTH 8
 
 struct usb_kbd_info {
     struct urb *urb;
-    unsigned char kbd_pkt[8];
+    unsigned char kbd_pkt[BUFFER_LENGTH];
 };
 
 static void usb_kbd_irq(struct urb *urb, struct pt_regs *regs) {
+    if (urb->status || (urb->actual_length < 6)) {
+        return;
+    }
+
     struct usb_kbd_info *kbd = urb->context;
-
-    if (urb->status) {
-        return;
-    }
-
-    if (urb->actual_length < 6) {
-        return;
-    }
-
     memcpy(kbd->kbd_pkt, urb->transfer_buffer, 6);
 
     current_keyboard_key = kbd->kbd_pkt[2];
-
-    #if keyboarddebug
-    ycoffset += 15;
-    ycoffset = ycoffset % 600;
-    VIDEO_CURSOR_POSX=vmode.xmargin;
-    VIDEO_CURSOR_POSY=ycoffset;
-    printe(" -%02x %02x %02x %02x %02x %02x\n",kbd->kbd_pkt[0],kbd->kbd_pkt[1],kbd->kbd_pkt[2],kbd->kbd_pkt[3],kbd->kbd_pkt[4],kbd->kbd_pkt[5]);
-    #endif
 
     usb_submit_urb(urb,GFP_ATOMIC);
 }
