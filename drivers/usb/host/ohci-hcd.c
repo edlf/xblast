@@ -125,7 +125,7 @@
 #define DRIVER_AUTHOR "Roman Weissgaerber, David Brownell"
 #define DRIVER_DESC "USB 1.1 'Open' Host Controller (OHCI) Driver"
 
-/*-------------------------------------------------------------------------*/
+
 
 // #define OHCI_VERBOSE_DEBUG    /* not always helpful */
 
@@ -135,7 +135,7 @@
 
 #define OHCI_UNLINK_TIMEOUT     (HZ / 10)
 
-/*-------------------------------------------------------------------------*/
+
 
 static const char    hcd_name [] = "ohci-hcd";
 
@@ -152,7 +152,7 @@ static inline void disable (struct ohci_hcd *ohci)
 #include "ohci-mem.c"
 #include "ohci-q.c"
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * queue up an urb for anything except the root hub
@@ -234,7 +234,7 @@ static int ohci_urb_enqueue (
     spin_lock_irqsave (&ohci->lock, flags);
 
     /* don't submit to a dead HC */
-    if (ohci->disabled || ohci->sleeping) {
+    if (ohci->disabled) {
         retval = -ENODEV;
         goto fail;
     }
@@ -318,7 +318,7 @@ static int ohci_urb_dequeue (struct usb_hcd *hcd, struct urb *urb)
     return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* frees config/altsetting state for endpoints,
  * including ED memory, dummy TD, and bulk/intr data toggle
@@ -446,7 +446,7 @@ static int hc_reset (struct ohci_hcd *ohci)
     return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 #define    FI        0x2edf        /* 12000 bits per frame (-1) */
 #define LSTHRESH    0x628        /* lowspeed bit threshold */
@@ -463,7 +463,6 @@ static int hc_start (struct ohci_hcd *ohci)
 
     spin_lock_init (&ohci->lock);
     ohci->disabled = 1;
-    ohci->sleeping = 0;
 
     /* Tell the controller where the control and bulk lists are
      * The lists are empty now. */
@@ -549,7 +548,7 @@ static int hc_start (struct ohci_hcd *ohci)
     return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* an interrupt happens */
 
@@ -609,7 +608,7 @@ static void ohci_irq (struct usb_hcd *hcd, struct pt_regs *ptregs)
     (void) readl (&ohci->regs->control);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static void ohci_stop (struct usb_hcd *hcd)
 {
@@ -644,7 +643,7 @@ static void ohci_stop (struct usb_hcd *hcd)
     }
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 // FIXME:  this restart logic should be generic,
 // and handle full hcd state cleanup

@@ -42,7 +42,7 @@
 #define USB_PID_STALL    0x1e
 #define USB_PID_MDATA    0x0f    /* USB 2.0 */
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * USB Host Controller Driver (usb_hcd) framework
@@ -51,7 +51,7 @@
  * This framework is a layer over that, and should be more sharable.
  */
 
-/*-------------------------------------------------------------------------*/
+
 
 struct usb_hcd {    /* usb_bus.hcpriv points to this */
     /*
@@ -130,7 +130,7 @@ struct hcd_timeout {    /* timeouts we allocate */
     struct timer_list    timer;
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * FIXME usb_operations should vanish or become hc_driver,
@@ -248,7 +248,7 @@ extern int usb_set_address(struct usb_device *dev);
 #define usb_snddefctrl(dev)        ((PIPE_CONTROL << 30))
 #define usb_rcvdefctrl(dev)        ((PIPE_CONTROL << 30) | USB_DIR_IN)
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * HCD Root Hub support
@@ -285,7 +285,7 @@ extern int usb_set_address(struct usb_device *dev);
 #define SetPortFeature        (0x2300 | USB_REQ_SET_FEATURE)
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * Generic bandwidth allocation constants/support
@@ -333,7 +333,7 @@ extern int usb_check_bandwidth (struct usb_device *dev, struct urb *urb);
 extern long usb_calc_bus_time (int speed, int is_input,
             int isoc, int bytecount);
 
-/*-------------------------------------------------------------------------*/
+
 
 extern struct usb_bus *usb_alloc_bus (struct usb_operations *);
 extern void usb_free_bus (struct usb_bus *);
@@ -351,7 +351,7 @@ static inline int hcd_register_root (struct usb_hcd *hcd)
         hcd_to_bus (hcd)->root_hub, hcd->controller);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* exported only within usbcore */
 
@@ -400,14 +400,14 @@ static inline void usbfs_cleanup(void) { }
 
 #endif /* CONFIG_USB_DEVICEFS */
 
-/*-------------------------------------------------------------------------*/
+
 
 /* hub.h ... DeviceRemovable in 2.4.2-ac11, gone in 2.4.10 */
 // bleech -- resurfaced in 2.4.11 or 2.4.12
 #define bitmap     DeviceRemovable
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /* random stuff */
 

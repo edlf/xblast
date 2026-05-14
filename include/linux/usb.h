@@ -23,7 +23,7 @@
 #endif
 struct usb_device;
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * Host-side wrappers for standard USB descriptors ... these are parsed
@@ -318,7 +318,7 @@ static inline int usb_make_path (struct usb_device *dev, char *buf, size_t size)
     return (actual >= size) ? -1 : actual;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 #define USB_DEVICE_ID_MATCH_DEVICE        (USB_DEVICE_ID_MATCH_VENDOR | USB_DEVICE_ID_MATCH_PRODUCT)
 #define USB_DEVICE_ID_MATCH_DEV_RANGE        (USB_DEVICE_ID_MATCH_DEV_LO | USB_DEVICE_ID_MATCH_DEV_HI)

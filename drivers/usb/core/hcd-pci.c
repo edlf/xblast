@@ -23,7 +23,7 @@
 /* PCI-based HCs are normal, but custom bus glue should be ok */
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /* configure so an HC device and id are always provided */
 /* always called with process context; sleeping is OK */

@@ -7,7 +7,7 @@
  * This file is licenced under GPL
  */
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * OHCI Root Hub ... the nonsharable stuff
@@ -37,7 +37,7 @@ static inline unsigned int roothub_status (struct ohci_hcd *hc)
 static unsigned int roothub_portstatus (struct ohci_hcd *hc, int i)
     { return read_roothub (hc, portstatus [i], 0xffe0fce0); }
 
-/*-------------------------------------------------------------------------*/
+
 
 #define dbg_port(hc,label,num,value) \
     ohci_dbg (hc, \
@@ -61,7 +61,7 @@ static unsigned int roothub_portstatus (struct ohci_hcd *hc, int i)
         );
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /* build "status change" packet (one or two bytes) from HC registers */
 
@@ -108,7 +108,7 @@ ohci_hub_status_data (struct usb_hcd *hcd, char *buf)
     return changed ? length : 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static void
 ohci_hub_descriptor (
@@ -146,7 +146,7 @@ ohci_hub_descriptor (
         desc->bitmap [1] = 0xff;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static int ohci_hub_control (
     struct usb_hcd    *hcd,

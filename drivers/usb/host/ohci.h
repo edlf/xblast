@@ -1,12 +1,12 @@
 /*
  * OHCI HCD (Host Controller Driver) for USB.
- * 
+ *
  * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
  * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * 
+ *
  * This file is licenced under the GPL.
  */
- 
+
 /*
  * OHCI Endpoint Descriptor (ED) ... holds TD queue
  * See OHCI spec, section 4.2
@@ -63,7 +63,7 @@ struct ed {
 
 #define ED_MASK    ((unsigned int)~0x0f)        /* strip hw status in low addr bits */
 
- 
+
 /*
  * OHCI Transfer Descriptor (TD) ... one per transfer segment
  * See OHCI spec, sections 4.3.1 (general = control/bulk/interrupt)
@@ -143,8 +143,8 @@ struct td {
 #define TD_NOTACCESSED     0x0F
 
 
-/* map OHCI TD status codes (CC) to errno values */ 
-static const int cc_to_error [16] = { 
+/* map OHCI TD status codes (CC) to errno values */
+static const int cc_to_error [16] = {
     /* No  Error  */               0,
     /* CRC Error  */               -EILSEQ,
     /* Bit Stuff  */               -EPROTO,
@@ -160,7 +160,7 @@ static const int cc_to_error [16] = {
     /* BufferOver */               -ECOMM,
     /* BuffUnder  */               -ENOSR,
     /* (for HCD)  */               -EALREADY,
-    /* (for HCD)  */               -EALREADY 
+    /* (for HCD)  */               -EALREADY
 };
 
 
@@ -179,7 +179,7 @@ struct ohci_hcca {
     unsigned char    what [4];        /* spec only identifies 252 bytes :) */
 } __attribute__ ((aligned(256)));
 
-  
+
 /*
  * This is the structure of the OHCI controller's memory mapped I/O region.
  * You must use readl() and writel() (in <asm/io.h>) to access these fields!!
@@ -272,7 +272,7 @@ struct ohci_regs {
 
 
 /* OHCI ROOT HUB REGISTER MASKS */
- 
+
 /* roothub.portstatus [i] bits */
 #define RH_PS_CCS            0x00000001       /* current connect status */
 #define RH_PS_PES            0x00000002       /* port enable status*/
@@ -322,7 +322,7 @@ typedef struct urb_priv {
 #define URB_DEL 1
 
 #define TD_HASH_SIZE    64    /* power'o'two */
-// sizeof (struct td) ~= 64 == 2^6 ... 
+// sizeof (struct td) ~= 64 == 2^6 ...
 #define TD_HASH_FUNC(td_dma) ((td_dma ^ (td_dma >> 6)) % TD_HASH_SIZE)
 
 
@@ -366,7 +366,6 @@ struct ohci_hcd {
      * driver state
      */
     int            disabled;    /* e.g. got a UE, we're hung */
-    int            sleeping;
     int            load [NUM_INTS];
     unsigned int             hc_control;    /* copy of hc control reg */
 
@@ -383,7 +382,7 @@ struct ohci_hcd {
 
 #define hcd_to_ohci(hcd_ptr) container_of(hcd_ptr, struct ohci_hcd, hcd)
 
-/*-------------------------------------------------------------------------*/
+
 
 #ifndef DEBUG
 #define STUB_DEBUG_FILES

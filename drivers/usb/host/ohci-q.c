@@ -94,7 +94,7 @@ static int balance (struct ohci_hcd *ohci, int interval, int load) {
     return branch;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* both iso and interrupt requests have periods; this routine puts them
  * into the schedule tree in the apppropriate place.  most iso devices use
@@ -217,14 +217,11 @@ static int ed_schedule (struct ohci_hcd *ohci, struct ed *ed)
     return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* scan the periodic table to find and unlink this ED */
-static void periodic_unlink (struct ohci_hcd *ohci, struct ed *ed)
-{
-    int    i;
-
-    for (i = ed->branch; i < NUM_INTS; i += ed->interval) {
+static void periodic_unlink (struct ohci_hcd *ohci, struct ed *ed) {
+    for (int i = ed->branch; i < NUM_INTS; i += ed->interval) {
         struct ed    *temp;
         struct ed    **prev = &ohci->periodic [i];
         unsigned int        *prev_p = &ohci->hcca->int_table [i];
@@ -251,30 +248,34 @@ static void periodic_unlink (struct ohci_hcd *ohci, struct ed *ed)
  * the link from the ed still points to another operational ed or 0
  * so the HC can eventually finish the processing of the unlinked ed
  */
-static void ed_deschedule (struct ohci_hcd *ohci, struct ed *ed)
+static void ed_deschedule(struct ohci_hcd *ohci, struct ed *ed)
 {
     ed->hwINFO |= ED_SKIP;
+    wmb();
+    // TODO: Figure out why this makes it hang
+    // ed->state = ED_UNLINK;
 
     switch (ed->type) {
     case PIPE_CONTROL:
         if (ed->ed_prev == NULL) {
             if (!ed->hwNextED) {
                 ohci->hc_control &= ~OHCI_CTRL_CLE;
-                writel (ohci->hc_control, &ohci->regs->control);
-                writel (0, &ohci->regs->ed_controlcurrent);
+                writel(ohci->hc_control, &ohci->regs->control);
+                writel(0, &ohci->regs->ed_controlcurrent);
                 // post those pci writes
-                (void) readl (&ohci->regs->control);
+                (void) readl(&ohci->regs->control);
+            } else {
+                writel(le32_to_cpup (&ed->hwNextED), &ohci->regs->ed_controlhead);
             }
-            writel (le32_to_cpup (&ed->hwNextED),
-                &ohci->regs->ed_controlhead);
         } else {
             ed->ed_prev->ed_next = ed->ed_next;
             ed->ed_prev->hwNextED = ed->hwNextED;
         }
         if (ohci->ed_controltail == ed) {
             ohci->ed_controltail = ed->ed_prev;
-            if (ohci->ed_controltail)
+            if (ohci->ed_controltail) {
                 ohci->ed_controltail->ed_next = 0;
+            }
         } else if (ed->ed_next) {
             ed->ed_next->ed_prev = ed->ed_prev;
         }
@@ -288,17 +289,20 @@ static void ed_deschedule (struct ohci_hcd *ohci, struct ed *ed)
                 writel (0, &ohci->regs->ed_bulkcurrent);
                 // post those pci writes
                 (void) readl (&ohci->regs->control);
+            } else {
+                writel(le32_to_cpup (&ed->hwNextED), &ohci->regs->ed_bulkhead);
             }
-            writel (le32_to_cpup (&ed->hwNextED),
-                &ohci->regs->ed_bulkhead);
+
         } else {
             ed->ed_prev->ed_next = ed->ed_next;
             ed->ed_prev->hwNextED = ed->hwNextED;
         }
+        /* remove ED from the HCD's list: */
         if (ohci->ed_bulktail == ed) {
             ohci->ed_bulktail = ed->ed_prev;
-            if (ohci->ed_bulktail)
+            if (ohci->ed_bulktail) {
                 ohci->ed_bulktail->ed_next = 0;
+            }
         } else if (ed->ed_next) {
             ed->ed_next->ed_prev = ed->ed_prev;
         }
@@ -307,7 +311,7 @@ static void ed_deschedule (struct ohci_hcd *ohci, struct ed *ed)
     // case PIPE_INTERRUPT:
     // case PIPE_ISOCHRONOUS:
     default:
-        periodic_unlink (ohci, ed);
+        periodic_unlink(ohci, ed);
         break;
     }
 
@@ -321,18 +325,18 @@ static void ed_deschedule (struct ohci_hcd *ohci, struct ed *ed)
         ed->state = ED_IDLE;
         ed->hwINFO &= ~(ED_SKIP | ED_DEQUEUE);
         ed->hwHeadP &= ~ED_H;
-        wmb ();
+        wmb();
     }
 }
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /* get and maybe (re)init an endpoint. init _should_ be done only as part
  * of usb_set_configuration() or usb_set_interface() ... but the USB stack
  * isn't very stateful, so we re-init whenever the HC isn't looking.
  */
-static struct ed *ed_get (
+static struct ed *ed_get(
     struct ohci_hcd        *ohci,
     struct usb_device    *udev,
     unsigned int        pipe,
@@ -346,10 +350,11 @@ static struct ed *ed_get (
     unsigned long        flags;
 
     ep = usb_pipeendpoint (pipe) << 1;
-    if (type != PIPE_CONTROL && is_out)
+    if (type != PIPE_CONTROL && is_out) {
         ep |= 1;
+    }
 
-    spin_lock_irqsave (&ohci->lock, flags);
+    spin_lock_irqsave(&ohci->lock, flags);
 
     if (!(ed = dev->ep [ep])) {
         struct td    *td;
@@ -361,12 +366,12 @@ static struct ed *ed_get (
         }
         dev->ep [ep] = ed;
 
-          /* dummy td; end of td list for ed */
+        /* dummy td; end of td list for ed */
         td = td_alloc (ohci, SLAB_ATOMIC);
-         if (!td) {
+        if (!td) {
             /* out of memory */
-            ed_free (ohci, ed);
-            ed = 0;
+            ed_free(ohci, ed);
+            ed = NULL;
             goto done;
         }
         ed->dummy = td;
@@ -379,30 +384,32 @@ static struct ed *ed_get (
     /* NOTE: only ep0 currently needs this "re"init logic, during
      * enumeration (after set_address, or if ep0 maxpacket >8).
      */
-      if (ed->state == ED_IDLE) {
+    if (ed->state == ED_IDLE) {
         unsigned int    info;
 
-        info = usb_pipedevice (pipe);
+        info = usb_pipedevice(pipe);
         info |= (ep >> 1) << 7;
-        info |= usb_maxpacket (udev, pipe, is_out) << 16;
+        info |= usb_maxpacket(udev, pipe, is_out) << 16;
         info = cpu_to_le32 (info);
-        if (udev->speed == USB_SPEED_LOW)
+        if (udev->speed == USB_SPEED_LOW) {
             info |= ED_LOWSPEED;
+        }
         /* only control transfers store pids in tds */
         if (type != PIPE_CONTROL) {
             info |= is_out ? ED_OUT : ED_IN;
             if (type != PIPE_BULK) {
                 /* periodic transfers... */
-                if (type == PIPE_ISOCHRONOUS)
+                if (type == PIPE_ISOCHRONOUS) {
                     info |= ED_ISO;
-                else if (interval > 32)    /* iso can be bigger */
+                }
+                else if (interval > 32) {    /* iso can be bigger */
                     interval = 32;
+                }
                 ed->interval = interval;
                 ed->load = usb_calc_bus_time (
                     udev->speed, !is_out,
                     type == PIPE_ISOCHRONOUS,
-                    usb_maxpacket (udev, pipe, is_out))
-                        / 1000;
+                    usb_maxpacket (udev, pipe, is_out)) / 1000;
             }
         }
         ed->hwINFO = info;
@@ -413,24 +420,17 @@ done:
     return ed;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* request unlinking of an endpoint from an operational HC.
  * put the ep on the rm_list
  * real work is done at the next start frame (SF) hardware interrupt
  */
-static void start_urb_unlink (struct ohci_hcd *ohci, struct ed *ed)
+static void start_urb_unlink(struct ohci_hcd *ohci, struct ed *ed)
 {
     ed->hwINFO |= ED_DEQUEUE;
     ed->state = ED_UNLINK;
-    ed_deschedule (ohci, ed);
-
-    /* SF interrupt might get delayed; record the frame counter value that
-     * indicates when the HC isn't looking at it, so concurrent unlinks
-     * behave.  frame_no wraps every 2^16 msec, and changes right before
-     * SF is triggered.
-     */
-    ed->tick = le16_to_cpu (ohci->hcca->frame_no) + 1;
+    ed_deschedule(ohci, ed);
 
     /* rm_list is just singly linked, for simplicity */
     ed->ed_next = ohci->ed_rm_list;
@@ -438,12 +438,17 @@ static void start_urb_unlink (struct ohci_hcd *ohci, struct ed *ed)
     ohci->ed_rm_list = ed;
 
     /* enable SOF interrupt */
-    if (!ohci->sleeping) {
-        writel (OHCI_INTR_SF, &ohci->regs->intrstatus);
-        writel (OHCI_INTR_SF, &ohci->regs->intrenable);
-        // flush those pci writes
-        (void) readl (&ohci->regs->control);
-    }
+    writel (OHCI_INTR_SF, &ohci->regs->intrstatus);
+    writel (OHCI_INTR_SF, &ohci->regs->intrenable);
+    // flush those pci writes
+    (void) readl (&ohci->regs->control);
+
+    /* SF interrupt might get delayed; record the frame counter value that
+     * indicates when the HC isn't looking at it, so concurrent unlinks
+     * behave.  frame_no wraps every 2^16 msec, and changes right before
+     * SF is triggered.
+     */
+    ed->tick = le16_to_cpu(ohci->hcca->frame_no) + 1;
 }
 
 /*-------------------------------------------------------------------------*
@@ -454,9 +459,8 @@ static void start_urb_unlink (struct ohci_hcd *ohci, struct ed *ed)
 
 static void
 td_fill (struct ohci_hcd *ohci, unsigned int info,
-    dma_addr_t data, int len,
-    struct urb *urb, int index)
-{
+         dma_addr_t data, int len,
+         struct urb *urb, int index) {
     struct td        *td, *td_pt;
     struct urb_priv        *urb_priv = urb->hcpriv;
     int            is_iso = info & TD_ISO;
@@ -474,9 +478,9 @@ td_fill (struct ohci_hcd *ohci, unsigned int info,
      * interrupts ... increasing per-urb latency by sharing interrupts.
      * Drivers that queue bulk urbs may request that behavior.
      */
-    if (index != (urb_priv->length - 1)
-            || (urb->transfer_flags & URB_NO_INTERRUPT))
+    if (index != (urb_priv->length - 1) || (urb->transfer_flags & URB_NO_INTERRUPT)) {
         info |= TD_DI_SET (6);
+    }
 
     /* use this td as the next dummy */
     td_pt = urb_priv->td [index];
@@ -490,8 +494,9 @@ td_fill (struct ohci_hcd *ohci, unsigned int info,
     td->index = index;
     td->urb = urb;
     td->data_dma = data;
-    if (!len)
+    if (!len) {
         data = 0;
+    }
 
     td->hwINFO = cpu_to_le32 (info);
     if (is_iso) {
@@ -499,16 +504,17 @@ td_fill (struct ohci_hcd *ohci, unsigned int info,
         td->hwPSW [0] = cpu_to_le16 ((data & 0x0FFF) | 0xE000);
         td->ed->last_iso = info & 0xffff;
     } else {
-        td->hwCBP = cpu_to_le32 (data);
+        td->hwCBP = cpu_to_le32(data);
     }
-    if (data)
+    if (data) {
         td->hwBE = cpu_to_le32 (data + len - 1);
-    else
+    } else {
         td->hwBE = 0;
+    }
     td->hwNextTD = cpu_to_le32 (td_pt->td_dma);
 
     /* append to queue */
-    list_add_tail (&td->td_list, &td->ed->td_list);
+    list_add_tail(&td->td_list, &td->ed->td_list);
 
     /* hash it for later reverse mapping */
     hash = TD_HASH_FUNC (td->td_dma);
@@ -516,11 +522,11 @@ td_fill (struct ohci_hcd *ohci, unsigned int info,
     ohci->td_hash [hash] = td;
 
     /* HC might read the TD (or cachelines) right away ... */
-    wmb ();
+    wmb();
     td->ed->hwTailP = td->hwNextTD;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* Prepare all TDs of a transfer, and queue them onto the ED.
  * Caller guarantees HC is active.
@@ -543,17 +549,17 @@ static void td_submit_urb (
      * that resetting toggle is meaningless if the endpoint is active.
      */
       if (!usb_gettoggle (urb->dev, usb_pipeendpoint (urb->pipe), is_out)) {
-        usb_settoggle (urb->dev, usb_pipeendpoint (urb->pipe),
-            is_out, 1);
+        usb_settoggle (urb->dev, usb_pipeendpoint (urb->pipe), is_out, 1);
         urb_priv->ed->hwHeadP &= ~ED_C;
     }
 
     urb_priv->td_cnt = 0;
 
-    if (data_len)
+    if (data_len) {
         data = urb->transfer_dma;
-    else
+    } else {
         data = 0;
+    }
 
     /* NOTE:  TD_CC is set so we can tell which TDs the HC processed by
      * using TD_CC_GET, as well as by seeing them on the done list.
@@ -566,7 +572,7 @@ static void td_submit_urb (
      */
     case PIPE_INTERRUPT:
         /* ... and periodic urbs have extra accounting */
-        hcd_to_bus (&ohci->hcd)->bandwidth_int_reqs++;
+        hcd_to_bus(&ohci->hcd)->bandwidth_int_reqs++;
         /* FALLTHROUGH */
     case PIPE_BULK:
         info = is_out
@@ -579,13 +585,14 @@ static void td_submit_urb (
             data_len -= 4096;
             cnt++;
         }
+
         /* maybe avoid ED halt on final TD short read */
-        if (!(urb->transfer_flags & URB_SHORT_NOT_OK))
+        if (!(urb->transfer_flags & URB_SHORT_NOT_OK)) {
             info |= TD_R;
+        }
         td_fill (ohci, info, data, data_len, urb, cnt);
         cnt++;
-        if ((urb->transfer_flags & URB_ZERO_PACKET)
-                && cnt < urb_priv->length) {
+        if ((urb->transfer_flags & URB_ZERO_PACKET) && cnt < urb_priv->length) {
             td_fill (ohci, info, 0, 0, urb, cnt);
             cnt++;
         }
@@ -611,10 +618,10 @@ static void td_submit_urb (
         info = is_out
             ? TD_CC | TD_DP_IN | TD_T_DATA1
             : TD_CC | TD_DP_OUT | TD_T_DATA1;
-        td_fill (ohci, info, data, 0, urb, cnt++);
+        td_fill(ohci, info, data, 0, urb, cnt++);
         /* maybe kickstart control list */
         wmb ();
-        writel (OHCI_CLF, &ohci->regs->cmdstatus);
+        writel(OHCI_CLF, &ohci->regs->cmdstatus);
         break;
 
     /* ISO has no retransmit, so no toggle; and it uses special TDs.
@@ -623,7 +630,7 @@ static void td_submit_urb (
      */
     case PIPE_ISOCHRONOUS:
         for (cnt = 0; cnt < urb->number_of_packets; cnt++) {
-            int    frame = urb->start_frame;
+            int frame = urb->start_frame;
 
             // FIXME scheduling should handle frame counter
             // roll-around ... exotic case (and OHCI has
@@ -634,7 +641,7 @@ static void td_submit_urb (
                 data + urb->iso_frame_desc [cnt].offset,
                 urb->iso_frame_desc [cnt].length, urb, cnt);
         }
-        hcd_to_bus (&ohci->hcd)->bandwidth_isoc_reqs++;
+        hcd_to_bus(&ohci->hcd)->bandwidth_isoc_reqs++;
         break;
     }
     // ASSERT (urb_priv->length == cnt);
@@ -647,40 +654,41 @@ static void td_submit_urb (
 /* calculate transfer length/status and update the urb
  * PRECONDITION:  irqsafe (only for urb->status locking)
  */
-static void td_done (struct ohci_hcd *ohci, struct urb *urb, struct td *td)
-{
+static void td_done (struct ohci_hcd *ohci, struct urb *urb, struct td *td) {
     unsigned int    tdINFO = le32_to_cpup (&td->hwINFO);
     int    cc = 0;
 
     list_del (&td->td_list);
 
     /* ISO ... drivers see per-TD length/status */
-      if (tdINFO & TD_ISO) {
-         unsigned short    tdPSW = le16_to_cpu (td->hwPSW [0]);
-        int    dlen = 0;
+    if (tdINFO & TD_ISO) {
+        unsigned short    tdPSW = le16_to_cpu (td->hwPSW [0]);
+        int dlen = 0;
 
         /* NOTE:  assumes FC in tdINFO == 0 (and MAXPSW == 1) */
-
-         cc = (tdPSW >> 12) & 0xF;
-          if (tdINFO & TD_CC)    /* hc didn't touch? */
+        cc = (tdPSW >> 12) & 0xF;
+        if (tdINFO & TD_CC)  {   /* hc didn't touch? */
             return;
+        }
 
-        if (usb_pipeout (urb->pipe))
+        if (usb_pipeout (urb->pipe)) {
             dlen = urb->iso_frame_desc [td->index].length;
-        else {
+        } else {
             /* short reads are always OK for ISO */
-            if (cc == TD_DATAUNDERRUN)
+            if (cc == TD_DATAUNDERRUN){
                 cc = TD_CC_NOERROR;
+            }
             dlen = tdPSW & 0x3ff;
         }
         urb->actual_length += dlen;
         urb->iso_frame_desc [td->index].actual_length = dlen;
         urb->iso_frame_desc [td->index].status = cc_to_error [cc];
 
-        if (cc != TD_CC_NOERROR)
+        if (cc != TD_CC_NOERROR) {
             ohci_vdbg (ohci,
                 "urb %p iso td %p (%d) len %d cc %d\n",
                 urb, td, 1 + td->index, dlen, cc);
+        }
 
     /* BULK, INT, CONTROL ... drivers see aggregate length/status,
      * except that "setup" bytes aren't counted and "short" transfers
@@ -690,33 +698,34 @@ static void td_done (struct ohci_hcd *ohci, struct urb *urb, struct td *td)
         int    type = usb_pipetype (urb->pipe);
         unsigned int    tdBE = le32_to_cpup (&td->hwBE);
 
-          cc = TD_CC_GET (tdINFO);
+        cc = TD_CC_GET (tdINFO);
 
         /* control endpoints only have soft stalls */
-          if (type != PIPE_CONTROL && cc == TD_CC_STALL)
+        if (type != PIPE_CONTROL && cc == TD_CC_STALL) {
             usb_endpoint_halt (urb->dev,
                 usb_pipeendpoint (urb->pipe),
                 usb_pipeout (urb->pipe));
+        }
 
         /* update packet status if needed (short is normally ok) */
-        if (cc == TD_DATAUNDERRUN
-                && !(urb->transfer_flags & URB_SHORT_NOT_OK))
+        if (cc == TD_DATAUNDERRUN && !(urb->transfer_flags & URB_SHORT_NOT_OK)) {
             cc = TD_CC_NOERROR;
+        }
         if (cc != TD_CC_NOERROR && cc < 0x0E) {
             spin_lock (&urb->lock);
-            if (urb->status == -EINPROGRESS)
+            if (urb->status == -EINPROGRESS) {
                 urb->status = cc_to_error [cc];
+            }
             spin_unlock (&urb->lock);
         }
 
         /* count all non-empty packets except control SETUP packet */
         if ((type != PIPE_CONTROL || td->index != 0) && tdBE != 0) {
-            if (td->hwCBP == 0)
+            if (td->hwCBP == 0) {
                 urb->actual_length += tdBE - td->data_dma + 1;
-            else
-                urb->actual_length +=
-                      le32_to_cpup (&td->hwCBP)
-                    - td->data_dma;
+            } else {
+                urb->actual_length += le32_to_cpup (&td->hwCBP) - td->data_dma;
+            }
         }
 
         if (cc != TD_CC_NOERROR && cc < 0x0E)
@@ -725,10 +734,8 @@ static void td_done (struct ohci_hcd *ohci, struct urb *urb, struct td *td)
                 urb, td, 1 + td->index, cc,
                 urb->actual_length,
                 urb->transfer_buffer_length);
-      }
+    }
 }
-
-/*-------------------------------------------------------------------------*/
 
 static inline struct td *
 ed_halted (struct ohci_hcd *ohci, struct td *td, int cc, struct td *rev)
@@ -839,7 +846,7 @@ static struct td *dl_reverse_done_list (struct ohci_hcd *ohci)
     return td_rev;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* wrap-aware logic stolen from <linux/jiffies.h> */
 #define tick_before(t1,t2) ((((s16)(t1))-((s16)(t2))) < 0)
@@ -926,8 +933,9 @@ rescan_this:
 
         /* but if there's work queued, reschedule */
         if (!list_empty (&ed->td_list)) {
-            if (!ohci->disabled && !ohci->sleeping)
+            if (!ohci->disabled) {
                 ed_schedule (ohci, ed);
+            }
         }
 
         if (modified)
@@ -965,7 +973,7 @@ rescan_this:
 
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * Process normal completions (error or success) and clean the schedules.

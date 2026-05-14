@@ -1,0 +1,16 @@
+---
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Right
+AlignConsecutiveAssignments:
+  Enabled: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+AlignConsecutiveMacros:
+  Enabled: true
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+MaxEmptyLinesToKeep: 2
+LineEnding: LF
+Language: Cpp
+RemoveBracesLLVM: false
+BraceWrapping: {}

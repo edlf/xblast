@@ -1,13 +1,13 @@
 /*
  * OHCI HCD (Host Controller Driver) for USB.
- * 
+ *
  * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
  * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * 
+ *
  * This file is licenced under the GPL.
  */
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * There's basically three types of memory:
@@ -21,7 +21,7 @@
  * No memory seen by this driver is pagable.
  */
 
-/*-------------------------------------------------------------------------*/
+
 
 #include "string.h"
 
@@ -42,7 +42,7 @@ static void ohci_hcd_free (struct usb_hcd *hcd)
     kfree (hcd_to_ohci (hcd));
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static int ohci_mem_init (struct ohci_hcd *ohci)
 {
@@ -75,7 +75,7 @@ static void ohci_mem_cleanup (struct ohci_hcd *ohci)
     }
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* ohci "done list" processing needs this mapping */
 static inline struct td *
@@ -122,7 +122,7 @@ td_free (struct ohci_hcd *hc, struct td *td)
     pci_pool_free (hc->td_cache, td, td->td_dma);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* EDs ... */
 static struct ed *

@@ -7,7 +7,7 @@
  * This file is licenced under the GPL.
  */
 
-/*-------------------------------------------------------------------------*/
+
 //#define DEBUG
 
 #ifdef DEBUG
@@ -384,7 +384,7 @@ static inline void ohci_dump (struct ohci_hcd *controller, int verbose) {}
 
 #endif /* DEBUG */
 
-/*-------------------------------------------------------------------------*/
+
 
 #ifdef STUB_DEBUG_FILES
 
@@ -663,5 +663,5 @@ static inline void remove_debug_files (struct ohci_hcd *bus)
 
 #endif
 
-/*-------------------------------------------------------------------------*/
+
 

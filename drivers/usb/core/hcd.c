@@ -6,7 +6,7 @@
  * (C) Copyright Deti Fliegl 1999
  * (C) Copyright Randy Dunlap 2000
  * (C) Copyright David Brownell 2000-2002
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 2 of the License, or (at your
@@ -49,7 +49,7 @@
 
 // #define USB_BANDWIDTH_MESSAGES
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * USB Host Controller Driver framework
@@ -82,7 +82,7 @@
  * 2001-12-12    Initial patch version for Linux 2.5.1 kernel.
  */
 
-/*-------------------------------------------------------------------------*/
+
 
 /* host controllers we manage */
 LIST_HEAD (usb_bus_list);
@@ -102,13 +102,13 @@ EXPORT_SYMBOL_GPL (usb_bus_list_lock);
 /* used when updating hcd data */
 static spinlock_t hcd_data_lock = SPIN_LOCK_UNLOCKED;
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * Sharable chunks of root hub code.
  */
 
-/*-------------------------------------------------------------------------*/
+
 
 #define KERNEL_REL    ((LINUX_VERSION_CODE >> 16) & 0x0ff)
 #define KERNEL_VER    ((LINUX_VERSION_CODE >> 8) & 0x0ff)
@@ -158,7 +158,7 @@ static const unsigned char usb11_rh_dev_descriptor [18] = {
 };
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /* Configuration descriptors for our root hubs */
 
@@ -171,13 +171,13 @@ static const unsigned char fs_rh_config_descriptor [] = {
     0x01,       /*  __u8  bNumInterfaces; (1) */
     0x01,       /*  __u8  bConfigurationValue; */
     0x00,       /*  __u8  iConfiguration; */
-    0x40,       /*  __u8  bmAttributes; 
+    0x40,       /*  __u8  bmAttributes;
                  Bit 7: Bus-powered,
                      6: Self-powered,
                      5 Remote-wakwup,
                      4..0: resvd */
     0x00,       /*  __u8  MaxPower; */
-      
+
     /* USB 1.1:
      * USB 2.0, single TT organization (mandatory):
      *    one interface, protocol 0
@@ -199,7 +199,7 @@ static const unsigned char fs_rh_config_descriptor [] = {
     0x00,       /*  __u8  if_bInterfaceSubClass; */
     0x00,       /*  __u8  if_bInterfaceProtocol; [usb1.1 or single tt] */
     0x00,       /*  __u8  if_iInterface; */
-     
+
     /* one endpoint (status change endpoint) */
     0x07,       /*  __u8  ep_bLength; */
     0x05,       /*  __u8  ep_bDescriptorType; Endpoint */
@@ -218,13 +218,13 @@ static const unsigned char hs_rh_config_descriptor [] = {
     0x01,       /*  __u8  bNumInterfaces; (1) */
     0x01,       /*  __u8  bConfigurationValue; */
     0x00,       /*  __u8  iConfiguration; */
-    0x40,       /*  __u8  bmAttributes; 
+    0x40,       /*  __u8  bmAttributes;
                  Bit 7: Bus-powered,
                      6: Self-powered,
                      5 Remote-wakwup,
                      4..0: resvd */
     0x00,       /*  __u8  MaxPower; */
-      
+
     /* USB 1.1:
      * USB 2.0, single TT organization (mandatory):
      *    one interface, protocol 0
@@ -246,7 +246,7 @@ static const unsigned char hs_rh_config_descriptor [] = {
     0x00,       /*  __u8  if_bInterfaceSubClass; */
     0x00,       /*  __u8  if_bInterfaceProtocol; [usb1.1 or single tt] */
     0x00,       /*  __u8  if_iInterface; */
-     
+
     /* one endpoint (status change endpoint) */
     0x07,       /*  __u8  ep_bLength; */
     0x05,       /*  __u8  ep_bDescriptorType; Endpoint */
@@ -256,7 +256,7 @@ static const unsigned char hs_rh_config_descriptor [] = {
     0x0c        /*  __u8  ep_bInterval; (256ms -- usb 2.0 spec) */
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * helper routine for returning string descriptors in UTF-16LE
@@ -277,7 +277,7 @@ static int ascii2utf (char *s, unsigned char *utf, int utfmax)
  * rh_string - provides manufacturer, product and serial strings for root hub
  * @id: the string ID number (1: serial number, 2: product, 3: vendor)
  * @hcd: the host controller for this root hub
- * @type: string describing our driver 
+ * @type: string describing our driver
  * @data: return packet in UTF-16 LE
  * @len: length of the return packet
  *
@@ -448,7 +448,7 @@ error:
     return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * Root Hub interrupt transfers are synthesized with a timer.
@@ -457,7 +457,7 @@ error:
 
 static void rh_report_status (unsigned long ptr);
 
-static int rh_status_urb (struct usb_hcd *hcd, struct urb *urb) 
+static int rh_status_urb (struct usb_hcd *hcd, struct urb *urb)
 {
     int    len = 1 + (urb->dev->maxchild / 8);
 
@@ -525,7 +525,7 @@ static void rh_report_status (unsigned long ptr)
     local_irq_restore (flags);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static int rh_urb_enqueue (struct usb_hcd *hcd, struct urb *urb)
 {
@@ -544,7 +544,7 @@ static int rh_urb_enqueue (struct usb_hcd *hcd, struct urb *urb)
         return -EINVAL;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 void usb_rh_status_dequeue (struct usb_hcd *hcd, struct urb *urb)
 {
@@ -560,7 +560,7 @@ void usb_rh_status_dequeue (struct usb_hcd *hcd, struct urb *urb)
     local_irq_restore (flags);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* exported only within usbcore */
 void usb_bus_get (struct usb_bus *bus)
@@ -575,7 +575,7 @@ void usb_bus_put (struct usb_bus *bus)
         kfree (bus);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /**
  * usb_bus_init - shared initialization code
@@ -608,7 +608,7 @@ EXPORT_SYMBOL (usb_bus_init);
  * @op: pointer to a struct usb_operations that this bus structure should use
  * Context: !in_interrupt()
  *
- * Creates a USB host controller bus structure with the specified 
+ * Creates a USB host controller bus structure with the specified
  * usb_operations and initializes all the necessary internal objects.
  *
  * If no memory is available, NULL is returned.
@@ -648,7 +648,7 @@ void usb_free_bus (struct usb_bus *bus)
 }
 EXPORT_SYMBOL (usb_free_bus);
 
-/*-------------------------------------------------------------------------*/
+
 
 /**
  * usb_register_bus - registers the USB host controller with the usb core
@@ -712,7 +712,7 @@ void usb_deregister_bus (struct usb_bus *bus)
 EXPORT_SYMBOL (usb_deregister_bus);
 
 /**
- * usb_register_root_hub - called by HCD to register its root hub 
+ * usb_register_root_hub - called by HCD to register its root hub
  * @usb_dev: the usb root hub device to be registered.
  * @parent_dev: the parent device of this root hub.
  *
@@ -736,7 +736,7 @@ int usb_register_root_hub (struct usb_device *usb_dev, struct device *parent_dev
 EXPORT_SYMBOL (usb_register_root_hub);
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /**
  * usb_calc_bus_time - approximate periodic transaction time in nanoseconds
@@ -830,7 +830,7 @@ int usb_check_bandwidth (struct usb_device *dev, struct urb *urb)
     new_alloc = old_alloc + (int) bustime;
     if (new_alloc > FRAME_TIME_MAX_USECS_ALLOC) {
 #ifdef    DEBUG
-        char    *mode = 
+        char    *mode =
 #ifdef CONFIG_USB_BANDWIDTH
             "";
 #else
@@ -915,13 +915,13 @@ void usb_release_bandwidth (struct usb_device *dev, struct urb *urb, int isoc)
 EXPORT_SYMBOL (usb_release_bandwidth);
 
 
-/*-------------------------------------------------------------------------*/
+
 
 /*
  * Generic HC operations.
  */
 
-/*-------------------------------------------------------------------------*/
+
 
 /* called from khubd, or root hub init threads for hcd-private init */
 static int hcd_alloc_dev (struct usb_device *udev)
@@ -955,7 +955,7 @@ static int hcd_alloc_dev (struct usb_device *udev)
     return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static void urb_unlink (struct urb *urb)
 {
@@ -988,7 +988,7 @@ static int hcd_submit_urb (struct urb *urb, int mem_flags)
     struct usb_hcd        *hcd = urb->dev->bus->hcpriv;
     struct hcd_dev        *dev = urb->dev->hcpriv;
     unsigned long        flags;
-    
+
 
     if (!hcd || !dev)
         return -ENODEV;
@@ -1070,7 +1070,7 @@ done:
     return status;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* called in any context */
 static int hcd_get_frame_number (struct usb_device *udev)
@@ -1079,7 +1079,7 @@ static int hcd_get_frame_number (struct usb_device *udev)
     return hcd->driver->get_frame_number (hcd);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* this makes the hcd giveback() the urb more quickly, by kicking it
  * off hardware queues (which may take a while) and returning it as
@@ -1247,7 +1247,7 @@ bye:
     return retval;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* disables the endpoint: cancels any pending urbs, then synchronizes with
  * the hcd to make sure all endpoint state is gone from hardware. use for
@@ -1335,7 +1335,7 @@ rescan:
         hcd->driver->endpoint_disable (hcd, dev, endpoint);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 /* called by khubd, rmmod, apmd, or other thread for hcd-private cleanup.
  * we're guaranteed that the device is fully quiesced.  also, that each
@@ -1394,7 +1394,7 @@ struct usb_operations usb_hcd_operations = {
 };
 EXPORT_SYMBOL (usb_hcd_operations);
 
-/*-------------------------------------------------------------------------*/
+
 
 /**
  * usb_hcd_giveback_urb - return URB from HCD to device driver
@@ -1437,7 +1437,7 @@ void usb_hcd_giveback_urb (struct usb_hcd *hcd, struct urb *urb, struct pt_regs 
 }
 EXPORT_SYMBOL (usb_hcd_giveback_urb);
 
-/*-------------------------------------------------------------------------*/
+
 
 /**
  * usb_hcd_irq - hook IRQs to HCD framework (bus glue)
@@ -1464,7 +1464,7 @@ irqreturn_t usb_hcd_irq (int irq, void *__hcd, struct pt_regs * r)
 }
 EXPORT_SYMBOL (usb_hcd_irq);
 
-/*-------------------------------------------------------------------------*/
+
 
 static void hcd_panic (void *_hcd)
 {
@@ -1478,7 +1478,7 @@ static void hcd_panic (void *_hcd)
  *
  * This is called by bus glue to report a USB host controller that died
  * while operations may still have been pending.  It's called automatically
- * by the PCI glue, so only glue for non-PCI busses should need to call it. 
+ * by the PCI glue, so only glue for non-PCI busses should need to call it.
  */
 void usb_hc_died (struct usb_hcd *hcd)
 {
@@ -1486,7 +1486,7 @@ void usb_hc_died (struct usb_hcd *hcd)
     struct hcd_dev        *dev;
     struct urb        *urb;
     unsigned long        flags;
-    
+
     /* flag every pending urb as done */
     spin_lock_irqsave (&hcd_data_lock, flags);
     list_for_each (devlist, &hcd->dev_list) {
