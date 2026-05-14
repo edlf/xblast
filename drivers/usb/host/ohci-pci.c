@@ -33,16 +33,15 @@
 /*-------------------------------------------------------------------------*/
 
 static int __devinit
-ohci_pci_start (struct usb_hcd *hcd)
-{
+ohci_pci_start (struct usb_hcd *hcd) {
     struct ohci_hcd    *ohci = hcd_to_ohci (hcd);
     int        ret;
 
     if (hcd->pdev) {
-        ohci->hcca = pci_alloc_consistent (hcd->pdev,
-                sizeof *ohci->hcca, &ohci->hcca_dma);
-        if (!ohci->hcca)
+        ohci->hcca = pci_alloc_consistent (hcd->pdev, sizeof *ohci->hcca, &ohci->hcca_dma);
+        if (!ohci->hcca) {
             return -ENOMEM;
+        }
 
         /* AMD 756, for most chips (early revs), corrupts register
          * values on read ... so enable the vendor workaround.
@@ -51,10 +50,6 @@ ohci_pci_start (struct usb_hcd *hcd)
             ohci->flags = OHCI_QUIRK_AMD756;
             ohci_info (ohci, "AMD756 erratum 4 workaround\n");
         }
-
-        /* FIXME for some of the early AMD 760 southbridges, OHCI
-         * won't work at all.  blacklist them.
-         */
     }
 
     memset (ohci->hcca, 0, sizeof (struct ohci_hcca));
@@ -100,7 +95,7 @@ static int ohci_pci_suspend (struct usb_hcd *hcd, unsigned int state)
     ohci->sleeping = 1;
 
     /* First stop processing */
-      spin_lock_irqsave (&ohci->lock, flags);
+    spin_lock_irqsave (&ohci->lock, flags);
     ohci->hc_control &=
         ~(OHCI_CTRL_PLE|OHCI_CTRL_CLE|OHCI_CTRL_BLE|OHCI_CTRL_IE);
     writel (ohci->hc_control, &ohci->regs->control);

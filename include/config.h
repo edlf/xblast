@@ -28,12 +28,8 @@
 //shown unless you move the xpad. Just backdrop->boot, otherwise
 #define SILENT_MODE
 
-
 // display a line like Composite 480 detected if uncommented
 #undef REPORT_VIDEO_MODE
-
-// show the MBR table if the MBR is valid
-#undef DISPLAY_MBR_INFO
 
 #undef DEBUG_MODE
 // enable/ disable Etherboot

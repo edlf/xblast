@@ -312,8 +312,7 @@ static void IconMenuDraw(int nXOffset, int nYOffset)
     VIDEO_CURSOR_POSY = tempY;
 }
 
-bool IconMenu(void)
-{
+bool IconMenu(void) {
     unsigned int COUNT_start;
     int oldIconTimeRemain = 0;
     char bankString[20];
@@ -330,7 +329,6 @@ bool IconMenu(void)
     nTempCursorResumeY=nTempCursorMbrY;
 
     nTempCursorY=vmode.height-80;
-
 
     // We save the complete framebuffer to memory (we restore at exit)
     //videosavepage = malloc(FB_SIZE);
@@ -349,24 +347,12 @@ bool IconMenu(void)
         temp = 0;
     }
 
-
-//#ifndef SILENT_MODE
-    //In silent mode, don't draw the menu the first time.
-    //If we get a left/right xpad event, it will be registered,
-    //and the menu will 'appear'. Otherwise, it will proceed quietly
-    //and boot the default boot item
-    VIDEO_ATTR=0xffc8c8c8;
-    //printk("Select from Menu\n");
     VIDEO_ATTR=0xffffffff;
-//#endif
-
     IconMenuDraw(nModeDependentOffset, nTempCursorY);
 
     //Initial LCD string print.
-    if(xLCD.enable == 1)
-    {
-        if(LPCmodSettings.LCDsettings.customTextBoot == 0)
-        {
+    if(xLCD.enable == 1) {
+        if(LPCmodSettings.LCDsettings.customTextBoot == 0) {
             xLCD.PrintLine[1](CENTERSTRING, selectedIcon->szCaption);
             xLCD.ClearLine(2);
             xLCD.ClearLine(3);
@@ -374,23 +360,17 @@ bool IconMenu(void)
     }
     COUNT_start = getMS();
     //Main menu event loop.
-    while(cromwellLoop())
-    {
+    while(cromwellLoop()) {
         int changed=0;
-        if (risefall_xpad_BUTTON(TRIGGER_XPAD_PAD_RIGHT) == 1)
-        {
-            if (selectedIcon->nextIcon!=NULL)
-            {
+        if (risefall_xpad_BUTTON(TRIGGER_XPAD_PAD_RIGHT) == 1) {
+            if (selectedIcon->nextIcon!=NULL) {
                 selectedIcon = selectedIcon->nextIcon;
                 memcpy((void*)FB_START,videosavepage,FB_SIZE);
                 changed=1;
             }
             temp = 0;
-        }
-        else if (risefall_xpad_BUTTON(TRIGGER_XPAD_PAD_LEFT) == 1)
-        {
-            if (selectedIcon->previousIcon!=NULL)
-            {
+        } else if (risefall_xpad_BUTTON(TRIGGER_XPAD_PAD_LEFT) == 1) {
+            if (selectedIcon->previousIcon!=NULL) {
                 memcpy((void*)FB_START,videosavepage,FB_SIZE);
                 selectedIcon = selectedIcon->previousIcon;
                 changed=1;
@@ -415,10 +395,8 @@ bool IconMenu(void)
             VIDEO_CURSOR_POSY=nTempCursorResumeY;
 
             // Display custom boot message on LCD
-            if(xLCD.enable == 1)
-            {
-                if(selectedIcon != advancedMenuIcon)
-                {
+            if(xLCD.enable == 1) {
+                if(selectedIcon != advancedMenuIcon) {
                     if(LPCmodSettings.LCDsettings.displayMsgBoot == 0)    //Other icons boots banks so LCD rules apply here.
                     {
                         xLCD.Command(DISP_CLEAR);
@@ -460,21 +438,15 @@ bool IconMenu(void)
             IconMenuDraw(nModeDependentOffset, nTempCursorY);
 
             //LCD string print.
-            if(xLCD.enable == 1)
-            {
-                if(LPCmodSettings.LCDsettings.customTextBoot == 0)
-                {
+            if(xLCD.enable == 1) {
+                if(LPCmodSettings.LCDsettings.customTextBoot == 0) {
                     LPCMod_LCDBankString(bankString, selectedIcon->bankID);
                     xLCD.PrintLine[1](CENTERSTRING, bankString);
-                    if(LPCmodSettings.LCDsettings.nbLines >= 4)
-                    {
-                        if(temp != 0)
-                        {
+                    if(LPCmodSettings.LCDsettings.nbLines >= 4) {
+                        if(temp != 0) {
                             sprintf(timeoutString, "Auto boot in %ds", iconTimeRemain);
                             xLCD.PrintLine[2](CENTERSTRING, timeoutString);
-                        }
-                        else
-                        {
+                        } else {
                             xLCD.ClearLine(2);
                         }
                         xLCD.ClearLine(3);

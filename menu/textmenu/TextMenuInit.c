@@ -17,20 +17,20 @@
 
 TEXTMENU *TextMenuInit(void)
 {
-    
+
     TEXTMENUITEM *itemPtr;
     TEXTMENU *menuPtr;
-    
+
     //Create the root menu - MANDATORY
     menuPtr = malloc(sizeof(TEXTMENU));
     memset(menuPtr,0x00,sizeof(TEXTMENU)); // Sets timeout and visibleCount to 0.
     strcpy(menuPtr->szCaption, "XBlast Mod settings");
     menuPtr->firstMenuItem=NULL;
 
-    
-    if(isXBlastCompatible())         //No need to display this menu if no modchip is present.
+
+    if(isXBlastCompatible()) //No need to display this menu if no modchip is present.
     {
-        //XBlast(modchip) SETTINGS MENU
+        // XBlast(modchip) SETTINGS MENU
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "XBlast settings");
         itemPtr->functionPtr=DrawChildTextMenu;
@@ -131,6 +131,6 @@ TEXTMENU *TextMenuInit(void)
     itemPtr->functionPtr=DrawChildTextMenu;
     itemPtr->functionDataPtr = ResetMenuInit();
     TextMenuAddItem(menuPtr, itemPtr);
-    
+
     return menuPtr;
 }

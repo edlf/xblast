@@ -25,20 +25,6 @@ void SetLEDColor(void *);
 
 void freeTextMenuAllocMem(TEXTMENU* menu);
 
-//void DrawBootMenu(void *entry);
-//void BootMenuEntry(void *entry);
-
-//Ick, this needs to be removed.
-//void BootFromCD(void *driveId);
-//void BootFromNet(void *whatever);
-
-#ifdef FLASH
-//void FlashBios(void *);
-#endif
-
-#ifdef ETHERBOOT
-void BootFromEtherboot(void *);
-#endif
 void UiHeader(char *title);
 void UIFooter(void);
 

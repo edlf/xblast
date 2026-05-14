@@ -9,31 +9,25 @@ int ycoffset = 0;
 
 unsigned int current_keyboard_key;
 
+#define BUFFER_LENGTH 8
+
 struct usb_kbd_info {
     struct urb *urb;
     unsigned char kbd_pkt[8];
-    unsigned char old[8];
-
-    /*
-    struct input_dev dev;
-    struct usb_device *usbdev;
-    struct urb irq, led;
-    struct usb_ctrlrequest dr;
-    unsigned char leds, newleds;
-    char name[128];
-    int open;
-    */
 };
 
-static void usb_kbd_irq(struct urb *urb, struct pt_regs *regs)
-{
+static void usb_kbd_irq(struct urb *urb, struct pt_regs *regs) {
     struct usb_kbd_info *kbd = urb->context;
 
     if (urb->status) {
         return;
     }
 
-    memcpy(kbd->kbd_pkt, urb->transfer_buffer, 8);
+    if (urb->actual_length < 6) {
+        return;
+    }
+
+    memcpy(kbd->kbd_pkt, urb->transfer_buffer, 6);
 
     current_keyboard_key = kbd->kbd_pkt[2];
 
@@ -54,29 +48,28 @@ static int usb_kbd_probe(struct usb_interface *intf, const struct usb_device_id 
     struct usb_endpoint_descriptor *ep_irq_in;
     struct usb_kbd_info *usbk;
 
-    usbk=(struct usb_kbd_info *)kmalloc(sizeof(struct usb_kbd_info),0);
+    usbk = kmalloc(sizeof(struct usb_kbd_info), GFP_KERNEL);
     if (!usbk) {
         return -1;
     }
 
-    urb=usb_alloc_urb(0,0);
+    urb = usb_alloc_urb(0,0);
     if (!urb) {
         return -1;
     }
 
-    usbk->urb=urb;
+    usbk->urb = urb;
 
     ep_irq_in = &intf->altsetting[0].endpoint[0].desc;
     usb_fill_int_urb(urb, udev,
                      usb_rcvintpipe(udev, ep_irq_in->bEndpointAddress),
-                     usbk->kbd_pkt, 8, usb_kbd_irq,
+                     usbk->kbd_pkt, BUFFER_LENGTH, usb_kbd_irq,
                      usbk, 8);
 
     usb_submit_urb(urb,GFP_ATOMIC);
     usb_set_intfdata(intf,usbk);
-    #if keyboarddebug
-    printe("USB Keyboard Connected\n");
-    #endif
+
+    usbprintk("USB Keyboard Connected\n");
     return 0;
 }
 
@@ -91,6 +84,7 @@ static void usb_kbd_disconnect(struct usb_interface *intf) {
 
 static struct usb_device_id usb_kbd_id_table [] = {
     { USB_INTERFACE_INFO(3, 1, 1) },
+    { USB_DEVICE(0x0000, 0x0000) }, // nothing detected - FAIL
     { } /* Terminating entry */
 };
 
@@ -105,11 +99,9 @@ static struct usb_driver usb_kbd_driver = {
 
 void UsbKeyBoardInit(void) {
     current_keyboard_key = 0;
-    //sbprintk("Keyboard probe %p ",xremote_probe);
+    usbprintk("Keyboard probe %p ",xremote_probe);
     if (usb_register(&usb_kbd_driver) < 0) {
-        #if keyboarddebug
-        printe("Unable to register Keyboard driver");
-        #endif
+        err("Unable to register Keyboard driver");
         return;
     }
 }

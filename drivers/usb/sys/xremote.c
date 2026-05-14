@@ -34,13 +34,14 @@
 
 #include "../usb_wrapper.h"
 
+#define BUFFER_LENGTH 8
 
 unsigned short current_remote_key;
 unsigned char remotekeyIsRepeat;
 
 struct xremote_info  {
     struct urb *urb;
-    unsigned char irpkt[8];
+    unsigned char irpkt[BUFFER_LENGTH];
 };
 
 /*  USB callback completion handler
@@ -54,8 +55,12 @@ struct xremote_info  {
 static void xremote_irq(struct urb *urb, struct pt_regs *regs) {
     struct xremote_info *xri = urb->context;
 
-    if (urb->status) return;
-    if (urb->actual_length < 6) return;
+    if (urb->status) {
+        return;
+    }
+    if (urb->actual_length < 6) {
+        return;
+    }
 
     /* Messy/unnecessary, fix this */
     memcpy(xri->irpkt, urb->transfer_buffer, 6);
@@ -65,8 +70,9 @@ static void xremote_irq(struct urb *urb, struct pt_regs *regs) {
 
     if (((xri->irpkt[4] & 0xff) + ((xri->irpkt[5] & 0xff ) << 8))>0x41) {
         remotekeyIsRepeat=0;
+    } else {
+        remotekeyIsRepeat=1;
     }
-    else remotekeyIsRepeat=1;
 
     usb_submit_urb(urb,GFP_ATOMIC);
 }
@@ -87,9 +93,9 @@ static int xremote_probe(struct usb_interface *intf, const struct usb_device_id 
 
     ep_irq_in = &intf->altsetting[0].endpoint[0].desc;
     usb_fill_int_urb(urb, udev,
-                         usb_rcvintpipe(udev, ep_irq_in->bEndpointAddress),
-                         xri->irpkt, 8, xremote_irq,
-                         xri, 8);
+                     usb_rcvintpipe(udev, ep_irq_in->bEndpointAddress),
+                     xri->irpkt, BUFFER_LENGTH, xremote_irq,
+                     xri, 8);
 
     usb_submit_urb(urb,GFP_ATOMIC);
     usb_set_intfdata(intf,xri);
