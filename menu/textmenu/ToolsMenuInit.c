@@ -9,148 +9,145 @@
 
 #include "MenuInits.h"
 #include "ToolsMenuActions.h"
+#include "lib/LPCMod/BootLPCMod.h"
 #include "lpcmod_v1.h"
 #include "string.h"
-#include "lib/LPCMod/BootLPCMod.h"
-#include "xblast/settings/xblastSettingsDefs.h"
 #include "xblast/HardwareIdentifier.h"
+#include "xblast/settings/xblastSettingsDefs.h"
 
 
 TEXTMENU *ToolsMenuInit(void) {
-    TEXTMENUITEM *itemPtr;
-    TEXTMENU *menuPtr;
+  TEXTMENUITEM *itemPtr;
+  TEXTMENU     *menuPtr;
 
-    menuPtr = calloc(1, sizeof(TEXTMENU));
-    strcpy(menuPtr->szCaption, "Tools");
+  menuPtr = calloc(1, sizeof(TEXTMENU));
+  strcpy(menuPtr->szCaption, "Tools");
 
-    if(isXBE() == false || isXBlastOnLPC())
-    {
-        //Save EEPROM data to flash
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        sprintf(itemPtr->szCaption,"Save EEPROM to modchip");
-        itemPtr->functionPtr = saveEEPromToFlash;
-        TextMenuAddItem(menuPtr, itemPtr);
-        saveEEPROMPtr = itemPtr;
+  if (isXBE() == false || isXBlastOnLPC()) {
+    // Save EEPROM data to flash
+    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+    sprintf(itemPtr->szCaption, "Save EEPROM to modchip");
+    itemPtr->functionPtr = saveEEPromToFlash;
+    TextMenuAddItem(menuPtr, itemPtr);
+    saveEEPROMPtr = itemPtr;
 
-        //Restore EEPROM data from flash
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "Restore EEPROM from modchip");
-        itemPtr->functionPtr = restoreEEPromFromFlash;
-        itemPtr->functionDataPtr = NULL;
-        TextMenuAddItem(menuPtr, itemPtr);
-        restoreEEPROMPtr = itemPtr;
+    // Restore EEPROM data from flash
+    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+    strcpy(itemPtr->szCaption, "Restore EEPROM from modchip");
+    itemPtr->functionPtr     = restoreEEPromFromFlash;
+    itemPtr->functionDataPtr = NULL;
+    TextMenuAddItem(menuPtr, itemPtr);
+    restoreEEPROMPtr = itemPtr;
 
 #ifdef DEV_FEATURES
-        //Erase EEPROM data from flash
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "Erase EEPROM from modchip");
-        itemPtr->functionPtr = eraseEEPromFromFlash;
-        itemPtr->functionDataPtr = NULL;
-        TextMenuAddItem(menuPtr, itemPtr);
-        eraseEEPROMPtr = itemPtr;
+    // Erase EEPROM data from flash
+    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+    strcpy(itemPtr->szCaption, "Erase EEPROM from modchip");
+    itemPtr->functionPtr     = eraseEEPromFromFlash;
+    itemPtr->functionDataPtr = NULL;
+    TextMenuAddItem(menuPtr, itemPtr);
+    eraseEEPROMPtr = itemPtr;
 #endif
-    }
+  }
 
-    //Dangerous stuff is going on in there.
+  // Dangerous stuff is going on in there.
+  itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+  strcpy(itemPtr->szCaption, "Edit EEPROM content");
+  itemPtr->functionPtr     = warningDisplayEepromEditMenu;
+  itemPtr->functionDataPtr = NULL;
+  TextMenuAddItem(menuPtr, itemPtr);
+  editEEPROMPtr = itemPtr;
+
+  // Wipe EEPROM section that holds non-vital data.
+  itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+  strcpy(itemPtr->szCaption, "Reset system settings");
+  itemPtr->functionPtr     = wipeEEPromUserSettings;
+  itemPtr->functionDataPtr = NULL;
+  TextMenuAddItem(menuPtr, itemPtr);
+
+  // 128MB MEMORY TEST
+  itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+  strcpy(itemPtr->szCaption, "128MB RAM test");
+  itemPtr->functionPtr     = showMemTest;
+  itemPtr->functionDataPtr = NULL;
+  TextMenuAddItem(menuPtr, itemPtr);
+
+  // 256MB MEMORY TEST
+  itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+  strcpy(itemPtr->szCaption, "256MB RAM test");
+  itemPtr->functionPtr     = showMemTest256;
+  itemPtr->functionDataPtr = NULL;
+  TextMenuAddItem(menuPtr, itemPtr);
+
+  if (isTSOPSplitCapable() &&                // Don't show this when Xbox motherboard is not 1.0/1.1.
+      LPCmodSettings.OSsettings.TSOPcontrol) // Don't show if TSOP split is not enabled.
+  {
+    // TSOP split manual control
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Edit EEPROM content");
-    itemPtr->functionPtr = warningDisplayEepromEditMenu;
-    itemPtr->functionDataPtr = NULL;
+    strcpy(itemPtr->szCaption, "TSOP recover force bank : ");
+    if (A19controlModBoot == BNKTSOPSPLIT0)
+      sprintf(itemPtr->szParameter, "%s", "Bank0");
+    else if (A19controlModBoot == BNKTSOPSPLIT1)
+      sprintf(itemPtr->szParameter, "%s", "Bank1");
+    else
+      sprintf(itemPtr->szParameter, "%s", "No");
+    itemPtr->functionPtr          = nextA19controlModBootValue;
+    itemPtr->functionDataPtr      = itemPtr->szParameter;
+    itemPtr->functionLeftPtr      = prevA19controlModBootValue;
+    itemPtr->functionLeftDataPtr  = itemPtr->szParameter;
+    itemPtr->functionRightPtr     = nextA19controlModBootValue;
+    itemPtr->functionRightDataPtr = itemPtr->szParameter;
     TextMenuAddItem(menuPtr, itemPtr);
-    editEEPROMPtr = itemPtr;
-
-    //Wipe EEPROM section that holds non-vital data.
-    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Reset system settings");
-    itemPtr->functionPtr = wipeEEPromUserSettings;
-    itemPtr->functionDataPtr = NULL;
-    TextMenuAddItem(menuPtr, itemPtr);
-
-	//128MB MEMORY TEST
-	itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-	strcpy(itemPtr->szCaption, "128MB RAM test");
-	itemPtr->functionPtr=showMemTest;
-	itemPtr->functionDataPtr = NULL;
-	TextMenuAddItem(menuPtr, itemPtr);
-
-	//256MB MEMORY TEST
-	itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-	strcpy(itemPtr->szCaption, "256MB RAM test");
-	itemPtr->functionPtr=showMemTest256;
-	itemPtr->functionDataPtr = NULL;
-	TextMenuAddItem(menuPtr, itemPtr);
-
-    if(isTSOPSplitCapable() &&  //Don't show this when Xbox motherboard is not 1.0/1.1.
-       LPCmodSettings.OSsettings.TSOPcontrol)          //Don't show if TSOP split is not enabled.
-    {
-        //TSOP split manual control
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "TSOP recover force bank : ");
-        if(A19controlModBoot == BNKTSOPSPLIT0)
-            sprintf(itemPtr->szParameter, "%s", "Bank0");
-        else if(A19controlModBoot == BNKTSOPSPLIT1)
-            sprintf(itemPtr->szParameter, "%s", "Bank1");
-        else
-            sprintf(itemPtr->szParameter, "%s", "No");
-        itemPtr->functionPtr = nextA19controlModBootValue;
-        itemPtr->functionDataPtr= itemPtr->szParameter;
-        itemPtr->functionLeftPtr=prevA19controlModBootValue;
-        itemPtr->functionLeftDataPtr = itemPtr->szParameter;
-        itemPtr->functionRightPtr=nextA19controlModBootValue;
-        itemPtr->functionRightDataPtr = itemPtr->szParameter;
-        TextMenuAddItem(menuPtr, itemPtr);
-    }
+  }
 /*
-    //TSOP recovery entries. Do not show if already in TSOP recovery
-    if((isXBE() == false || fHasHardware == SYSCON_ID_V1)
-       && !TSOPRecoveryMode) {
-        //TSOP recovery
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "TSOP Recovery");
-        itemPtr->functionPtr=TSOPRecoveryReboot;
-        itemPtr->functionDataPtr = NULL;
-        TextMenuAddItem(menuPtr, itemPtr);
-    }
+  //TSOP recovery entries. Do not show if already in TSOP recovery
+  if((isXBE() == false || fHasHardware == SYSCON_ID_V1) && !TSOPRecoveryMode) {
+    //TSOP recovery
+    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+    strcpy(itemPtr->szCaption, "TSOP Recovery");
+    itemPtr->functionPtr=TSOPRecoveryReboot;
+    itemPtr->functionDataPtr = NULL;
+    TextMenuAddItem(menuPtr, itemPtr);
+  }
 */
 #ifdef DEV_FEATURES
-    {
-        //Save xblast.cfg
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "Save C:\\xblast.cfg");
-        itemPtr->functionPtr = saveXBlastcfg;
-        itemPtr->functionDataPtr = NULL;
-        TextMenuAddItem(menuPtr, itemPtr);
-    }
-#endif
-    //Load xblast.cfg
+  {
+    // Save xblast.cfg
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "Load C:\\xblast.cfg");
-    itemPtr->functionPtr = loadXBlastcfg;
+    strcpy(itemPtr->szCaption, "Save C:\\xblast.cfg");
+    itemPtr->functionPtr     = saveXBlastcfg;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
+  }
+#endif
+  // Load xblast.cfg
+  itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+  strcpy(itemPtr->szCaption, "Load C:\\xblast.cfg");
+  itemPtr->functionPtr     = loadXBlastcfg;
+  itemPtr->functionDataPtr = NULL;
+  TextMenuAddItem(menuPtr, itemPtr);
 
-    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    strcpy(itemPtr->szCaption, "XBlast scripts");
-    itemPtr->functionPtr = DrawChildTextMenu;
-    itemPtr->functionDataPtr = XBlastScriptMenuInit();
-    TextMenuAddItem(menuPtr, itemPtr);
+  itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+  strcpy(itemPtr->szCaption, "XBlast scripts");
+  itemPtr->functionPtr     = DrawChildTextMenu;
+  itemPtr->functionDataPtr = XBlastScriptMenuInit();
+  TextMenuAddItem(menuPtr, itemPtr);
 
 #ifdef DEV_FEATURES
-    {
-        //Developers tools
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-        strcpy(itemPtr->szCaption, "Developer tools");
-        itemPtr->functionPtr = DrawChildTextMenu;
-        itemPtr->functionDataPtr = DeveloperMenuInit();
-        TextMenuAddItem(menuPtr, itemPtr);
-    }
+  {
+    // Developers tools
+    itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+    strcpy(itemPtr->szCaption, "Developer tools");
+    itemPtr->functionPtr     = DrawChildTextMenu;
+    itemPtr->functionDataPtr = DeveloperMenuInit();
+    TextMenuAddItem(menuPtr, itemPtr);
+  }
 #endif
 
-    if(EepromSanityCheck(&LPCmodSettings.bakeeprom) == EEPROM_EncryptInvalid)
-    {
-        saveEEPROMPtr->nextMenuItem = editEEPROMPtr;
-        editEEPROMPtr->previousMenuItem = saveEEPROMPtr;
-    }
+  if (EepromSanityCheck(&LPCmodSettings.bakeeprom) == EEPROM_EncryptInvalid) {
+    saveEEPROMPtr->nextMenuItem     = editEEPROMPtr;
+    editEEPROMPtr->previousMenuItem = saveEEPROMPtr;
+  }
 
-    return menuPtr;
+  return menuPtr;
 }

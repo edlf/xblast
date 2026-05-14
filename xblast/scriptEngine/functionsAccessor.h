@@ -11,19 +11,19 @@
 #include "lpcmod_v1.h"
 #include <stdbool.h>
 
-bool gpiFunction(unsigned char port);
-bool gpoFunction(unsigned char port, unsigned char value);
-bool waitFunction(int ms);
-bool bootFunction(FlashBank bank);
-bool fanFunction(unsigned char value);
-bool ledFunction(char * value);
-bool lcdPrintFunction(unsigned char line, char * text, unsigned char stringLength);
-bool lcdClearLineFunction(unsigned char line);
-bool lcdResetFunction(void);
-bool lcdBacklightFunction(unsigned char value);
-bool lcdPowerFunction(unsigned char value);
+bool          gpiFunction(unsigned char port);
+bool          gpoFunction(unsigned char port, unsigned char value);
+bool          waitFunction(int ms);
+bool          bootFunction(FlashBank bank);
+bool          fanFunction(unsigned char value);
+bool          ledFunction(char *value);
+bool          lcdPrintFunction(unsigned char line, char *text, unsigned char stringLength);
+bool          lcdClearLineFunction(unsigned char line);
+bool          lcdResetFunction(void);
+bool          lcdBacklightFunction(unsigned char value);
+bool          lcdPowerFunction(unsigned char value);
 unsigned char SPIRead(void);
-bool SPIWrite(unsigned char data);
+bool          SPIWrite(unsigned char data);
 unsigned char XPADRead(int xpadVariable);
 
 bool emergencyEscape(void);

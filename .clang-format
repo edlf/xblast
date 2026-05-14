@@ -9,6 +9,9 @@ AlignConsecutiveMacros:
   Enabled: true
 AlignConsecutiveShortCaseStatements:
   Enabled: true
+ColumnLimit: 0
+UseTab: Never
+IndentWidth: 4
 MaxEmptyLinesToKeep: 2
 LineEnding: LF
 Language: Cpp
