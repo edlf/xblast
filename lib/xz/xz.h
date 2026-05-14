@@ -12,11 +12,11 @@
 #define XZ_H
 
 #ifdef __KERNEL__
-#	include <linux/stddef.h>
-#	include <linux/types.h>
+#include <linux/stddef.h>
+#include <linux/types.h>
 #else
-#	include <stddef.h>
-#	include <stdint.h>
+#include <stddef.h>
+#include <stdint.h>
 #endif
 
 #ifdef __cplusplus
@@ -25,7 +25,7 @@ extern "C" {
 
 /* In Linux, this is used to make extern functions static when needed. */
 #ifndef XZ_EXTERN
-#	define XZ_EXTERN extern
+#define XZ_EXTERN extern
 #endif
 
 /**
@@ -54,9 +54,9 @@ extern "C" {
  * be built with fewer features to minimize code size.
  */
 enum xz_mode {
-	XZ_SINGLE,
-	XZ_PREALLOC,
-	XZ_DYNALLOC
+    XZ_SINGLE,
+    XZ_PREALLOC,
+    XZ_DYNALLOC
 };
 
 /**
@@ -110,15 +110,15 @@ enum xz_mode {
  * is used instead of XZ_BUF_ERROR.
  */
 enum xz_ret {
-	XZ_OK,
-	XZ_STREAM_END,
-	XZ_UNSUPPORTED_CHECK,
-	XZ_MEM_ERROR,
-	XZ_MEMLIMIT_ERROR,
-	XZ_FORMAT_ERROR,
-	XZ_OPTIONS_ERROR,
-	XZ_DATA_ERROR,
-	XZ_BUF_ERROR
+    XZ_OK,
+    XZ_STREAM_END,
+    XZ_UNSUPPORTED_CHECK,
+    XZ_MEM_ERROR,
+    XZ_MEMLIMIT_ERROR,
+    XZ_FORMAT_ERROR,
+    XZ_OPTIONS_ERROR,
+    XZ_DATA_ERROR,
+    XZ_BUF_ERROR
 };
 
 /**
@@ -138,13 +138,13 @@ enum xz_ret {
  * the variables in_pos and out_pos are modified by the XZ code.
  */
 struct xz_buf {
-	const uint8_t *in;
-	size_t in_pos;
-	size_t in_size;
+    const uint8_t *in;
+    size_t         in_pos;
+    size_t         in_size;
 
-	uint8_t *out;
-	size_t out_pos;
-	size_t out_size;
+    uint8_t       *out;
+    size_t         out_pos;
+    size_t         out_size;
 };
 
 /**
@@ -195,7 +195,7 @@ struct xz_dec;
  * ready to be used with xz_dec_run(). If memory allocation fails,
  * xz_dec_init() returns NULL.
  */
-XZ_EXTERN void xz_dec_init(enum xz_mode mode, uint32_t dict_max, struct xz_dec *s);
+XZ_EXTERN void        xz_dec_init(enum xz_mode mode, uint32_t dict_max, struct xz_dec *s);
 
 /**
  * xz_dec_run() - Run the XZ decoder
@@ -228,14 +228,14 @@ XZ_EXTERN enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b);
  * xz_dec_run(). Thus, explicit call to xz_dec_reset() is useful only in
  * multi-call mode.
  */
-XZ_EXTERN void xz_dec_reset(struct xz_dec *s);
+XZ_EXTERN void        xz_dec_reset(struct xz_dec *s);
 
 /**
  * xz_dec_end() - Free the memory allocated for the decoder state
  * @s:          Decoder state allocated using xz_dec_init(). If s is NULL,
  *              this function does nothing.
  */
-XZ_EXTERN void xz_dec_end(struct xz_dec *s);
+XZ_EXTERN void        xz_dec_end(struct xz_dec *s);
 
 /*
  * Standalone build (userspace build or in-kernel build for boot time use)
@@ -244,11 +244,11 @@ XZ_EXTERN void xz_dec_end(struct xz_dec *s);
  * care about the functions below.
  */
 #ifndef XZ_INTERNAL_CRC32
-#	ifdef __KERNEL__
-#		define XZ_INTERNAL_CRC32 0
-#	else
-#		define XZ_INTERNAL_CRC32 1
-#	endif
+#ifdef __KERNEL__
+#define XZ_INTERNAL_CRC32 0
+#else
+#define XZ_INTERNAL_CRC32 1
+#endif
 #endif
 
 /*
@@ -256,15 +256,15 @@ XZ_EXTERN void xz_dec_end(struct xz_dec *s);
  * implementation is needed too.
  */
 #ifndef XZ_USE_CRC64
-#	undef XZ_INTERNAL_CRC64
-#	define XZ_INTERNAL_CRC64 0
+#undef XZ_INTERNAL_CRC64
+#define XZ_INTERNAL_CRC64 0
 #endif
 #ifndef XZ_INTERNAL_CRC64
-#	ifdef __KERNEL__
-#		error Using CRC64 in the kernel has not been implemented.
-#	else
-#		define XZ_INTERNAL_CRC64 1
-#	endif
+#ifdef __KERNEL__
+#error Using CRC64 in the kernel has not been implemented.
+#else
+#define XZ_INTERNAL_CRC64 1
+#endif
 #endif
 
 #if XZ_INTERNAL_CRC32
@@ -272,7 +272,7 @@ XZ_EXTERN void xz_dec_end(struct xz_dec *s);
  * This must be called before any other xz_* function to initialize
  * the CRC32 lookup table.
  */
-XZ_EXTERN void xz_crc32_init(void);
+XZ_EXTERN void     xz_crc32_init(void);
 
 /*
  * Update CRC32 value using the polynomial from IEEE-802.3. To start a new
@@ -287,7 +287,7 @@ XZ_EXTERN uint32_t xz_crc32(const uint8_t *buf, size_t size, uint32_t crc);
  * This must be called before any other xz_* function (except xz_crc32_init())
  * to initialize the CRC64 lookup table.
  */
-XZ_EXTERN void xz_crc64_init(void);
+XZ_EXTERN void     xz_crc64_init(void);
 
 /*
  * Update CRC64 value using the polynomial from ECMA-182. To start a new

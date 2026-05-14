@@ -12,53 +12,44 @@
 #include "boot.h"
 #include "i2c.h"
 
-void SlowReboot(void* ignored)
-{
-    if(SaveXBlastOSSettings())
-    {
+void SlowReboot(void *ignored) {
+    if (SaveXBlastOSSettings()) {
         assertWriteEEPROM();
         BootStopUSB();
         I2CRebootSlow();
     }
 }
 
-void QuickReboot(void* ignored)
-{
-    if(SaveXBlastOSSettings())
-    {
+void QuickReboot(void *ignored) {
+    if (SaveXBlastOSSettings()) {
         assertWriteEEPROM();
         BootStopUSB();
         I2CRebootQuick();
     }
 }
 
-void PowerOff(void* ignored)
-{
-    if(SaveXBlastOSSettings())
-    {
+void PowerOff(void *ignored) {
+    if (SaveXBlastOSSettings()) {
         assertWriteEEPROM();
         I2CPowerOff();
     }
 }
 
-void SlowRebootNoSave(void* ignored)
-{
+void SlowRebootNoSave(void *ignored) {
     BootStopUSB();
     I2CRebootSlow();
 }
 
-void QuickRebootNoSave(void* ignored)
-{
+void QuickRebootNoSave(void *ignored) {
     BootStopUSB();
     I2CRebootQuick();
 }
 
-void PowerOffNoSave(void* ignored)
-{
+void PowerOffNoSave(void *ignored) {
     I2CPowerOff();
 }
 
-void Restart_Xblast(void* ignored) {
+void Restart_Xblast(void *ignored) {
     BootStopUSB();
-	BootResetAction();
+    BootResetAction();
 }

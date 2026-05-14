@@ -6,134 +6,119 @@
  */
 
 #include "FlashLowLevel.h"
+#include "FlashHelpers.h"
+#include "cromwell.h"
+#include "flashtypes.h"
+#include "lib/LPCMod/xblastDebug.h"
+#include "lib/time/timeManagement.h"
 #include "memory_layout.h"
 #include "string.h"
-#include "lib/time/timeManagement.h"
-#include "lib/LPCMod/xblastDebug.h"
-#include "cromwell.h"
-#include "FlashHelpers.h"
-#include "flashtypes.h"
 
 // Variables
-static bool is28xxxProtocol;
-bool firstBusyRead;
+static bool   is28xxxProtocol;
+bool          firstBusyRead;
 unsigned char lastStatusRegisterState;
 
 // Internal functions
-static bool _28xxxDeviceIsBusy(void);
-static bool _29xxxDeviceIsBusy(void);
-static void _ResetFlashICStateMachine(void);
-static void _28xxxResetFlashICStateMachine(void);
-static void _29xxxResetFlashICStateMachine(void);
+static bool   _28xxxDeviceIsBusy(void);
+static bool   _29xxxDeviceIsBusy(void);
+static void   _ResetFlashICStateMachine(void);
+static void   _28xxxResetFlashICStateMachine(void);
+static void   _29xxxResetFlashICStateMachine(void);
 
-static void _ReadDeviceIDBytes(KNOWN_FLASH_TYPE* output);
-static void _28xxxReadDeviceID(KNOWN_FLASH_TYPE* output);
-static void _29xxxReadDeviceID(KNOWN_FLASH_TYPE* output);
+static void   _ReadDeviceIDBytes(KNOWN_FLASH_TYPE *output);
+static void   _28xxxReadDeviceID(KNOWN_FLASH_TYPE *output);
+static void   _29xxxReadDeviceID(KNOWN_FLASH_TYPE *output);
 
-static bool _MatchDevice(const KNOWN_FLASH_TYPE* output);
+static bool   _MatchDevice(const KNOWN_FLASH_TYPE *output);
 
-static void _28xxxWriteBytes(unsigned char byte, unsigned int addr);
-static void _29xxxWriteBytes(unsigned char byte, unsigned int addr);
+static void   _28xxxWriteBytes(unsigned char byte, unsigned int addr);
+static void   _29xxxWriteBytes(unsigned char byte, unsigned int addr);
 
-static void _28xxxSectorErase(unsigned int addr);
-static void _29xxxSectorErase(unsigned int addr);
-static void _28xxxBlockErase(unsigned int addr);
-static void _29xxxBlockErase(unsigned int addr);
-static void _29xxxChipErase(void);
-static void _29xxxCommonEraseSequence(void);
+static void   _28xxxSectorErase(unsigned int addr);
+static void   _29xxxSectorErase(unsigned int addr);
+static void   _28xxxBlockErase(unsigned int addr);
+static void   _29xxxBlockErase(unsigned int addr);
+static void   _29xxxChipErase(void);
+static void   _29xxxCommonEraseSequence(void);
 
-static void FlashLowLevel_RawWrite(int addr, int val);
-static void FlashLowLevel_RawWrite(int addr, int val) {
+static void   FlashLowLevel_RawWrite(int addr, int val);
+static void   FlashLowLevel_RawWrite(int addr, int val) {
     debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "W %04X=%02X\n", addr, val);
     flashDevice.m_pbMemoryMappedStartAddress[addr] = val;
 }
 
-void FlashLowLevel_Init(void)
-{
+void FlashLowLevel_Init(void) {
     is28xxxProtocol = false;
     memset(&flashDevice, 0x00, sizeof(flashDevice));
-	flashDevice.m_pbMemoryMappedStartAddress = (unsigned char *)LPCFlashadress;
-	debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Setting LPC address to 0x%08X\n", LPCFlashadress);
+    flashDevice.m_pbMemoryMappedStartAddress = (unsigned char *)LPCFlashadress;
+    debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "Setting LPC address to 0x%08X\n", LPCFlashadress);
 }
 
-bool FlashLowLevel_ReadDevice(void)
-{
+bool FlashLowLevel_ReadDevice(void) {
     KNOWN_FLASH_TYPE flashRead;
-    bool retry = true;
+    bool             retry = true;
 
-    firstBusyRead = true;
+    firstBusyRead          = true;
 
-    while(1)
-    {
+    while (1) {
         _ResetFlashICStateMachine();
         _ReadDeviceIDBytes(&flashRead);
 
-        debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Read device ID. manf=0x%02X  dev=0x%02X\n", flashRead.m_bManufacturerId, flashRead.m_bDeviceId);
+        debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "Read device ID. manf=0x%02X  dev=0x%02X\n", flashRead.m_bManufacturerId, flashRead.m_bDeviceId);
 
-        if(_MatchDevice(&flashRead))
-        {
+        if (_MatchDevice(&flashRead)) {
             // Found Device.
             debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "m_support4KBErase = %d\n", flashDevice.flashType.m_support4KBErase);
             if (flashDevice.flashType.m_support4KBErase & 2) {
                 debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "confirm m_support4KBErase = %d\n", flashDevice.flashType.m_support4KBErase);
-                is28xxxProtocol = true; //28xxx may not be detected depending on the device (for example Sharp LH28F008SCT)
-                _28xxxResetFlashICStateMachine(); //29xxx init could leave it in a weird state
+                is28xxxProtocol = true;           // 28xxx may not be detected depending on the device (for example Sharp LH28F008SCT)
+                _28xxxResetFlashICStateMachine(); // 29xxx init could leave it in a weird state
             }
-            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Found matching device: %s\n", flashDevice.flashType.m_szFlashDescription);
-            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Additional info: %s\n", flashDevice.m_szAdditionalErrorInfo);
-            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Can Erase/Write: %s\n", flashDevice.m_fIsBelievedCapableOfWriteAndErase ? "Yes" : "No");
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "Found matching device: %s\n", flashDevice.flashType.m_szFlashDescription);
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "Additional info: %s\n", flashDevice.m_szAdditionalErrorInfo);
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "Can Erase/Write: %s\n", flashDevice.m_fIsBelievedCapableOfWriteAndErase ? "Yes" : "No");
             return true;
         }
 
-        if(retry == true)
-        {
+        if (retry == true) {
             // Device not found, try other method.
             is28xxxProtocol = !is28xxxProtocol;
-            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"is28xxxProtocol: %s\n", is28xxxProtocol ? "true" : "false");
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "is28xxxProtocol: %s\n", is28xxxProtocol ? "true" : "false");
             retry = false;
-        }
-        else
-        {
+        } else {
             // Tried both method. No device found.
-            debugSPIPrint(DEBUG_FLASH_LOWLEVEL,"Device not found...\n");
+            debugSPIPrint(DEBUG_FLASH_LOWLEVEL, "Device not found...\n");
             return false;
         }
     }
 }
 
-bool FlashLowLevel_DeviceIsBusy(void)
-{
-    if(is28xxxProtocol)
-    {
+bool FlashLowLevel_DeviceIsBusy(void) {
+    if (is28xxxProtocol) {
         return _28xxxDeviceIsBusy();
     }
 
     return _29xxxDeviceIsBusy();
 }
 
-static bool _28xxxDeviceIsBusy(void)
-{
+static bool _28xxxDeviceIsBusy(void) {
     FlashLowLevel_RawWrite(0x5555, 0x70);
     lastStatusRegisterState = FlashLowLevel_ReadByte(0);
 
-    if((lastStatusRegisterState & 0x80) == 0)
-    {
+    if ((lastStatusRegisterState & 0x80) == 0) {
         // Device is busy
         return true;
     }
 
-    FlashLowLevel_RawWrite(0x5555, 0x50); //Clear status register
-    FlashLowLevel_RawWrite(0x5555, 0xff); //Reset
+    FlashLowLevel_RawWrite(0x5555, 0x50); // Clear status register
+    FlashLowLevel_RawWrite(0x5555, 0xff); // Reset
 
-    if(lastStatusRegisterState & 0x7e)
-    {
+    if (lastStatusRegisterState & 0x7e) {
         flashDevice.m_fIsBelievedCapableOfWriteAndErase = false;
-        if(lastStatusRegisterState & 0x08)
-        {
-            sprintf(flashDevice.m_szAdditionalErrorInfo, "%s", "This chip requires +5V on pin 11 (Vpp)."); //TODO: print this err on screen
-        }
-        else
-        {
+        if (lastStatusRegisterState & 0x08) {
+            sprintf(flashDevice.m_szAdditionalErrorInfo, "%s", "This chip requires +5V on pin 11 (Vpp)."); // TODO: print this err on screen
+        } else {
             sprintf(flashDevice.m_szAdditionalErrorInfo, "Chip Status after Erase: 0x%02X", lastStatusRegisterState);
         }
     }
@@ -141,13 +126,11 @@ static bool _28xxxDeviceIsBusy(void)
     return false;
 }
 
-static bool _29xxxDeviceIsBusy(void)
-{
+static bool _29xxxDeviceIsBusy(void) {
     unsigned char oldStatusByteValue = lastStatusRegisterState;
-    lastStatusRegisterState = FlashLowLevel_ReadByte(0);
+    lastStatusRegisterState          = FlashLowLevel_ReadByte(0);
 
-    if(firstBusyRead || ((oldStatusByteValue & 0x40) != (lastStatusRegisterState & 0x40)))
-    {
+    if (firstBusyRead || ((oldStatusByteValue & 0x40) != (lastStatusRegisterState & 0x40))) {
         firstBusyRead = false;
         return true;
     }
@@ -156,86 +139,69 @@ static bool _29xxxDeviceIsBusy(void)
     return false;
 }
 
-static void _ResetFlashICStateMachine(void)
-{
-	if(is28xxxProtocol)
-	{
-		_28xxxResetFlashICStateMachine();
-	}
-	else
-	{
-		_29xxxResetFlashICStateMachine();
-	}
+static void _ResetFlashICStateMachine(void) {
+    if (is28xxxProtocol) {
+        _28xxxResetFlashICStateMachine();
+    } else {
+        _29xxxResetFlashICStateMachine();
+    }
 }
 
-static void _28xxxResetFlashICStateMachine(void)
-{
+static void _28xxxResetFlashICStateMachine(void) {
     FlashLowLevel_RawWrite(0x5555, 0xff);
 }
 
-static void _29xxxResetFlashICStateMachine(void)
-{
+static void _29xxxResetFlashICStateMachine(void) {
     FlashLowLevel_RawWrite(0x5555, 0xaa);
     FlashLowLevel_RawWrite(0x2aaa, 0x55);
     FlashLowLevel_RawWrite(0x5555, 0xf0);
 }
 
-static void _ReadDeviceIDBytes(KNOWN_FLASH_TYPE* output)
-{
-    if(is28xxxProtocol)
-    {
+static void _ReadDeviceIDBytes(KNOWN_FLASH_TYPE *output) {
+    if (is28xxxProtocol) {
         _28xxxReadDeviceID(output);
-    }
-    else
-    {
+    } else {
         _29xxxReadDeviceID(output);
     }
 }
-static void _28xxxReadDeviceID(KNOWN_FLASH_TYPE* output)
-{
+static void _28xxxReadDeviceID(KNOWN_FLASH_TYPE *output) {
     FlashLowLevel_RawWrite(0x5555, 0x90);
     output->m_bManufacturerId = FlashLowLevel_ReadByte(0);
     FlashLowLevel_RawWrite(0x5555, 0x90);
     output->m_bDeviceId = FlashLowLevel_ReadByte(1);
 }
 
-static void _29xxxReadDeviceID(KNOWN_FLASH_TYPE* output)
-{
+static void _29xxxReadDeviceID(KNOWN_FLASH_TYPE *output) {
     FlashLowLevel_RawWrite(0x5555, 0xaa);
     FlashLowLevel_RawWrite(0x2aaa, 0x55);
     FlashLowLevel_RawWrite(0x5555, 0x90);
     output->m_bManufacturerId = FlashLowLevel_ReadByte(0);
-    output->m_bDeviceId = FlashLowLevel_ReadByte(1);
+    output->m_bDeviceId       = FlashLowLevel_ReadByte(1);
     FlashLowLevel_RawWrite(0x5555, 0xf0);
 }
 
-static bool _MatchDevice(const KNOWN_FLASH_TYPE* output)
-{
+static bool _MatchDevice(const KNOWN_FLASH_TYPE *output) {
     unsigned int i = 0, n = 0;
 
-    while(aknownflashtypesDefault[i].m_bDeviceId != 0)
-    {
-        if(aknownflashtypesDefault[i].m_bManufacturerId == output->m_bManufacturerId &&
-           aknownflashtypesDefault[i].m_bDeviceId == output->m_bDeviceId)
-        {
-            flashDevice.flashType = aknownflashtypesDefault[i];
-            flashDevice.m_szAdditionalErrorInfo[0] = '\0';
+    while (aknownflashtypesDefault[i].m_bDeviceId != 0) {
+        if (aknownflashtypesDefault[i].m_bManufacturerId == output->m_bManufacturerId &&
+            aknownflashtypesDefault[i].m_bDeviceId == output->m_bDeviceId) {
+            flashDevice.flashType                           = aknownflashtypesDefault[i];
+            flashDevice.m_szAdditionalErrorInfo[0]          = '\0';
             flashDevice.m_fIsBelievedCapableOfWriteAndErase = true;
 
-            if(is28xxxProtocol)
-            {
+            if (is28xxxProtocol) {
                 FlashLowLevel_RawWrite(0x5555, 0x90);
-                if(FlashLowLevel_ReadByte(0x03) != 0) //Read Master Lock Configuration Code
+                if (FlashLowLevel_ReadByte(0x03) != 0) // Read Master Lock Configuration Code
                 {
-                    i = sprintf(flashDevice.m_szAdditionalErrorInfo, "%s","Master Lock SET  "); // reuse 'i'
+                    i                                               = sprintf(flashDevice.m_szAdditionalErrorInfo, "%s", "Master Lock SET  "); // reuse 'i'
                     flashDevice.m_fIsBelievedCapableOfWriteAndErase = false;
 
-                    i += sprintf(&flashDevice.m_szAdditionalErrorInfo[i], "%s","Block(64KB) Locks: ");
+                    i += sprintf(&flashDevice.m_szAdditionalErrorInfo[i], "%s", "Block(64KB) Locks: ");
 
-                    while(n < flashDevice.flashType.m_dwLengthInBytes)
-                    {
+                    while (n < flashDevice.flashType.m_dwLengthInBytes) {
                         FlashLowLevel_RawWrite(0x5555, 0x90);
-                        i += sprintf(&flashDevice.m_szAdditionalErrorInfo[i], "%u", FlashLowLevel_ReadByte(n|0x0002) & 1);
+                        i += sprintf(&flashDevice.m_szAdditionalErrorInfo[i], "%u", FlashLowLevel_ReadByte(n | 0x0002) & 1);
                         n += 0x10000;
                     }
 
@@ -252,26 +218,20 @@ static bool _MatchDevice(const KNOWN_FLASH_TYPE* output)
     return false;
 }
 
-void FlashLowLevel_WriteByte(unsigned char byte, unsigned int addr)
-{
-    if(is28xxxProtocol)
-    {
+void FlashLowLevel_WriteByte(unsigned char byte, unsigned int addr) {
+    if (is28xxxProtocol) {
         _28xxxWriteBytes(byte, addr);
-    }
-    else
-    {
+    } else {
         _29xxxWriteBytes(byte, addr);
     }
 }
 
-static void _28xxxWriteBytes(unsigned char byte, unsigned int addr)
-{
+static void _28xxxWriteBytes(unsigned char byte, unsigned int addr) {
     FlashLowLevel_RawWrite(addr, 0x40);
     FlashLowLevel_RawWrite(addr, byte);
 }
 
-static void _29xxxWriteBytes(unsigned char byte, unsigned int addr)
-{
+static void _29xxxWriteBytes(unsigned char byte, unsigned int addr) {
     FlashLowLevel_RawWrite(0x5555, 0xaa);
     FlashLowLevel_RawWrite(0x2aaa, 0x55);
     FlashLowLevel_RawWrite(0x5555, 0xa0);
@@ -280,56 +240,44 @@ static void _29xxxWriteBytes(unsigned char byte, unsigned int addr)
 
 void FlashLowLevel_InititiateSectorErase(unsigned int addr) // 4KB
 {
-    if(is28xxxProtocol)
-    {
+    if (is28xxxProtocol) {
         _28xxxSectorErase(addr);
-    }
-    else
-    {
+    } else {
         _29xxxSectorErase(addr);
     }
 }
 
-static void _28xxxSectorErase(unsigned int addr)
-{
-    _28xxxBlockErase(addr); //Sector erase not supported
+static void _28xxxSectorErase(unsigned int addr) {
+    _28xxxBlockErase(addr); // Sector erase not supported
 }
 
-static void _29xxxSectorErase(unsigned int addr)
-{
+static void _29xxxSectorErase(unsigned int addr) {
     _29xxxCommonEraseSequence();
     FlashLowLevel_RawWrite(addr, 0x30);
 }
 
-void FlashLowLevel_InititiateBlockErase(unsigned int addr)  // 64KB
+void FlashLowLevel_InititiateBlockErase(unsigned int addr) // 64KB
 {
-    if(is28xxxProtocol)
-    {
+    if (is28xxxProtocol) {
         _28xxxBlockErase(addr);
-    }
-    else
-    {
+    } else {
         _29xxxBlockErase(addr);
     }
 }
 
-static void _28xxxBlockErase(unsigned int addr)
-{
-    FlashLowLevel_RawWrite(0x5555, 0x50); //Clear status register
+static void _28xxxBlockErase(unsigned int addr) {
+    FlashLowLevel_RawWrite(0x5555, 0x50); // Clear status register
     FlashLowLevel_RawWrite(addr, 0x20);
     FlashLowLevel_RawWrite(addr, 0xd0);
 }
 
-static void _29xxxBlockErase(unsigned int addr)
-{
+static void _29xxxBlockErase(unsigned int addr) {
     _29xxxCommonEraseSequence();
     FlashLowLevel_RawWrite(addr, 0x50);
 }
 
-void FlashLowLevel_InititiateChipErase(void)
-{
-    if(is28xxxProtocol)
-    {
+void FlashLowLevel_InititiateChipErase(void) {
+    if (is28xxxProtocol) {
         // 28xxx does not support chip erase
         return;
     }
@@ -337,14 +285,12 @@ void FlashLowLevel_InititiateChipErase(void)
     _29xxxChipErase();
 }
 
-static void _29xxxChipErase(void)
-{
+static void _29xxxChipErase(void) {
     _29xxxCommonEraseSequence();
     FlashLowLevel_RawWrite(0x5555, 0x10);
 }
 
-static void _29xxxCommonEraseSequence(void)
-{
+static void _29xxxCommonEraseSequence(void) {
     FlashLowLevel_RawWrite(0x5555, 0xaa);
     FlashLowLevel_RawWrite(0x2aaa, 0x55);
     FlashLowLevel_RawWrite(0x5555, 0x80);

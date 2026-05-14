@@ -8,8 +8,8 @@
 #ifndef LIB_EEPROM_EEPROMSTRINGS_H_
 #define LIB_EEPROM_EEPROMSTRINGS_H_
 
-//String enum for DVD_ZONE
-static const char * const DVDregiontext[] = {
+// String enum for DVD_ZONE
+static const char *const DVDregiontext[] = {
     "Region Clear",
     "USA (1)",
     "Europe (2)",
@@ -18,37 +18,34 @@ static const char * const DVDregiontext[] = {
     "USSR (5)",
     "China (6)",
     "Free (7)",
-    "Airlines (8)"
-};
+    "Airlines (8)"};
 
-//String enum for XBE_REGSION
-static const char * const Gameregiontext[] = {
+// String enum for XBE_REGSION
+static const char *const Gameregiontext[] = {
     "Unknown/Error",
     "NTSC-U",
     "NTSC-J",
     "n/a",
-    "PAL"
-};
+    "PAL"};
 
-//String enum for VidScreenFormat
-static const char * const Vidformattext[] = {
+// String enum for VidScreenFormat
+static const char *const Vidformattext[] = {
     "Fullscreen",
     "Widescreen",
-    "Letterbox"
-};
+    "Letterbox"};
 
-//Always match with EEPROMModItem enum
-static const char * const SettingChangeLabel[EEPROMModItem_Count] = {
-  "HDDKkey=",
-  "GameRegion=",
-  "SerialNumber=",
-  "MACAddress=",
-  "VideoStandard=",
-  "VideoFormat=",
-  "Enable480p=",
-  "Enable720p=",
-  "Enable71080i",
-  "DVDZone=",
+// Always match with EEPROMModItem enum
+static const char *const SettingChangeLabel[EEPROMModItem_Count] = {
+    "HDDKkey=",
+    "GameRegion=",
+    "SerialNumber=",
+    "MACAddress=",
+    "VideoStandard=",
+    "VideoFormat=",
+    "Enable480p=",
+    "Enable720p=",
+    "Enable71080i",
+    "DVDZone=",
 };
 
 #endif /* LIB_EEPROM_EEPROMSTRINGS_H_ */

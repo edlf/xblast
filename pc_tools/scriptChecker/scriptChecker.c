@@ -6,41 +6,39 @@
  */
 
 #include "../../xblast/scriptEngine/xblastScriptEngine.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 
 void showUsage(const char *progname);
 
-int main (int argc, const char * argv[])
-{
-	FILE *pFile;
-	unsigned int fileSize;
-	unsigned char * buffer;
-     printf("XBlast OS script syntax checker.\n");
+int  main(int argc, const char *argv[]) {
+    FILE          *pFile;
+    unsigned int   fileSize;
+    unsigned char *buffer;
+    printf("XBlast OS script syntax checker.\n");
 
-    if( argc < 2 ) {
+    if (argc < 2) {
         showUsage(argv[0]);
         exit(1);
     }
 
-    pFile = fopen(argv[1],"rb");
-    if(pFile == NULL){
+    pFile = fopen(argv[1], "rb");
+    if (pFile == NULL) {
         printf("File open error.\n");
         exit(1);
     }
 
     fseek(pFile, 0, SEEK_END);
     fileSize = ftell(pFile);
-    if(fileSize == -1)
-    {
-    	printf("File size error...");
-    	exit(1);
+    if (fileSize == -1) {
+        printf("File size error...");
+        exit(1);
     }
     fseek(pFile, 0, SEEK_SET);
-    buffer = (unsigned char *)malloc(sizeof(unsigned char) * (fileSize + 1));
+    buffer   = (unsigned char *)malloc(sizeof(unsigned char) * (fileSize + 1));
 
     fileSize = fread(buffer, sizeof(unsigned char), fileSize, pFile);
 
@@ -56,7 +54,7 @@ int main (int argc, const char * argv[])
 
 void showUsage(const char *progname) {
     printf("Usage:   ");
-    printf("%s 'input file'\n",progname);
+    printf("%s 'input file'\n", progname);
 }
 
 

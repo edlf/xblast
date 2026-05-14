@@ -7,28 +7,28 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "MenuInits.h"
-#include "include/boot.h"
 #include "BootIde.h"
 #include "CDMenuActions.h"
+#include "MenuInits.h"
+#include "include/boot.h"
 #include "string.h"
 
-TEXTMENU* CDMenuInit(void) {
-    TEXTMENUITEM* itemPtr;
-    TEXTMENU* menuPtr;
+TEXTMENU *CDMenuInit(void) {
+    TEXTMENUITEM *itemPtr;
+    TEXTMENU     *menuPtr;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "CD Menu");
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     sprintf(itemPtr->szCaption, "Eject CD");
-    itemPtr->functionPtr = CDEject;
+    itemPtr->functionPtr     = CDEject;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     sprintf(itemPtr->szCaption, "Inject CD");
-    itemPtr->functionPtr = CDInject;
+    itemPtr->functionPtr     = CDInject;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 

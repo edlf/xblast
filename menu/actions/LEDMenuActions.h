@@ -9,12 +9,12 @@
  *                                                                         *
  ***************************************************************************/
 enum LEDconfig {
-LED_OFF = 0x0,
-LED_GREEN = 0x1,
-LED_RED = 0x2,
-LED_ORANGE = 0x3,
-LED_CYCLE = 0x4,
-LED_FIRSTBOOT = 0x5
+    LED_OFF       = 0x0,
+    LED_GREEN     = 0x1,
+    LED_RED       = 0x2,
+    LED_ORANGE    = 0x3,
+    LED_CYCLE     = 0x4,
+    LED_FIRSTBOOT = 0x5
 };
 
 void LEDGreen(void *);

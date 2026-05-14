@@ -1,151 +1,145 @@
 #include "MenuInits.h"
-#include "lpcmod_v1.h"
-#include "config.h"
-#include "boot.h"
 #include "ModchipMenuActions.h"
+#include "boot.h"
+#include "config.h"
+#include "lpcmod_v1.h"
 #include "string.h"
 #include "xblast/HardwareIdentifier.h"
 #include "xblast/settings/xblastSettings.h"
 
-TEXTMENU *ModchipMenuInit(void)
-{
-    TEXTMENUITEM* itemPtr;
-    TEXTMENU* menuPtr;
+TEXTMENU *ModchipMenuInit(void) {
+    TEXTMENUITEM *itemPtr;
+    TEXTMENU     *menuPtr;
 
-    menuPtr = (TEXTMENU*)calloc(1, sizeof(TEXTMENU));
+    menuPtr = (TEXTMENU *)calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "XBlast settings");
 
-    if(isXBlastOnLPC())
-    {
+    if (isXBlastOnLPC()) {
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "Idle timeout : ");
         sprintf(itemPtr->szParameter, "%ds", LPCmodSettings.OSsettings.bootTimeout);
-        itemPtr->functionLeftPtr = decrementbootTimeout;
-        itemPtr->functionLeftDataPtr = itemPtr->szParameter;
-        itemPtr->functionRightPtr = incrementbootTimeout;
+        itemPtr->functionLeftPtr      = decrementbootTimeout;
+        itemPtr->functionLeftDataPtr  = itemPtr->szParameter;
+        itemPtr->functionRightPtr     = incrementbootTimeout;
         itemPtr->functionRightDataPtr = itemPtr->szParameter;
-        itemPtr->functionLTPtr = decrementbootTimeout;
-        itemPtr->functionLTDataPtr = itemPtr->szParameter;
-        itemPtr->functionRTPtr = incrementbootTimeout;
-        itemPtr->functionRTDataPtr = itemPtr->szParameter;
+        itemPtr->functionLTPtr        = decrementbootTimeout;
+        itemPtr->functionLTDataPtr    = itemPtr->szParameter;
+        itemPtr->functionRTPtr        = incrementbootTimeout;
+        itemPtr->functionRTDataPtr    = itemPtr->szParameter;
         TextMenuAddItem(menuPtr, itemPtr);
 
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "Quickboot : ");
-        sprintf(itemPtr->szParameter, "%s", LPCmodSettings.OSsettings.Quickboot? "Yes" : "No");
-        itemPtr->functionPtr = toggleQuickboot;
-        itemPtr->functionDataPtr = itemPtr->szParameter;
-        itemPtr->functionLeftPtr = toggleQuickboot;
-        itemPtr->functionLeftDataPtr = itemPtr->szParameter;
-        itemPtr->functionRightPtr = toggleQuickboot;
+        sprintf(itemPtr->szParameter, "%s", LPCmodSettings.OSsettings.Quickboot ? "Yes" : "No");
+        itemPtr->functionPtr          = toggleQuickboot;
+        itemPtr->functionDataPtr      = itemPtr->szParameter;
+        itemPtr->functionLeftPtr      = toggleQuickboot;
+        itemPtr->functionLeftDataPtr  = itemPtr->szParameter;
+        itemPtr->functionRightPtr     = toggleQuickboot;
         itemPtr->functionRightDataPtr = itemPtr->szParameter;
         TextMenuAddItem(menuPtr, itemPtr);
 
 
-        BankSelectCommonParams* customParams = malloc(sizeof(BankSelectCommonParams));
+        BankSelectCommonParams *customParams = malloc(sizeof(BankSelectCommonParams));
 
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+        itemPtr                              = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "Power button boot : ");
         sprintf(itemPtr->szParameter, "%s", getSpecialSettingString(SpecialSettingsPtrArrayIndexName_ActiveBank, LPCmodSettings.OSsettings.activeBank));
-        customParams->powerButString = itemPtr->szParameter;
-        itemPtr->functionPtr = incrementActiveBank;
-        itemPtr->functionDataPtr = customParams->powerButString;
-        itemPtr->dataPtrAlloc = true;   //Signal only once as allocated mem is shared on 2/3 entries.
-        itemPtr->functionLeftPtr = decrementActiveBank;
-        itemPtr->functionLeftDataPtr = customParams->powerButString;
-        itemPtr->functionRightPtr = incrementActiveBank;
+        customParams->powerButString  = itemPtr->szParameter;
+        itemPtr->functionPtr          = incrementActiveBank;
+        itemPtr->functionDataPtr      = customParams->powerButString;
+        itemPtr->dataPtrAlloc         = true; // Signal only once as allocated mem is shared on 2/3 entries.
+        itemPtr->functionLeftPtr      = decrementActiveBank;
+        itemPtr->functionLeftDataPtr  = customParams->powerButString;
+        itemPtr->functionRightPtr     = incrementActiveBank;
         itemPtr->functionRightDataPtr = customParams->powerButString;
         TextMenuAddItem(menuPtr, itemPtr);
 
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "Eject button boot : ");
         sprintf(itemPtr->szParameter, "%s", getSpecialSettingString(SpecialSettingsPtrArrayIndexName_AltBank, LPCmodSettings.OSsettings.altBank));
-        customParams->ejectButString = itemPtr->szParameter;
-        itemPtr->functionPtr = incrementAltBank;
-        itemPtr->functionDataPtr = customParams->ejectButString;
-        itemPtr->functionLeftPtr = incrementAltBank;
-        itemPtr->functionLeftDataPtr = customParams->ejectButString;
-        itemPtr->functionRightPtr = incrementAltBank;
+        customParams->ejectButString  = itemPtr->szParameter;
+        itemPtr->functionPtr          = incrementAltBank;
+        itemPtr->functionDataPtr      = customParams->ejectButString;
+        itemPtr->functionLeftPtr      = incrementAltBank;
+        itemPtr->functionLeftDataPtr  = customParams->ejectButString;
+        itemPtr->functionRightPtr     = incrementAltBank;
         itemPtr->functionRightDataPtr = customParams->ejectButString;
         TextMenuAddItem(menuPtr, itemPtr);
 
-        if(isPureXBlast() && isTSOPSplitCapable())
-        {
-            //Don't show this when Xbox motherboard is not 1.0/1.1.
+        if (isPureXBlast() && isTSOPSplitCapable()) {
+            // Don't show this when Xbox motherboard is not 1.0/1.1.
             itemPtr = calloc(1, sizeof(TEXTMENUITEM));
             strcpy(itemPtr->szCaption, "Control Xbox TSOP : ");
             sprintf(itemPtr->szParameter, "%s", (LPCmodSettings.OSsettings.TSOPcontrol) ? "Yes" : "No");
             customParams->tsopControlString = itemPtr->szParameter;
-            itemPtr->functionPtr = toggleTSOPcontrol;
-            itemPtr->functionDataPtr = customParams;
-            itemPtr->functionLeftPtr = toggleTSOPcontrol;
-            itemPtr->functionLeftDataPtr = customParams;
-            itemPtr->functionRightPtr = toggleTSOPcontrol;
-            itemPtr->functionRightDataPtr = customParams;
+            itemPtr->functionPtr            = toggleTSOPcontrol;
+            itemPtr->functionDataPtr        = customParams;
+            itemPtr->functionLeftPtr        = toggleTSOPcontrol;
+            itemPtr->functionLeftDataPtr    = customParams;
+            itemPtr->functionRightPtr       = toggleTSOPcontrol;
+            itemPtr->functionRightDataPtr   = customParams;
             TextMenuAddItem(menuPtr, itemPtr);
-
         }
-    
+
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         strcpy(itemPtr->szCaption, "Hide TSOP boot icon : ");
         sprintf(itemPtr->szParameter, "%s", (LPCmodSettings.OSsettings.TSOPhide) ? "Yes" : "No");
-        itemPtr->functionPtr = toggleTSOPhide;
-        itemPtr->functionDataPtr = itemPtr->szParameter;
-        itemPtr->functionLeftPtr = toggleTSOPhide;
-        itemPtr->functionLeftDataPtr = itemPtr->szParameter;
-        itemPtr->functionRightPtr = toggleTSOPhide;
+        itemPtr->functionPtr          = toggleTSOPhide;
+        itemPtr->functionDataPtr      = itemPtr->szParameter;
+        itemPtr->functionLeftPtr      = toggleTSOPhide;
+        itemPtr->functionLeftDataPtr  = itemPtr->szParameter;
+        itemPtr->functionRightPtr     = toggleTSOPhide;
         itemPtr->functionRightDataPtr = itemPtr->szParameter;
         TextMenuAddItem(menuPtr, itemPtr);
 
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption, "Bank0(512KB) BIOS name");
-        itemPtr->functionPtr = editBIOSName;
-        itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
-        *(char*)itemPtr->functionDataPtr = FlashBank_512Bank;
+        itemPtr->functionPtr              = editBIOSName;
+        itemPtr->functionDataPtr          = malloc(sizeof(FlashBank));
+        *(char *)itemPtr->functionDataPtr = FlashBank_512Bank;
         TextMenuAddItem(menuPtr, itemPtr);
 
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption, "Bank1(256KB) BIOS name");
-        customParams->bank256ItemPtr = itemPtr;
-        itemPtr->functionPtr = editBIOSName;
-        itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
-        *(char*)itemPtr->functionDataPtr = FlashBank_256Bank;
+        customParams->bank256ItemPtr      = itemPtr;
+        itemPtr->functionPtr              = editBIOSName;
+        itemPtr->functionDataPtr          = malloc(sizeof(FlashBank));
+        *(char *)itemPtr->functionDataPtr = FlashBank_256Bank;
         TextMenuAddItem(menuPtr, itemPtr);
 
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+        itemPtr                        = calloc(1, sizeof(TEXTMENUITEM));
         customParams->tsopBank0ItemPtr = itemPtr;
         sprintf(itemPtr->szCaption, "TSOP bank0 name");
-        itemPtr->functionPtr = editBIOSName;
-        itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
-        *(char*)itemPtr->functionDataPtr = FlashBank_SplitTSOP0Bank;
+        itemPtr->functionPtr              = editBIOSName;
+        itemPtr->functionDataPtr          = malloc(sizeof(FlashBank));
+        *(char *)itemPtr->functionDataPtr = FlashBank_SplitTSOP0Bank;
         TextMenuAddItem(menuPtr, itemPtr);
 
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+        itemPtr                        = calloc(1, sizeof(TEXTMENUITEM));
         customParams->tsopBank1ItemPtr = itemPtr;
         sprintf(itemPtr->szCaption, "TSOP bank1 name");
-        itemPtr->functionPtr = editBIOSName;
-        itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
-        *(char*)itemPtr->functionDataPtr = FlashBank_SplitTSOP1Bank;
+        itemPtr->functionPtr              = editBIOSName;
+        itemPtr->functionDataPtr          = malloc(sizeof(FlashBank));
+        *(char *)itemPtr->functionDataPtr = FlashBank_SplitTSOP1Bank;
         TextMenuAddItem(menuPtr, itemPtr);
 
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+        itemPtr                       = calloc(1, sizeof(TEXTMENUITEM));
         customParams->tsopFullItemPtr = itemPtr;
         sprintf(itemPtr->szCaption, "TSOP BIOS name");
-        itemPtr->functionPtr = editBIOSName;
-        itemPtr->functionDataPtr= malloc(sizeof(FlashBank));
-        *(char*)itemPtr->functionDataPtr = FlashBank_FullTSOPBank;
+        itemPtr->functionPtr              = editBIOSName;
+        itemPtr->functionDataPtr          = malloc(sizeof(FlashBank));
+        *(char *)itemPtr->functionDataPtr = FlashBank_FullTSOPBank;
         TextMenuAddItem(menuPtr, itemPtr);
 
-        itemPtr = calloc(1, sizeof(TEXTMENUITEM));
+        itemPtr                       = calloc(1, sizeof(TEXTMENUITEM));
         customParams->resetAllItemPtr = itemPtr;
         sprintf(itemPtr->szCaption, "Reset all settings");
         itemPtr->functionPtr = resetSettings;
         TextMenuAddItem(menuPtr, itemPtr);
 
         reorderTSOPNameMenuEntries(customParams);
-    }
-    else
-    {
+    } else {
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption, "Reboot from Modchip");
         itemPtr->noSelect = NOSELECTERROR;

@@ -3,5 +3,5 @@
 #undef CONFIG_PCI
 #define CONFIG_PCI
 
-#include "linux/usb.h"
 #include "cromwell.h"
+#include "linux/usb.h"

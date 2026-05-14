@@ -5,27 +5,24 @@
  *      Author: cromwelldev
  */
 
-#include "FlashUi.h"
 #include "FlashDriver.h"
-#include "lib/time/timeManagement.h"
-#include "lib/LPCMod/LCDRingBuffer.h"
+#include "FlashUi.h"
 #include "WebServerOps.h"
 #include "lib/LPCMod/BootLCD.h"
+#include "lib/LPCMod/LCDRingBuffer.h"
+#include "lib/time/timeManagement.h"
 
-unsigned char cromwellLoop(void)
-{
-    if(currentNetworkState != NetworkState_Idle)
-    {
+unsigned char cromwellLoop(void) {
+    if (currentNetworkState != NetworkState_Idle) {
         run_lwip();
     }
 
-    if(xLCD.enable)
-    {
+    if (xLCD.enable) {
         updateLCDRingBuffer();
     }
 
-    //debugSPIPrint loop
-    //LCD loop
+    // debugSPIPrint loop
+    // LCD loop
 
     return 1;
 }

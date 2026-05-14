@@ -9,7 +9,7 @@
 #define FATFSTESTHELPER_H_
 
 unsigned long long BootIdeGetSectorCount(unsigned char drive);
-int BootIdeDeviceConnected(int nDriveIndex);
-int BootIdeDeviceIsATAPI(int nDriveIndex);
+int                BootIdeDeviceConnected(int nDriveIndex);
+int                BootIdeDeviceIsATAPI(int nDriveIndex);
 
 #endif /* FATFSTESTHELPER_H_ */

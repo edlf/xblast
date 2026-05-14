@@ -33,13 +33,11 @@
  * SUCH DAMAGE.
  */
 
-#include "include/string.h"
 #include "ctype.h"
+#include "include/string.h"
 typedef unsigned char u_char;
 
-int
-strcasecmp(const char *s1, const char *s2)
-{
+int                   strcasecmp(const char *s1, const char *s2) {
     const u_char *us1 = (const u_char *)s1, *us2 = (const u_char *)s2;
 
     while (tolower(*us1) == tolower(*us2)) {
@@ -50,9 +48,7 @@ strcasecmp(const char *s1, const char *s2)
     return (tolower(*us1) - tolower(*us2));
 }
 
-int
-strncasecmp(const char *s1, const char *s2, size_t n)
-{
+int strncasecmp(const char *s1, const char *s2, size_t n) {
 
     if (n != 0) {
         const u_char *us1 = (const u_char *)s1;

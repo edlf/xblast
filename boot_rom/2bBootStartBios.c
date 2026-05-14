@@ -14,122 +14,114 @@
  */
 
 #include "2bload.h"
-#include "sha1.h"
-#include "memory_layout.h"
 #include "lpcmod_v1.h"
+#include "memory_layout.h"
+#include "sha1.h"
 
-extern int decompress_kernel(unsigned char*out, unsigned char *data, int len);
+extern int decompress_kernel(unsigned char *out, unsigned char *data, int len);
 
 /* -------------------------  Main Entry for after the ASM sequences ------------------------ */
-    // do not change this, this is linked to many many scipts
+// do not change this, this is linked to many many scipts
 
-#define CROMWELL_Memory_pos 	 	CODE_LOC_START
-#define PROGRAMM_Memory_2bl 	 	0x00100000
-#define CROMWELL_compress_temploc 	0x02000000
-#define compressed_image_start      (BL_END_ADDR + 0x18) //Start offset is just after 20 bytes SHA1 + binsize(unsigned int)
+#define CROMWELL_Memory_pos       CODE_LOC_START
+#define PROGRAMM_Memory_2bl       0x00100000
+#define CROMWELL_compress_temploc 0x02000000
+#define compressed_image_start    (BL_END_ADDR + 0x18) // Start offset is just after 20 bytes SHA1 + binsize(unsigned int)
 
 #define SHA1Length 20
 
-extern void BootStartBiosLoader ( void )
-{
-    const unsigned short sysconreg = SYSCON_REG;
-    const unsigned short xodusreg= XODUS_CONTROL;
-    const unsigned short xblastreg = XBLAST_CONTROL;
-    unsigned int cromwellidentify = 1;
+extern void BootStartBiosLoader(void) {
+    const unsigned short sysconreg        = SYSCON_REG;
+    const unsigned short xodusreg         = XODUS_CONTROL;
+    const unsigned short xblastreg        = XBLAST_CONTROL;
+    unsigned int         cromwellidentify = 1;
 
-    unsigned char sysID, bankReg;
+    unsigned char        sysID, bankReg;
 
-    struct SHA1Context context;
-    unsigned char SHA1_result[SHA1Length];
+    struct SHA1Context   context;
+    unsigned char        SHA1_result[SHA1Length];
 
-    unsigned char bootloaderChecksum[SHA1Length];
-    unsigned int bootloadersize;
+    unsigned char        bootloaderChecksum[SHA1Length];
+    unsigned int         bootloadersize;
 
-    unsigned char compressedKernelChecksum[SHA1Length];
-    unsigned int loadretry;
-    unsigned int compressed_image_size;
+    unsigned char        compressedKernelChecksum[SHA1Length];
+    unsigned int         loadretry;
+    unsigned int         compressed_image_size;
 
-    extern int _size_code_2bl;
-    const unsigned int boot_ver = BootloaderVersion1;
+    extern int           _size_code_2bl;
+    const unsigned int   boot_ver = BootloaderVersion1;
 
 
     // Get data put there by imagebld
-    memcpy(&bootloaderChecksum[0], (void*)PROGRAMM_Memory_2bl, SHA1Length);
-    memcpy(&bootloadersize, (void*)(PROGRAMM_Memory_2bl + SHA1Length), sizeof(unsigned int));
+    memcpy(&bootloaderChecksum[0], (void *)PROGRAMM_Memory_2bl, SHA1Length);
+    memcpy(&bootloadersize, (void *)(PROGRAMM_Memory_2bl + SHA1Length), sizeof(unsigned int));
 
     // Check reported size against actual size of data in RAM (excluding bss)
-    if(bootloadersize != (int)&_size_code_2bl - PROGRAMM_Memory_2bl)
-    {
+    if (bootloadersize != (int)&_size_code_2bl - PROGRAMM_Memory_2bl) {
         goto kill;
     }
 
     // Check SHA1 of 2bl code in RAM.
     SHA1Reset(&context);
-    SHA1Input(&context, (void*)(PROGRAMM_Memory_2bl + SHA1Length + sizeof(unsigned int)), bootloadersize - SHA1Length - sizeof(unsigned int));
+    SHA1Input(&context, (void *)(PROGRAMM_Memory_2bl + SHA1Length + sizeof(unsigned int)), bootloadersize - SHA1Length - sizeof(unsigned int));
     SHA1Result(&context, SHA1_result);
 
     // Avoid further 2bl execution if mismatch. Avoid potential freeze.
-    if(memcmp(&bootloaderChecksum[0], &SHA1_result[0], SHA1Length))
-    {
+    if (memcmp(&bootloaderChecksum[0], &SHA1_result[0], SHA1Length)) {
         // Bad, the checksum does not match, but we can nothing do now. Hope we'll jump successfully to "kill"!
         goto kill;
     }
     // HEHE, the Image we copy'd into ram is SHA-1 hash identical, this is Optimum
     // Sets the Graphics Card to 60 MB start address
-    (*(unsigned int*)0xFD600800) = FB_START;
+    (*(unsigned int *)0xFD600800) = FB_START;
 
     // Lets go, we have finished, the Most important Startup, we have now a valid Micro-loder im Ram
     // we are quite happy now
 
-    for (loadretry = 0; loadretry < 10; loadretry++)
-    {
+    for (loadretry = 0; loadretry < 10; loadretry++) {
         // Copy From Flash To RAM
         // Copy Kernel SHA-1 checksum
-        memcpy(&compressedKernelChecksum[0], (void*)(LPCFlashadress + BL_END_ADDR), SHA1Length); // Kernel data always starts at offset BL_END_ADDR in flash.
-        memcpy(&compressed_image_size, (void*)(LPCFlashadress + BL_END_ADDR + SHA1Length), sizeof(unsigned int));
+        memcpy(&compressedKernelChecksum[0], (void *)(LPCFlashadress + BL_END_ADDR), SHA1Length); // Kernel data always starts at offset BL_END_ADDR in flash.
+        memcpy(&compressed_image_size, (void *)(LPCFlashadress + BL_END_ADDR + SHA1Length), sizeof(unsigned int));
 
         // Arbitrary size validation
-        if(compressed_image_size < 50000 || compressed_image_size > (256 * 1024 - compressed_image_start - (4 * 1024)))
-        {
+        if (compressed_image_size < 50000 || compressed_image_size > (256 * 1024 - compressed_image_start - (4 * 1024))) {
             goto kill;
         }
 
         // Copy GZipped Kernel
-        memcpy((void*)CROMWELL_compress_temploc, (void*)(LPCFlashadress + compressed_image_start), compressed_image_size);
+        memcpy((void *)CROMWELL_compress_temploc, (void *)(LPCFlashadress + compressed_image_start), compressed_image_size);
 
         // Lets Look, if we have got a Valid thing from Flash
         SHA1Reset(&context);
-        SHA1Input(&context, (void*)(CROMWELL_compress_temploc), compressed_image_size);
+        SHA1Input(&context, (void *)(CROMWELL_compress_temploc), compressed_image_size);
         SHA1Result(&context, SHA1_result);
 
 
-
-        if(memcmp(&compressedKernelChecksum[0], SHA1_result, SHA1Length) == 0)
-        {
+        if (memcmp(&compressedKernelChecksum[0], SHA1_result, SHA1Length) == 0) {
             // The Checksum is good
             // We start the Cromwell immediatly
-            BufferIN = (unsigned char *)(CROMWELL_compress_temploc);
+            BufferIN    = (unsigned char *)(CROMWELL_compress_temploc);
             BufferINlen = compressed_image_size;
-            BufferOUT = (unsigned char *)CROMWELL_Memory_pos;
+            BufferOUT   = (unsigned char *)CROMWELL_Memory_pos;
             memset((void *)CROMWELL_Memory_pos, 0x00, 0x400000);
             decompress_kernel(BufferOUT, BufferIN, BufferINlen);
 
             // This is a config bit in Cromwell, telling the Cromwell, that it is a Cromwell and not a Xromwell
             // Will be cromwell_config in Cromwell
-            memcpy((void*)(CROMWELL_Memory_pos + 0x20), &cromwellidentify, sizeof(cromwellidentify));
+            memcpy((void *)(CROMWELL_Memory_pos + 0x20), &cromwellidentify, sizeof(cromwellidentify));
             // Will be cromwell_retryload in Cromwell
-            memcpy((void*)(CROMWELL_Memory_pos + 0x20 + sizeof(cromwellidentify)), &loadretry, sizeof(loadretry));
+            memcpy((void *)(CROMWELL_Memory_pos + 0x20 + sizeof(cromwellidentify)), &loadretry, sizeof(loadretry));
             // Will be cromwell_2blversion in Cromwell
-            memcpy((void*)(CROMWELL_Memory_pos + 0x20 + sizeof(cromwellidentify) + sizeof(loadretry) ), &boot_ver, sizeof(boot_ver));
+            memcpy((void *)(CROMWELL_Memory_pos + 0x20 + sizeof(cromwellidentify) + sizeof(loadretry)), &boot_ver, sizeof(boot_ver));
             // Will be cromwell_2blsize in Cromwell
-            memcpy((void*)(CROMWELL_Memory_pos + 0x20 + sizeof(cromwellidentify) + sizeof(loadretry) + sizeof(boot_ver)), &bootloadersize, sizeof(bootloadersize));
+            memcpy((void *)(CROMWELL_Memory_pos + 0x20 + sizeof(cromwellidentify) + sizeof(loadretry) + sizeof(boot_ver)), &bootloadersize, sizeof(bootloadersize));
 
             // We now jump to the cromwell, Good bye 2bl loader
             // This means: jmp CROMWELL_Memory_pos == 0x03800000
-            __asm __volatile__ (
-            "cld\n"
-            "ljmp $0x10, $0x03800000\n"
-            );
+            __asm __volatile__(
+                "cld\n"
+                "ljmp $0x10, $0x03800000\n");
             // We are not Longer here
             break;
         }
@@ -139,22 +131,22 @@ extern void BootStartBiosLoader ( void )
 kill:
 
     // Compatible modchip?
-    __asm__ __volatile__ ("inb %w1,%0":"=a" (sysID):"Nd" (sysconreg));
+    __asm__ __volatile__("inb %w1,%0" : "=a"(sysID) : "Nd"(sysconreg));
 
-    if(sysID == SYSCON_ID_V1 || sysID == SYSCON_ID_V1_PRE_EDITION || sysID == SYSCON_ID_XT)
-    {
+    if (sysID == SYSCON_ID_V1 || sysID == SYSCON_ID_V1_PRE_EDITION || sysID == SYSCON_ID_XT) {
         // On OS bank? (or close enough)
-        __asm__ __volatile__ ("inb %w1,%0":"=a" (bankReg):"Nd" (xodusreg));
-        if(bankReg == 0x0C)
-        {
+        __asm__ __volatile__("inb %w1,%0" : "=a"(bankReg) : "Nd"(xodusreg));
+        if (bankReg == 0x0C) {
             // Boot 512KB bank
-            __asm__ ("out %%al, %%dx" : : "a" (BNK512), "d" (xblastreg));
+            __asm__("out %%al, %%dx" : : "a"(BNK512), "d"(xblastreg));
             I2CTransmitWord(0x10, 0x0201);
-            while(1);
+            while (1)
+                ;
         }
     }
 
     // Power_cycle
     I2CTransmitWord(0x10, 0x0240);
-    while(1);
+    while (1)
+        ;
 }

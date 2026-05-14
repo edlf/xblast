@@ -9,20 +9,20 @@ struct ioapicreg {
 };
 
 struct ioapicreg ioapicregvalues[] = {
-#define ALL        (0xff << 24)
-#define NONE        (0)
-#define DISABLED    (1 << 16)
-#define ENABLED        (0 << 16)
-#define TRIGGER_EDGE    (0 << 15)
-#define TRIGGER_LEVEL    (1 << 15)
-#define POLARITY_HIGH    (0 << 13)
-#define POLARITY_LOW    (1 << 13)
-#define PHYSICAL_DEST    (0 << 11)
-#define LOGICAL_DEST    (1 << 11)
+#define ALL           (0xff << 24)
+#define NONE          (0)
+#define DISABLED      (1 << 16)
+#define ENABLED       (0 << 16)
+#define TRIGGER_EDGE  (0 << 15)
+#define TRIGGER_LEVEL (1 << 15)
+#define POLARITY_HIGH (0 << 13)
+#define POLARITY_LOW  (1 << 13)
+#define PHYSICAL_DEST (0 << 11)
+#define LOGICAL_DEST  (1 << 11)
 #define ExtINT        (7 << 8)
-#define NMI        (4 << 8)
-#define SMI        (2 << 8)
-#define INT        (1 << 8)
+#define NMI           (4 << 8)
+#define SMI           (2 << 8)
+#define INT           (1 << 8)
     /* mask, trigger, polarity, destination, delivery, vector */
     {0x00, DISABLED, NONE},
     {0x01, DISABLED, NONE},
@@ -51,29 +51,28 @@ struct ioapicreg ioapicregvalues[] = {
     {0x17, DISABLED, NONE},
 };
 
-void setup_ioapic(void)
-{
-    int i;
-    unsigned long value_low;
-    unsigned long nvram = 0xfec00000;
+void setup_ioapic(void) {
+    int                     i;
+    unsigned long           value_low;
+    unsigned long           nvram = 0xfec00000;
     volatile unsigned long *l;
-    struct ioapicreg *a = ioapicregvalues;
+    struct ioapicreg       *a = ioapicregvalues;
 
-    l = (unsigned long *) nvram;
+    l                         = (unsigned long *)nvram;
 
     for (i = 0; i < sizeof(ioapicregvalues) / sizeof(ioapicregvalues[0]);
          i++, a++) {
-        l[0] = (a->reg * 2) + 0x10;
-        l[4] = a->value_low;
+        l[0]      = (a->reg * 2) + 0x10;
+        l[4]      = a->value_low;
         value_low = l[4];
-        l[0] = (a->reg *2) + 0x11;
-        l[4] = a->value_high;
+        l[0]      = (a->reg * 2) + 0x11;
+        l[4]      = a->value_high;
 
-        if ((i==0) && (value_low == 0xffffffff)) {
+        if ((i == 0) && (value_low == 0xffffffff)) {
             printk("IO APIC not responding.\n");
             return;
         }
         printk("for IRQ, reg 0x%08x value 0x%08x 0x%08x\n",
-            a->reg, a->value_low, a->value_high);
+               a->reg, a->value_low, a->value_high);
     }
 }

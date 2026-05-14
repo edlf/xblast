@@ -11,19 +11,19 @@
 
 #include "TextMenu.h"
 
-//For the icon->text menu jump
+// For the icon->text menu jump
 void AdvancedMenu(void *menu);
 
-//Used to display child menus
-void DrawChildTextMenu(void* menu);
-void ResetDrawChildTextMenu(TEXTMENU* menu);
+// Used to display child menus
+void DrawChildTextMenu(void *menu);
+void ResetDrawChildTextMenu(TEXTMENU *menu);
 void DrawLargeHDDTextMenu(unsigned char drive);
 
 void SetWidescreen(void *);
 void SetVideoStandard(void *);
 void SetLEDColor(void *);
 
-void freeTextMenuAllocMem(TEXTMENU* menu);
+void freeTextMenuAllocMem(TEXTMENU *menu);
 
 void UiHeader(char *title);
 void UIFooter(void);

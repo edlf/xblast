@@ -9,30 +9,30 @@
 #include <stdbool.h>
 
 #define F_GEQUAL 0x10
-#define F137_G 0x20
-#define F_NOG 0x40
+#define F137_G   0x20
+#define F_NOG    0x40
 
 typedef struct {
     unsigned char driveIndex;
-    char* string1;
-    char* string2;
+    char         *string1;
+    char         *string2;
 } LockUnlockCommonParams;
 
-void AssertLockUnlock(void* customStructPtr);
-void AssertLockUnlockFromNetwork(void* customStructPtr);
-bool LockHDD(int nIndexDrive, bool verbos, unsigned char* eepromPtr);
-int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool internalEEPROM);
+void AssertLockUnlock(void *customStructPtr);
+void AssertLockUnlockFromNetwork(void *customStructPtr);
+bool LockHDD(int nIndexDrive, bool verbos, unsigned char *eepromPtr);
+int  UnlockHDD(int nIndexDrive, bool verbose, unsigned char *eepromPtr, bool internalEEPROM);
 bool masterPasswordUnlockSequence(int nIndexDrive);
 
-void DisplayHDDPassword(void* customString);
+void DisplayHDDPassword(void *customString);
 
-void FormatCacheDrives(void* driveId);
-void FormatDriveC(void* driveId);
-void FormatDriveE(void* driveId);
+void FormatCacheDrives(void *driveId);
+void FormatDriveC(void *driveId);
+void FormatDriveE(void *driveId);
 
-void DisplayHDDInfo(void* driveId);
+void DisplayHDDInfo(void *driveId);
 
-void FormatDriveFG(void* driveId);
+void FormatDriveFG(void *driveId);
 
-void AssertSMARTEnableDisable(void* customString);
-void CheckSMARTRETURNSTATUS(void* customString);
+void AssertSMARTEnableDisable(void *customString);
+void CheckSMARTRETURNSTATUS(void *customString);

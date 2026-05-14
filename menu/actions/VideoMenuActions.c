@@ -7,30 +7,28 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "boot.h"
-#include "video.h"
 #include "VideoMenuActions.h"
-#include "VideoInitialization.h"
 #include "BootEEPROM.h"
+#include "VideoInitialization.h"
+#include "boot.h"
 #include "lib/LPCMod/xblastDebug.h"
 #include "string.h"
+#include "video.h"
 
-void incrementVideoStandard(void * itemStr)
-{
+void incrementVideoStandard(void *itemStr) {
     EEPROM_VideoStandard newValue = *((EEPROM_VideoStandard *)&eeprom.VideoStandard);
 
-    switch(newValue)
-    {
-        case EEPROM_VideoStandardNTSC_M:
-            newValue = EEPROM_VideoStandardNTSC_J;
-            break;
-        case EEPROM_VideoStandardNTSC_J:
-            newValue = EEPROM_VideoStandardPAL_I;
-            break;
-        case EEPROM_VideoStandardPAL_I:
-            /* Fall through */
-        default:
-            newValue = EEPROM_VideoStandardNTSC_M;
+    switch (newValue) {
+    case EEPROM_VideoStandardNTSC_M:
+        newValue = EEPROM_VideoStandardNTSC_J;
+        break;
+    case EEPROM_VideoStandardNTSC_J:
+        newValue = EEPROM_VideoStandardPAL_I;
+        break;
+    case EEPROM_VideoStandardPAL_I:
+        /* Fall through */
+    default:
+        newValue = EEPROM_VideoStandardNTSC_M;
         break;
     }
 
@@ -38,23 +36,21 @@ void incrementVideoStandard(void * itemStr)
     sprintf(itemStr, "%s", getVideoStandardText(newValue));
 }
 
-void decrementVideoStandard(void * itemStr)
-{
+void decrementVideoStandard(void *itemStr) {
     EEPROM_VideoStandard newValue = *((EEPROM_VideoStandard *)&eeprom.VideoStandard);
 
 
-    switch(newValue)
-    {
-        case EEPROM_VideoStandardNTSC_M:
-            newValue = EEPROM_VideoStandardPAL_I;
-            break;
-        case EEPROM_VideoStandardPAL_I:
-            newValue = EEPROM_VideoStandardNTSC_J;
-            break;
-        case EEPROM_VideoStandardNTSC_J:
-            /* Fall through */
-        default:
-            newValue = EEPROM_VideoStandardNTSC_M;
+    switch (newValue) {
+    case EEPROM_VideoStandardNTSC_M:
+        newValue = EEPROM_VideoStandardPAL_I;
+        break;
+    case EEPROM_VideoStandardPAL_I:
+        newValue = EEPROM_VideoStandardNTSC_J;
+        break;
+    case EEPROM_VideoStandardNTSC_J:
+        /* Fall through */
+    default:
+        newValue = EEPROM_VideoStandardNTSC_M;
         break;
     }
 
@@ -62,20 +58,16 @@ void decrementVideoStandard(void * itemStr)
     sprintf(itemStr, "%s", getVideoStandardText(newValue));
 }
 
-void incrementVideoformat(void * itemStr)
-{
+void incrementVideoformat(void *itemStr) {
     EEPROM_VidScreenFormat format;
 
-    if(eeprom.VideoFlags[2] & EEPROM_VidScreenWidescreen)              //Set to Letterbox
+    if (eeprom.VideoFlags[2] & EEPROM_VidScreenWidescreen) // Set to Letterbox
     {
         format = EEPROM_VidScreenLetterbox;
-    }
-    else if(eeprom.VideoFlags[2] & EEPROM_VidScreenLetterbox)           //Set to Fullscreen
+    } else if (eeprom.VideoFlags[2] & EEPROM_VidScreenLetterbox) // Set to Fullscreen
     {
         format = EEPROM_VidScreenFullScreen;
-    }
-    else
-    {
+    } else {
         format = EEPROM_VidScreenWidescreen;
     }
     EepromSetVideoFormat(format);
@@ -83,83 +75,66 @@ void incrementVideoformat(void * itemStr)
     sprintf(itemStr, "%s", getScreenFormatText(format));
 }
 
-void decrementVideoformat(void * itemStr)
-{
+void decrementVideoformat(void *itemStr) {
     EEPROM_VidScreenFormat format;
 
-    if(eeprom.VideoFlags[2] & EEPROM_VidScreenWidescreen)              //Set to Fullscreen
+    if (eeprom.VideoFlags[2] & EEPROM_VidScreenWidescreen) // Set to Fullscreen
     {
         format = EEPROM_VidScreenFullScreen;
-    }
-    else if(eeprom.VideoFlags[2] & EEPROM_VidScreenLetterbox)           //Set to Widescreen
+    } else if (eeprom.VideoFlags[2] & EEPROM_VidScreenLetterbox) // Set to Widescreen
     {
         format = EEPROM_VidScreenWidescreen;
-    }
-    else
-    {
-        format = EEPROM_VidScreenLetterbox;                             //Set to Letterbox
+    } else {
+        format = EEPROM_VidScreenLetterbox; // Set to Letterbox
     }
     EepromSetVideoFormat(format);
     sprintf(itemStr, "%s", getScreenFormatText(format));
 }
 
-void toggle480p(void * itemStr)
-{
-    if (eeprom.VideoFlags[2] & EEPROM_VidResolutionEnable480p)         //480p already enabled?
+void toggle480p(void *itemStr) {
+    if (eeprom.VideoFlags[2] & EEPROM_VidResolutionEnable480p) // 480p already enabled?
     {
-        eeprom.VideoFlags[2] &= ~EEPROM_VidResolutionEnable480p;       //Disable
+        eeprom.VideoFlags[2] &= ~EEPROM_VidResolutionEnable480p; // Disable
         sprintf(itemStr, "%s", "No");
-    }
-    else
-    {
+    } else {
         eeprom.VideoFlags[2] |= EEPROM_VidResolutionEnable480p;
         sprintf(itemStr, "%s", "Yes");
     }
-    EepromCRC(eeprom.Checksum3,eeprom.TimeZoneBias,0x5b);
+    EepromCRC(eeprom.Checksum3, eeprom.TimeZoneBias, 0x5b);
 }
 
-void toggle720p(void * itemStr)
-{
-    if (eeprom.VideoFlags[2] & EEPROM_VidResolutionEnable720p)         //720p already enabled?
+void toggle720p(void *itemStr) {
+    if (eeprom.VideoFlags[2] & EEPROM_VidResolutionEnable720p) // 720p already enabled?
     {
-        eeprom.VideoFlags[2] &= ~EEPROM_VidResolutionEnable720p;       //Disable
+        eeprom.VideoFlags[2] &= ~EEPROM_VidResolutionEnable720p; // Disable
         sprintf(itemStr, "%s", "No");
-    }
-    else
-    {
+    } else {
         eeprom.VideoFlags[2] |= EEPROM_VidResolutionEnable720p;
         sprintf(itemStr, "%s", "Yes");
     }
-    EepromCRC(eeprom.Checksum3,eeprom.TimeZoneBias,0x5b);
+    EepromCRC(eeprom.Checksum3, eeprom.TimeZoneBias, 0x5b);
 }
 
-void toggle1080i(void * itemStr)
-{
-    if (eeprom.VideoFlags[2] & EEPROM_VidResolutionEnable1080i)         //1080i already enabled?
+void toggle1080i(void *itemStr) {
+    if (eeprom.VideoFlags[2] & EEPROM_VidResolutionEnable1080i) // 1080i already enabled?
     {
-        eeprom.VideoFlags[2] &= ~EEPROM_VidResolutionEnable1080i;       //Disable
+        eeprom.VideoFlags[2] &= ~EEPROM_VidResolutionEnable1080i; // Disable
         sprintf(itemStr, "%s", "No");
-    }
-    else
-    {
+    } else {
         eeprom.VideoFlags[2] |= EEPROM_VidResolutionEnable1080i;
         sprintf(itemStr, "%s", "Yes");
     }
-    EepromCRC(eeprom.Checksum3,eeprom.TimeZoneBias,0x5b);
+    EepromCRC(eeprom.Checksum3, eeprom.TimeZoneBias, 0x5b);
 }
 
-void toggleVGA(void* itemStr)
-{
-    if(LPCmodSettings.OSsettings.enableVGA)
-    {
+void toggleVGA(void *itemStr) {
+    if (LPCmodSettings.OSsettings.enableVGA) {
         LPCmodSettings.OSsettings.enableVGA = 0;
-    }
-    else
-    {
+    } else {
         LPCmodSettings.OSsettings.enableVGA = 1;
     }
 
     BootVgaInitializationKernelNG((CURRENT_VIDEO_MODE_DETAILS *)&vmode);
 
-    sprintf(itemStr, "%s", LPCmodSettings.OSsettings.enableVGA? "Yes" : "No");
+    sprintf(itemStr, "%s", LPCmodSettings.OSsettings.enableVGA ? "Yes" : "No");
 }

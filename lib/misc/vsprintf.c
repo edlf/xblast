@@ -9,39 +9,39 @@
  * Wirzenius wrote this portably, Torvalds fucked it up :-)
  */
 
-#include <stddef.h>
-#include "stdlib.h"
 #include "stdio.h"
+#include "stdlib.h"
+#include <stddef.h>
 
 static int skip_atoi(const char **s) {
-    int i=0;
+    int i = 0;
 
     while (is_digit(**s)) {
-        i = i*10 + *((*s)++) - '0';
+        i = i * 10 + *((*s)++) - '0';
     }
     return i;
 }
 
-#define ZEROPAD   1        /* pad with zero */
-#define SIGN      2        /* unsigned/signed long */
-#define PLUS      4        /* show plus */
-#define SPACE     8        /* space if plus */
-#define LEFT     16        /* left justified */
-#define SPECIAL  32        /* 0x */
-#define LARGE    64        /* use 'ABCDEF' instead of 'abcdef' */
+#define ZEROPAD 1  /* pad with zero */
+#define SIGN    2  /* unsigned/signed long */
+#define PLUS    4  /* show plus */
+#define SPACE   8  /* space if plus */
+#define LEFT    16 /* left justified */
+#define SPECIAL 32 /* 0x */
+#define LARGE   64 /* use 'ABCDEF' instead of 'abcdef' */
 
 #define ETH_ALEN 6
 
-#define do_div(n,base) ({ \
+#define do_div(n, base) ({ \
 int __res; \
 __res = ((unsigned long) n) % (unsigned) base; \
 n = ((unsigned long) n) / (unsigned) base; \
 __res; })
 
-static char * number(char * str, long num, int base, int size, int precision ,int type) {
-    char c,sign,tmp[66];
-    const char *digits="0123456789abcdefghijklmnopqrstuvwxyz";
-    int i;
+static char *number(char *str, long num, int base, int size, int precision, int type) {
+    char        c, sign, tmp[66];
+    const char *digits = "0123456789abcdefghijklmnopqrstuvwxyz";
+    int         i;
 
     if (type & LARGE)
         digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -49,12 +49,12 @@ static char * number(char * str, long num, int base, int size, int precision ,in
         type &= ~ZEROPAD;
     if (base < 2 || base > 36)
         return 0;
-    c = (type & ZEROPAD) ? '0' : ' ';
+    c    = (type & ZEROPAD) ? '0' : ' ';
     sign = 0;
     if (type & SIGN) {
         if (num < 0) {
             sign = '-';
-            num = -num;
+            num  = -num;
             size--;
         } else if (type & PLUS) {
             sign = '+';
@@ -72,21 +72,22 @@ static char * number(char * str, long num, int base, int size, int precision ,in
     }
     i = 0;
     if (num == 0)
-        tmp[i++]='0';
-    else while (num != 0)
-        tmp[i++] = digits[do_div(num,base)];
+        tmp[i++] = '0';
+    else
+        while (num != 0)
+            tmp[i++] = digits[do_div(num, base)];
     if (i > precision)
         precision = i;
     size -= precision;
-    if (!(type&(ZEROPAD+LEFT)))
-        while(size-->0)
+    if (!(type & (ZEROPAD + LEFT)))
+        while (size-- > 0)
             *str++ = ' ';
     if (sign)
         *str++ = sign;
     if (type & SPECIAL) {
-        if (base==8)
+        if (base == 8)
             *str++ = '0';
-        else if (base==16) {
+        else if (base == 16) {
             *str++ = '0';
             *str++ = digits[33];
         }
@@ -103,23 +104,22 @@ static char * number(char * str, long num, int base, int size, int precision ,in
     return str;
 }
 
-int vsprintf(char *buf, const char *fmt, va_list args)
-{
-    int len;
+int vsprintf(char *buf, const char *fmt, va_list args) {
+    int           len;
     unsigned long num;
-    int i, base;
-    char * str;
-    const char *s;
+    int           i, base;
+    char         *str;
+    const char   *s;
 
-    int flags;        /* flags to number() */
+    int           flags; /* flags to number() */
 
-    int field_width;    /* width of output field */
-    int precision;        /* min. # of digits for integers; max
-                   number of chars for from string */
-    int qualifier;        /* 'h', 'l', or 'L' for integer fields */
+    int           field_width; /* width of output field */
+    int           precision;   /* min. # of digits for integers; max
+                        number of chars for from string */
+    int           qualifier;   /* 'h', 'l', or 'L' for integer fields */
 
 
-    for (str=buf ; *fmt ; ++fmt) {
+    for (str = buf; *fmt; ++fmt) {
         if (*fmt != '%') {
             *str++ = *fmt;
             continue;
@@ -127,15 +127,25 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 
         /* process flags */
         flags = 0;
-        repeat:
-            ++fmt;        /* this also skips first '%' */
-            switch (*fmt) {
-                case '-': flags |= LEFT; goto repeat;
-                case '+': flags |= PLUS; goto repeat;
-                case ' ': flags |= SPACE; goto repeat;
-                case '#': flags |= SPECIAL; goto repeat;
-                case '0': flags |= ZEROPAD; goto repeat;
-                }
+    repeat:
+        ++fmt; /* this also skips first '%' */
+        switch (*fmt) {
+        case '-':
+            flags |= LEFT;
+            goto repeat;
+        case '+':
+            flags |= PLUS;
+            goto repeat;
+        case ' ':
+            flags |= SPACE;
+            goto repeat;
+        case '#':
+            flags |= SPECIAL;
+            goto repeat;
+        case '0':
+            flags |= ZEROPAD;
+            goto repeat;
+        }
 
         /* get field width */
         field_width = -1;
@@ -182,20 +192,24 @@ int vsprintf(char *buf, const char *fmt, va_list args)
             if (!(flags & LEFT))
                 while (--field_width > 0)
                     *str++ = ' ';
-            *str++ = (unsigned char) va_arg(args, int);
+            *str++ = (unsigned char)va_arg(args, int);
             while (--field_width > 0)
                 *str++ = ' ';
             continue;
 
         case 's':
 
-                        s = va_arg(args, char *);
+            s = va_arg(args, char *);
 
             if (!s)
                 s = "<NULL>";
 
-//            len = strnlen(s, precision);
-            { len=0; while ((s[len]!='\0') && ((unsigned int)len<(unsigned int)precision)) len++; }
+            // len = strnlen(s, precision);
+            {
+                len = 0;
+                while ((s[len] != '\0') && ((unsigned int)len < (unsigned int)precision))
+                    len++;
+            }
 
             if (!(flags & LEFT))
                 while (len < field_width--)
@@ -208,22 +222,22 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 
         case 'p':
             if (field_width == -1) {
-                field_width = 2*sizeof(void *);
+                field_width = 2 * sizeof(void *);
                 flags |= ZEROPAD;
             }
             str = number(str,
-                (unsigned long) va_arg(args, void *), 16,
-                field_width, precision, flags);
+                         (unsigned long)va_arg(args, void *), 16,
+                         field_width, precision, flags);
             continue;
 
 
         case 'n':
             if (qualifier == 'l') {
-                long * ip = va_arg(args, long *);
-                *ip = (str - buf);
+                long *ip = va_arg(args, long *);
+                *ip      = (str - buf);
             } else {
-                int * ip = va_arg(args, int *);
-                *ip = (str - buf);
+                int *ip = va_arg(args, int *);
+                *ip     = (str - buf);
             }
             continue;
 
@@ -247,25 +261,23 @@ int vsprintf(char *buf, const char *fmt, va_list args)
             flags |= SIGN;
         case 'u':
             break;
-        case '@':
-        {
+        case '@': {
             unsigned char *r;
             union {
-                    unsigned long   l;
-                    unsigned char   c[4];
+                unsigned long l;
+                unsigned char c[4];
             } u;
             u.l = va_arg(args, unsigned long);
             for (r = &u.c[0]; r < &u.c[4]; ++r)
-                    str += sprintf(str, "%d.", *r);
+                str += sprintf(str, "%d.", *r);
             --str;
             continue;
         }
-        case '!':
-        {
+        case '!': {
             unsigned char *r;
             unsigned char *p = va_arg(args, unsigned char *);
             for (r = p + ETH_ALEN; p < r; ++p)
-                    str += sprintf(str, "%02hX:", *p);
+                str += sprintf(str, "%02hX:", *p);
             --str;
             continue;
         }
@@ -282,9 +294,9 @@ int vsprintf(char *buf, const char *fmt, va_list args)
         if (qualifier == 'l')
             num = va_arg(args, unsigned long);
         else if (qualifier == 'h') {
-            num = (unsigned short) va_arg(args, int);
+            num = (unsigned short)va_arg(args, int);
             if (flags & SIGN)
-                num = (short) num;
+                num = (short)num;
         } else if (flags & SIGN)
             num = va_arg(args, int);
         else
@@ -292,16 +304,15 @@ int vsprintf(char *buf, const char *fmt, va_list args)
         str = number(str, num, base, field_width, precision, flags);
     }
     *str = '\0';
-    return str-buf;
+    return str - buf;
 }
 
-int sprintf(char * buf, const char *fmt, ...)
-{
+int sprintf(char *buf, const char *fmt, ...) {
     va_list args;
-    int i;
+    int     i;
 
     va_start(args, fmt);
-    i=vsprintf(buf,fmt,args);
+    i = vsprintf(buf, fmt, args);
     va_end(args);
     return i;
 }

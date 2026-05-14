@@ -3,14 +3,35 @@ AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Right
 AlignConsecutiveAssignments:
   Enabled: true
+  AcrossComments: true
+  AcrossEmptyLines: true
 AlignConsecutiveDeclarations:
   Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
 AlignConsecutiveMacros:
   Enabled: true
 AlignConsecutiveShortCaseStatements:
   Enabled: true
+ColumnLimit: 0
+UseTab: Never
+IndentWidth: 4
 MaxEmptyLinesToKeep: 2
 LineEnding: LF
 Language: Cpp
 RemoveBracesLLVM: false
-BraceWrapping: {}
+KeepEmptyLines:
+  AtEndOfFile: false
+  AtStartOfFile: false
+RemoveSemicolon: true
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpacesInAngles: Never
+SpacesInContainerLiterals: false
+SpacesInLineCommentPrefix:
+  Maximum: 1
+  Minimum: 1
+SpacesInParens: Never
+SpacesInSquareBrackets: false
+Standard: Auto

@@ -6,42 +6,40 @@
  */
 
 #include "FlashUi.h"
-#include "boot.h"
 #include "FlashDriver.h"
-#include "memory_layout.h"
-#include "video.h"
-#include "include/lpcmod_v1.h"
-#include "md5.h"
-#include "i2c.h"
+#include "FlashMenuActions.h"
+#include "Gentoox.h"
+#include "boot.h"
 #include "cromwell.h"
-#include "string.h"
+#include "i2c.h"
+#include "include/lpcmod_v1.h"
 #include "lib/LPCMod/BootLPCMod.h"
 #include "lib/cromwell/cromSystem.h"
-#include "Gentoox.h"
-#include "FlashMenuActions.h"
+#include "md5.h"
+#include "memory_layout.h"
 #include "menu/misc/ConfirmDialog.h"
 #include "menu/misc/ProgressBar.h"
+#include "string.h"
+#include "video.h"
 #include "xblast/HardwareIdentifier.h"
 #include "xblast/settings/xblastSettingsChangeTracker.h"
 #ifdef DEV_FEATURES
 #include "MenuActions.h"
 #endif
 
-static void BootFlashUserInterface(FlashOp ee, unsigned int dwPos, unsigned int dwExtent);
-static void setBiosJob(const unsigned char *data, unsigned int size, bool askConfirm);
-static bool FlashPrintResult(void);
-static void blockExecuteFlashJob(void);
+static void          BootFlashUserInterface(FlashOp ee, unsigned int dwPos, unsigned int dwExtent);
+static void          setBiosJob(const unsigned char *data, unsigned int size, bool askConfirm);
+static bool          FlashPrintResult(void);
+static void          blockExecuteFlashJob(void);
 
-static bool mustRestart = false;
+static bool          mustRestart     = false;
 static unsigned char previousPercent = 0;
 
-//Selects which function should be called for flashing.
-void FlashFileFromBuffer(unsigned char *fileBuf, unsigned int fileSize, bool askConfirm)
-{
-    debugSPIPrint(DEBUG_FLASH_UI,"New image to flash. size=%u\n", fileSize);
+// Selects which function should be called for flashing.
+void                 FlashFileFromBuffer(unsigned char *fileBuf, unsigned int fileSize, bool askConfirm) {
+    debugSPIPrint(DEBUG_FLASH_UI, "New image to flash. size=%u\n", fileSize);
 
-    if(Flash_getProgress().currentFlashOp == FlashOp_Idle)
-    {
+    if (Flash_getProgress().currentFlashOp == FlashOp_Idle) {
         setBiosJob(fileBuf, fileSize, askConfirm);
     }
 
@@ -49,107 +47,92 @@ void FlashFileFromBuffer(unsigned char *fileBuf, unsigned int fileSize, bool ask
 }
 
 
- // callback to show progress
-static void BootFlashUserInterface(FlashOp ee, unsigned int dwPos, unsigned int dwExtent)
-{
-    if(ee==FlashOp_EraseInProgress)
-    {
-        DisplayProgressBar(dwPos,dwExtent,0xffffff00);
-    }
-    else if(ee==FlashOp_WriteInProgress)
-    {
-        DisplayProgressBar(dwPos,dwExtent,0xff00ff00);
-    }
-    else if(ee==FlashOp_VerifyInProgress)
-    {
-         DisplayProgressBar(dwPos,dwExtent,0xffff00ff);
-    }
-    else if(ee==FlashOp_ReadInProgress)
-    {
-         DisplayProgressBar(dwPos,dwExtent,0xffff00ff);
+// callback to show progress
+static void BootFlashUserInterface(FlashOp ee, unsigned int dwPos, unsigned int dwExtent) {
+    if (ee == FlashOp_EraseInProgress) {
+        DisplayProgressBar(dwPos, dwExtent, 0xffffff00);
+    } else if (ee == FlashOp_WriteInProgress) {
+        DisplayProgressBar(dwPos, dwExtent, 0xff00ff00);
+    } else if (ee == FlashOp_VerifyInProgress) {
+        DisplayProgressBar(dwPos, dwExtent, 0xffff00ff);
+    } else if (ee == FlashOp_ReadInProgress) {
+        DisplayProgressBar(dwPos, dwExtent, 0xffff00ff);
     }
 }
 
-void BootShowFlashDevice(void)
-{
-    const OBJECT_FLASH* of = NULL;
+void BootShowFlashDevice(void) {
+    const OBJECT_FLASH *of = NULL;
 
-    FlashProgress progress;
+    FlashProgress       progress;
     progress = Flash_getProgress();
 
-    if(progress.currentFlashOp != FlashOp_Idle)
-    {
-        VIDEO_ATTR=0xffc8c8c8;
+    if (progress.currentFlashOp != FlashOp_Idle) {
+        VIDEO_ATTR = 0xffc8c8c8;
         printk("\n           Flash is unavailable.");
     }
 
     progress = Flash_ReadDeviceInfo(&of);
 
-    if(progress.currentFlashOp == FlashOp_Error)
-    {
-        VIDEO_ATTR=0xffc8c8c8;
+    if (progress.currentFlashOp == FlashOp_Error) {
+        VIDEO_ATTR = 0xffc8c8c8;
         printk("\n           No valid Flash device Detected!!!");
         return;
     }
 
 
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
     printk("\n           Manufacturer ID : ");
-    VIDEO_ATTR=0xffc8c800;
+    VIDEO_ATTR = 0xffc8c800;
     printk("%02X", of->flashType.m_bManufacturerId);
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
     printk("\n           Device ID : ");
-    VIDEO_ATTR=0xffc8c800;
+    VIDEO_ATTR = 0xffc8c800;
     printk("%02X", of->flashType.m_bDeviceId);
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
     printk("\n           Name : ");
-    VIDEO_ATTR=0xffc8c800;
+    VIDEO_ATTR = 0xffc8c800;
     printk("%s", of->flashType.m_szFlashDescription);
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
     printk("\n           Total size : ");
-    VIDEO_ATTR=0xffc8c800;
+    VIDEO_ATTR = 0xffc8c800;
     printk("%u KB", of->flashType.m_dwLengthInBytes / 1024);
 
     return;
 }
 
-static bool FlashPrintResult(void)
-{
-    bool isError = false;
+static bool FlashPrintResult(void) {
+    bool isError    = false;
     bool isCritical = false;
     char string[100];
 
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
-    VIDEO_ATTR=0xffef37;
+    VIDEO_ATTR          = 0xffef37;
 
     FlashErrorcodes res = Flash_getProgress().flashErrorCode;
 
-    if(res == FlashErrorcodes_NoError)
-    {
+    if (res == FlashErrorcodes_NoError) {
         printk("\n           \2Flashing success...\n\2\n\n\n");
-        VIDEO_ATTR=0xffffff;
+        VIDEO_ATTR = 0xffffff;
         printk("           ");
         cromwellSuccess();
-        printk ("\n           Flashing successful!!!");
+        printk("\n           Flashing successful!!!");
 
 #ifndef DEV_FEATURES
-        if(mustRestart == true) //Only restart if there were no errors
+        if (mustRestart == true) // Only restart if there were no errors
         {
-            debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence restart system\n");
+            debugSPIPrint(DEBUG_FLASH_UI, "Flash update sequence restart system\n");
             // Set LED to oxox.
             inputLED();
             Flash_freeFlashFSM();
             I2CRebootSlow();
-            while(1);
+            while (1)
+                ;
         }
 #endif
-    }
-    else
-    {
+    } else {
         printk("\n           \2Flashing failed...\n\2\n\n\n");
-        VIDEO_ATTR=0xffffff;
-        switch (res)
-        {
+        VIDEO_ATTR = 0xffffff;
+        switch (res) {
         case FlashErrorcodes_UserAbort:
             sprintf(string, "%s", "Flashing aborted.");
             break;
@@ -170,17 +153,17 @@ static bool FlashPrintResult(void)
             break;
         case FlashErrorcodes_FailedErase:
             sprintf(string, "%s", "Erasing failed, please reflash.");
-            isError = true;
+            isError    = true;
             isCritical = true;
             break;
         case FlashErrorcodes_FailedProgram:
             sprintf(string, "%s", "Programming failed, please reflash.");
-            isError = true;
+            isError    = true;
             isCritical = true;
             break;
         case FlashErrorcodes_FailedVerify:
             sprintf(string, "%s", "Verification failed, please reflash.");
-            isError = true;
+            isError    = true;
             isCritical = true;
             break;
         case FlashErrorcodes_FlashContentError:
@@ -195,15 +178,12 @@ static bool FlashPrintResult(void)
         }
 
         printk("           ");
-        if(isError == true)
-        {
+        if (isError == true) {
             cromwellError();
-        }
-        else
-        {
+        } else {
             cromwellWarning();
         }
-        printk ("\n           %s", string);
+        printk("\n           %s", string);
     }
 
     FlashFooter();
@@ -211,25 +191,21 @@ static bool FlashPrintResult(void)
     return isCritical;
 }
 
-bool SaveXBlastOSSettings(void)
-{
+bool SaveXBlastOSSettings(void) {
     bool resultSuccess = false;
 
-    if(memcmp(&LPCmodSettings, &LPCmodSettingsOrigFromFlash, sizeof(_LPCmodSettings)) == 0)
-    {
-        debugSPIPrint(DEBUG_FLASH_UI,"No setting changed since last boot. Skipping save to flash.\n");
+    if (memcmp(&LPCmodSettings, &LPCmodSettingsOrigFromFlash, sizeof(_LPCmodSettings)) == 0) {
+        debugSPIPrint(DEBUG_FLASH_UI, "No setting changed since last boot. Skipping save to flash.\n");
         return true;
     }
 
-    if(isXBlastOnTSOP())
-    {
-        debugSPIPrint(DEBUG_FLASH_UI,"XBlast detected but running from TSOP. Can't save to LPC flash.\n");
+    if (isXBlastOnTSOP()) {
+        debugSPIPrint(DEBUG_FLASH_UI, "XBlast detected but running from TSOP. Can't save to LPC flash.\n");
         return true;
     }
 
-    if(isXBlastCompatible() == false && isXBE())
-    {
-        debugSPIPrint(DEBUG_FLASH_UI,"No XBlast HW detected.Came from XBE. Assume no flash to same to.\n");
+    if (isXBlastCompatible() == false && isXBE()) {
+        debugSPIPrint(DEBUG_FLASH_UI, "No XBlast HW detected.Came from XBE. Assume no flash to same to.\n");
         return true;
     }
 
@@ -237,12 +213,10 @@ bool SaveXBlastOSSettings(void)
 
     FlashProgress flashProgress = Flash_SaveXBlastOSSettings();
 
-    while(cromwellLoop())
-    {
+    while (cromwellLoop()) {
         flashProgress = Flash_getProgress();
 
-        if(flashProgress.currentFlashOp == FlashOp_Idle)
-        {
+        if (flashProgress.currentFlashOp == FlashOp_Idle) {
             break;
         }
         resultSuccess = executeFlashDriverUI();
@@ -252,15 +226,14 @@ bool SaveXBlastOSSettings(void)
     return resultSuccess;
 }
 
-static void setBiosJob(const unsigned char *data, unsigned int size, bool askConfirm)
-{
+static void setBiosJob(const unsigned char *data, unsigned int size, bool askConfirm) {
     FlashProgress flashProgress;
     flashProgress.flashErrorCode = FlashErrorcodes_UserAbort;
     flashProgress.currentFlashOp = FlashOp_Error;
-    char * stringTemp;
-    
-    //Check bios data for obvious issues
-    bool pass = true;
+    char *stringTemp;
+
+    // Check bios data for obvious issues
+    bool  pass = true;
     printk("\n\n\n\n");
     if ((data[0] & 1) == 0) {
         printk("\n               ERROR: This BIOS will not work on a TSOP chip!");
@@ -283,114 +256,82 @@ static void setBiosJob(const unsigned char *data, unsigned int size, bool askCon
             }
             printk("%02X ", data[i]);
         }
-        
+
         printk("\n");
         printk("\n               Press X, Y, and A to ignore and continue (NOT RECOMMENDED).");
         printk("\n               Press B to quit.");
-        while(cromwellLoop()) {
+        while (cromwellLoop()) {
             if (XPAD_current[0].keys[0] /*A key*/ && XPAD_current[0].keys[2] /*X key*/ && XPAD_current[0].keys[3] /*Y key*/) {
-                break; //Continue with flashing
+                break; // Continue with flashing
             }
-            if(risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_B) == 1 || risefall_xpad_STATE(XPAD_STATE_BACK) == 1) {
+            if (risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_B) == 1 || risefall_xpad_STATE(XPAD_STATE_BACK) == 1) {
                 Flash_forceUserAbort();
                 return;
             }
         }
     }
 
-    if(isXBlastOnLPC())
-    {
-        if (currentFlashBank == FlashBank_OSBank)
-        {
-            if (askConfirm == false || ConfirmDialog("Confirm update XBlast OS?", 1) == false)
-            {
+    if (isXBlastOnLPC()) {
+        if (currentFlashBank == FlashBank_OSBank) {
+            if (askConfirm == false || ConfirmDialog("Confirm update XBlast OS?", 1) == false) {
                 flashProgress = Flash_XBlastOSBankFlash(data, size, 0, false);
 
-                if(flashProgress.flashErrorCode == FlashErrorcodes_DowngradeWarning)
-                {
-                    if(ConfirmDialog("Downgrade XBlast OS version?", 1) == false)
-                    {
+                if (flashProgress.flashErrorCode == FlashErrorcodes_DowngradeWarning) {
+                    if (ConfirmDialog("Downgrade XBlast OS version?", 1) == false) {
                         Flash_freeFlashFSM();
                         flashProgress = Flash_XBlastOSBankFlash(data, size, 0, true);
-                    }
-                    else
-                    {
+                    } else {
                         Flash_forceUserAbort();
                     }
                 }
 
-                if(flashProgress.currentFlashOp == FlashOp_PendingOp)
-                {
+                if (flashProgress.currentFlashOp == FlashOp_PendingOp) {
                     mustRestart = true;
                 }
-            }
-            else
-            {
+            } else {
                 Flash_forceUserAbort();
             }
-        }
-        else
-        {
-            if (currentFlashBank == FlashBank_512Bank)
-            {
+        } else {
+            if (currentFlashBank == FlashBank_512Bank) {
                 stringTemp = "Confirm flash bank0(512KB)?";
-            }
-            else if (currentFlashBank == FlashBank_256Bank)
-            {
+            } else if (currentFlashBank == FlashBank_256Bank) {
                 stringTemp = "Confirm flash bank1(256KB)?";
-            }
-            else if (currentFlashBank == FlashBank_SplitTSOP0Bank)
-            {
+            } else if (currentFlashBank == FlashBank_SplitTSOP0Bank) {
                 stringTemp = "Confirm TSOP bank0(512KB)?";
-            }
-            else if (currentFlashBank == FlashBank_SplitTSOP1Bank)
-            {
+            } else if (currentFlashBank == FlashBank_SplitTSOP1Bank) {
                 stringTemp = "Confirm TSOP bank1(512KB)?";
-            }
-            else if (currentFlashBank == FlashBank_FullTSOPBank)
-            {
+            } else if (currentFlashBank == FlashBank_FullTSOPBank) {
                 stringTemp = "Confirm TSOP (whole)?";
             }
-            //The case below shouldn't happen.
-            else
-            {
+            // The case below shouldn't happen.
+            else {
                 stringTemp = "Confirm flash bank?";
             }
 
-            if (askConfirm == false || ConfirmDialog(stringTemp, 1) == false)
-            {
+            if (askConfirm == false || ConfirmDialog(stringTemp, 1) == false) {
                 flashProgress = Flash_XBlastUserBankFlash(data, size, 0, currentFlashBank);
-            }
-            else
-            {
+            } else {
                 Flash_forceUserAbort();
             }
         }
-    }
-    else  //If no XBlast mod
+    } else // If no XBlast mod
     {
-        if (askConfirm  == false || ConfirmDialog("Confirm flash active bank?", 1) == false)
-        {
-            mustRestart = true;
+        if (askConfirm == false || ConfirmDialog("Confirm flash active bank?", 1) == false) {
+            mustRestart   = true;
             flashProgress = Flash_SimpleBIOSBankFlash(data, size, 0);
-        }
-        else
-        {
+        } else {
             Flash_forceUserAbort();
         }
     }
 }
 
-static void blockExecuteFlashJob(void)
-{
+static void blockExecuteFlashJob(void) {
     FlashProgress flashProgress = Flash_getProgress();
 
-    while(cromwellLoop())
-    {
+    while (cromwellLoop()) {
         flashProgress = Flash_getProgress();
 
-        if(flashProgress.currentFlashOp == FlashOp_Idle)
-        {
+        if (flashProgress.currentFlashOp == FlashOp_Idle) {
             break;
         }
 
@@ -401,83 +342,65 @@ static void blockExecuteFlashJob(void)
     switchOSBank(FlashBank_OSBank);
 }
 
-bool executeFlashDriverUI(void)
-{
-    bool resultSuccess = true;
+bool executeFlashDriverUI(void) {
+    bool          resultSuccess = true;
     FlashProgress flashProgress = Flash_getProgress();
 
-    switch(flashProgress.currentFlashTask)
-    {
+    switch (flashProgress.currentFlashTask) {
     case FlashTask_WriteBios:
-        if(flashProgress.currentFlashOp == FlashOp_PendingOp)
-        {
-            debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence pending op\n");
-            VIDEO_ATTR=0xffef37;
+        if (flashProgress.currentFlashOp == FlashOp_PendingOp) {
+            debugSPIPrint(DEBUG_FLASH_UI, "Flash update sequence pending op\n");
+            VIDEO_ATTR = 0xffef37;
 
-            if(mustRestart)
-            {
-                printk("\n           \2%s\n\2\n", (isXBlastOnLPC())?"Updating XBlast OS...":"Updating flash bank...");
-                VIDEO_ATTR=0xffffff;
+            if (mustRestart) {
+                printk("\n           \2%s\n\2\n", (isXBlastOnLPC()) ? "Updating XBlast OS..." : "Updating flash bank...");
+                VIDEO_ATTR = 0xffffff;
                 printk("\n\n\n           WARNING!\n");
                 printk("           Do not turn off your console during this process!\n");
                 printk("           Your console should automatically reboot when this\n");
                 printk("           is done.  However, if it does not, please manually\n");
                 printk("           do so by pressing the power button once the LED has\n");
                 printk("           turned flashing amber (oxox)\n");
-            }
-            else
-            {
+            } else {
                 printk("\n           \2Updating BIOS bank...\n\2\n");
-                VIDEO_ATTR=0xffffff;
+                VIDEO_ATTR = 0xffffff;
                 printk("\n\n\n           WARNING!\n");
                 printk("           Do not turn off your console during this process!\n");
             }
-        }
-        else if(flashProgress.currentFlashOp == FlashOp_Completed)
-        {
-            debugSPIPrint(DEBUG_FLASH_UI,"Flash update sequence completed\n");
+        } else if (flashProgress.currentFlashOp == FlashOp_Completed) {
+            debugSPIPrint(DEBUG_FLASH_UI, "Flash update sequence completed\n");
             FlashPrintResult();
             Flash_freeFlashFSM();
-        }
-        else if(flashProgress.currentFlashOp == FlashOp_Error)
-        {
-            debugSPIPrint(DEBUG_FLASH_UI,"!!Flash update sequence error!! errorCode=%u\n", flashProgress.flashErrorCode);
+        } else if (flashProgress.currentFlashOp == FlashOp_Error) {
+            debugSPIPrint(DEBUG_FLASH_UI, "!!Flash update sequence error!! errorCode=%u\n", flashProgress.flashErrorCode);
             FlashPrintResult();
             Flash_freeFlashFSM();
-        }
-        else
-        {
-            if(previousPercent != flashProgress.progressInPercent)
-            {
+        } else {
+            if (previousPercent != flashProgress.progressInPercent) {
                 previousPercent = flashProgress.progressInPercent;
                 BootFlashUserInterface(flashProgress.currentFlashOp, flashProgress.progressInPercent, 100);
             }
         }
         break;
-    case FlashTask_WriteSettings:
-    {
-        static char previousPercent = -1;
+    case FlashTask_WriteSettings: {
+        static char    previousPercent = -1;
         static FlashOp previousFlashOp = FlashOp_PendingOp;
 
-        if(previousPercent == -1)
-        {
+        if (previousPercent == -1) {
             BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
             printk("\n\n           Saving Settings to flash.");
             printk("\n           Do not manually power off your Xbox.");
             printk("\n\n           ");
             previousPercent = 0;
         }
-        if(previousPercent != flashProgress.progressInPercent)
-        {
+        if (previousPercent != flashProgress.progressInPercent) {
             previousPercent = flashProgress.progressInPercent;
             printk(".");
         }
 
-        if(previousFlashOp != flashProgress.currentFlashOp)
-        {
+        if (previousFlashOp != flashProgress.currentFlashOp) {
             previousFlashOp = flashProgress.currentFlashOp;
-            switch(flashProgress.currentFlashOp)
-            {
+            switch (flashProgress.currentFlashOp) {
             case FlashOp_EraseInProgress:
                 printk("\n\n           Erasing\n           ");
                 break;
@@ -492,8 +415,7 @@ bool executeFlashDriverUI(void)
             }
         }
 
-        if(flashProgress.currentFlashOp == FlashOp_Completed)
-        {
+        if (flashProgress.currentFlashOp == FlashOp_Completed) {
 #ifdef DEV_FEATURES
             printk("\n\n\n          BiosBufferSize : %u", getBiosBufferSize());
             printk("\n          StartingOffset : %u", getStartingOffset());
@@ -503,9 +425,7 @@ bool executeFlashDriverUI(void)
             UIFooter();
 #endif
             Flash_freeFlashFSM();
-        }
-        else if(flashProgress.currentFlashOp == FlashOp_Error)
-        {
+        } else if (flashProgress.currentFlashOp == FlashOp_Error) {
 #ifdef DEV_FEATURES
             printk("\n\n          BiosBufferSize : %u", getBiosBufferSize());
             printk("\n          StartingOffset : %u", getStartingOffset());
@@ -515,20 +435,17 @@ bool executeFlashDriverUI(void)
             UIFooter();
 #endif
             printk("\n\n\n\n\n           \2Save Settings to flash failed...\n\2\n");
-            VIDEO_ATTR=0xffffff;
+            VIDEO_ATTR    = 0xffffff;
             resultSuccess = FlashPrintResult() == false;
 
-            if(resultSuccess)
-            {
-                if(ConfirmDialog("Settings not saved.\n\2Continue anyway?", 1))
-                {
-                    resultSuccess = false; //Do not continue
+            if (resultSuccess) {
+                if (ConfirmDialog("Settings not saved.\n\2Continue anyway?", 1)) {
+                    resultSuccess = false; // Do not continue
                 }
             }
             Flash_freeFlashFSM();
         }
-    }
-        break;
+    } break;
     default:
         break;
     }

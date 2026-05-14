@@ -10,9 +10,9 @@
 
 #include "FlashDriver.h"
 
-void assertBankScriptExecBankBoot(void * data);
-void assertBankScriptExecTSOPBoot(void * data);
-void BootOriginalBios(FlashBank bank) ;
+void assertBankScriptExecBankBoot(void *data);
+void assertBankScriptExecTSOPBoot(void *data);
+void BootOriginalBios(FlashBank bank);
 void BootModBios(FlashBank bank);
 
 bool canPowerDown(void);

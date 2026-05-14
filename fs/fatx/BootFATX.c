@@ -1,53 +1,52 @@
 // Functions for processing FATX partitions
 // (c) 2001 Andrew de Quincey
 
-#include "boot.h"
 #include "BootFATX.h"
 #include "BootIde.h"
-#include "stdlib.h"
-#include "string.h"
 #include "Gentoox.h"
-#include "string.h"
+#include "boot.h"
 #include "cromwell.h"
 #include "sortHelpers.h"
+#include "stdlib.h"
+#include "string.h"
 
 #undef FATX_DEBUG
 
-//#define FATX_INFO
+// #define FATX_INFO
 
 XboxPartitionTable BackupPartTbl =
-{
-    { '*', '*', '*', '*', 'P', 'A', 'R', 'T', 'I', 'N', 'F', 'O', '*', '*', '*', '*' },
-    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     {
-        { { 'X', 'B', 'O', 'X', ' ', 'S', 'H', 'E', 'L', 'L', ' ', 'C', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_STORE, SECTORS_STORE, 0, 0},
-        { { 'X', 'B', 'O', 'X', ' ', 'D', 'A', 'T', 'A', ' ', 'E', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_SYSTEM, SECTORS_SYSTEM, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'X', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE1, SECTORS_CACHE1, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'Y', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE2, SECTORS_CACHE2, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'Z', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE3, SECTORS_CACHE3, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'E', 'X', 'T', 'R', 'A', ' ', 'F', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND, 0, 0, 0 },
-        { { 'X', 'B', 'O', 'X', ' ', 'E', 'X', 'T', 'R', 'A', ' ', 'G', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND + 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
-        { { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0 },
-    }
+        {'*', '*', '*', '*', 'P', 'A', 'R', 'T', 'I', 'N', 'F', 'O', '*', '*', '*', '*'},
+        {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+        {
+         {{'X', 'B', 'O', 'X', ' ', 'S', 'H', 'E', 'L', 'L', ' ', 'C', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_STORE, SECTORS_STORE, 0, 0},
+         {{'X', 'B', 'O', 'X', ' ', 'D', 'A', 'T', 'A', ' ', 'E', ' ', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_SYSTEM, SECTORS_SYSTEM, 0, 0},
+         {{'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'X', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE1, SECTORS_CACHE1, 0, 0},
+         {{'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'Y', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE2, SECTORS_CACHE2, 0, 0},
+         {{'X', 'B', 'O', 'X', ' ', 'C', 'A', 'C', 'H', 'E', ' ', 'Z', ' ', ' ', ' ', ' '}, PE_PARTFLAGS_IN_USE, SECTOR_CACHE3, SECTORS_CACHE3, 0, 0},
+         {{'X', 'B', 'O', 'X', ' ', 'E', 'X', 'T', 'R', 'A', ' ', 'F', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND, 0, 0, 0},
+         {{'X', 'B', 'O', 'X', ' ', 'E', 'X', 'T', 'R', 'A', ' ', 'G', ' ', ' ', ' ', ' '}, 0, SECTOR_EXTEND + 0, 0, 0, 0},
+         {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0},
+         {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0},
+         {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0},
+         {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0},
+         {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0},
+         {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0},
+         {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}, 0, 0, 0, 0, 0},
+         }
 };
 
 unsigned int CalculateClusterSize(const uint64_t lba_size) {
     uint32_t clusterSize = 16;
-    uint64_t compare = 0x20000000;
+    uint64_t compare     = 0x20000000;
     while (lba_size > compare) {
-        compare = compare * 2;
+        compare     = compare * 2;
         clusterSize = clusterSize * 2;
     }
     return clusterSize;
 }
 
-bool checkForLastDirectoryEntry(const unsigned char* entry) {
+bool checkForLastDirectoryEntry(const unsigned char *entry) {
     // if the filename length byte is 0 or 0xff, this is the last entry
     if ((entry[0] == 0xff) || (entry[0] == 0)) {
         return true;
@@ -58,21 +57,21 @@ bool checkForLastDirectoryEntry(const unsigned char* entry) {
 }
 
 int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen, char *prefix) {
-    unsigned char* curEntry;
-    unsigned char clusterData[partition->clusterSize];
-    char *tempSortPtr;
-    int i = 0;
-    int c = 0;
-    int sortResult;
-    uint32_t filenameSize;
-    int sortNotOver = 1;
+    unsigned char *curEntry;
+    unsigned char  clusterData[partition->clusterSize];
+    char          *tempSortPtr;
+    int            i = 0;
+    int            c = 0;
+    int            sortResult;
+    uint32_t       filenameSize;
+    int            sortNotOver = 1;
 
-    while(clusterId != -1) {
+    while (clusterId != -1) {
         // load cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // loop through it, outputing entries
-        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
+        for (i = 0; i < partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
             // work out the currentEntry
             curEntry = clusterData + (i * FATX_DIRECTORYENTRY_SIZE);
 
@@ -97,36 +96,35 @@ int FATXListDir(FATXPartition *partition, int clusterId, char **res, int reslen,
                 continue;
             }
 
-            res[c] = malloc (filenameSize + 1 + strlen (prefix));
-            strcpy (res[c], prefix);
-            memcpy(res[c]+strlen (prefix), curEntry+2, filenameSize);
-            res[c][filenameSize + strlen (prefix)] = '\0';
+            res[c] = malloc(filenameSize + 1 + strlen(prefix));
+            strcpy(res[c], prefix);
+            memcpy(res[c] + strlen(prefix), curEntry + 2, filenameSize);
+            res[c][filenameSize + strlen(prefix)] = '\0';
 
             c++;
             if (c >= reslen) {
                 goto exit;
             }
-
         }
         // Find next cluster
         clusterId = getNextClusterInChain(partition, clusterId);
     }
 
-    //place quicksort here.
+    // place quicksort here.
 
-    //TODO: Freakin bubble sort for now... Just to test "strcmpbynum" function
+    // TODO: Freakin bubble sort for now... Just to test "strcmpbynum" function
 exit:
     printk("\n\n");
-    while(sortNotOver && c >= 2) {
+    while (sortNotOver && c >= 2) {
         sortNotOver = 0;
-        for(i = 0; i < (c - 1); i++) {
+        for (i = 0; i < (c - 1); i++) {
             sortResult = strcmpbynum(res[i], res[i + 1]);
 
-            if(sortResult > 0) {
+            if (sortResult > 0) {
                 sortNotOver++;
                 tempSortPtr = res[i];
-                res[i] = res[i + 1];
-                res[i + 1] = tempSortPtr;
+                res[i]      = res[i + 1];
+                res[i + 1]  = tempSortPtr;
             }
         }
     }
@@ -135,20 +133,20 @@ exit:
 }
 
 int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
-    unsigned char* curEntry;
-    unsigned char clusterData[partition->clusterSize];
-    int i = 0;
-    uint32_t filenameSize;
-    uint32_t flags;
-    uint32_t entryClusterId;
-    char foundFilename[50];
+    unsigned char *curEntry;
+    unsigned char  clusterData[partition->clusterSize];
+    int            i = 0;
+    uint32_t       filenameSize;
+    uint32_t       flags;
+    uint32_t       entryClusterId;
+    char           foundFilename[50];
 
-    while(clusterId != -1) {
+    while (clusterId != -1) {
         // load cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // loop through it, outputing entries
-        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
+        for (i = 0; i < partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
             // work out the currentEntry
             curEntry = clusterData + (i * FATX_DIRECTORYENTRY_SIZE);
 
@@ -175,16 +173,16 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
 
             // extract the filename
             memset(foundFilename, 0, 50);
-            memcpy(foundFilename, curEntry+2, filenameSize);
+            memcpy(foundFilename, curEntry + 2, filenameSize);
             foundFilename[filenameSize] = 0;
 
             // get rest of data
-            flags = curEntry[1];
-            entryClusterId = *((uint32_t*) (curEntry + 0x2c));
+            flags                       = curEntry[1];
+            entryClusterId              = *((uint32_t *)(curEntry + 0x2c));
 
             // is it what we're looking for...  We use _strncasecmp since fatx
             // isnt case sensitive.
-            if (strlen(dir)==strlen(foundFilename) && _strncasecmp(foundFilename, dir,strlen(dir)) == 0) {
+            if (strlen(dir) == strlen(foundFilename) && _strncasecmp(foundFilename, dir, strlen(dir)) == 0) {
                 if (flags & FATX_FILEATTR_DIRECTORY) {
                     return entryClusterId;
                 } else {
@@ -195,35 +193,35 @@ int FATXFindDir(FATXPartition *partition, int clusterId, char *dir) {
         // Find next cluster
         clusterId = getNextClusterInChain(partition, clusterId);
     }
-    return 0; //Keep compiler happy.
+    return 0; // Keep compiler happy.
 }
 
 bool LoadFATXFile(FATXPartition *partition, char *filename, FATXFILEINFO *fileinfo) {
-    if(partition == NULL) {
-        VIDEO_ATTR=0xffe8e8e8;
+    if (partition == NULL) {
+        VIDEO_ATTR = 0xffe8e8e8;
 #ifdef FATX_INFO
         printk("LoadFATXFile : no open FATX partition\n");
 #endif
     } else {
-        if(FATXFindFile(partition, filename, FATX_ROOT_FAT_CLUSTER, fileinfo)) {
+        if (FATXFindFile(partition, filename, FATX_ROOT_FAT_CLUSTER, fileinfo)) {
 #ifdef FATX_DEBUG
-            printk("ClusterID : %d\n",fileinfo->clusterId);
-            printk("fileSize  : %d\n",fileinfo->fileSize);
+            printk("ClusterID : %d\n", fileinfo->clusterId);
+            printk("fileSize  : %d\n", fileinfo->fileSize);
 #endif
             fileinfo->buffer = malloc(fileinfo->fileSize);
-            memset(fileinfo->buffer,0,fileinfo->fileSize);
-            if(FATXLoadFromDisk(partition, fileinfo)) {
+            memset(fileinfo->buffer, 0, fileinfo->fileSize);
+            if (FATXLoadFromDisk(partition, fileinfo)) {
                 return true;
             } else {
 #ifdef FATX_INFO
-                printk("LoadFATXFile : error loading %s\n",filename);
+                printk("LoadFATXFile : error loading %s\n", filename);
 #endif
                 free(fileinfo->buffer);
                 return false;
             }
         } else {
 #ifdef FATX_INFO
-            printk("LoadFATXFile : file %s not found\n",filename);
+            printk("LoadFATXFile : file %s not found\n", filename);
 #endif
             return false;
         }
@@ -233,38 +231,38 @@ bool LoadFATXFile(FATXPartition *partition, char *filename, FATXFILEINFO *filein
 
 void PrintFATXPartitionTable(const unsigned char driveId) {
     FATXPartition *partition = NULL;
-    FATXFILEINFO fileinfo;
+    FATXFILEINFO   fileinfo;
 
-    VIDEO_ATTR=0xffe8e8e8;
+    VIDEO_ATTR = 0xffe8e8e8;
     printk("FATX Partition Table:\n");
-    memset(&fileinfo,0,sizeof(FATXFILEINFO));
+    memset(&fileinfo, 0, sizeof(FATXFILEINFO));
 
-    if(hasFATXSignature(driveId, SECTOR_SYSTEM)) {
-        VIDEO_ATTR=0xffe8e8e8;
+    if (hasFATXSignature(driveId, SECTOR_SYSTEM)) {
+        VIDEO_ATTR = 0xffe8e8e8;
         printk("Partition SYSTEM\n");
         partition = OpenFATXPartition(driveId, SECTOR_SYSTEM, SYSTEM_SIZE);
-        if(partition == NULL) {
-            VIDEO_ATTR=0xffe8e8e8;
+        if (partition == NULL) {
+            VIDEO_ATTR = 0xffe8e8e8;
             printk("PrintFAXPartitionTable : error on opening STORE\n");
         } else {
             DumpFATXTree(partition);
         }
     }
 
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
 }
 
 bool hasFATXSignature(const unsigned char driveId, const uint64_t block) {
     unsigned char ba[512];
 
-    if(BootIdeReadSector(0, &ba[0], block, 0, 512)) {
-        VIDEO_ATTR=0xffe8e8e8;
+    if (BootIdeReadSector(0, &ba[0], block, 0, 512)) {
+        VIDEO_ATTR = 0xffe8e8e8;
 #ifdef FATX_INFO
         printk("hasFATXSignature : Unable to read FATX sector\n");
 #endif
         return false;
     } else {
-        if((ba[0]=='F') && (ba[1]=='A') && (ba[2]=='T') && (ba[3]=='X')) {
+        if ((ba[0] == 'F') && (ba[1] == 'A') && (ba[2] == 'T') && (ba[3] == 'X')) {
             return true;
         } else {
             return false;
@@ -273,10 +271,10 @@ bool hasFATXSignature(const unsigned char driveId, const uint64_t block) {
 }
 
 FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partitionOffset, uint64_t partitionSize) {
-    unsigned char partitionInfo[FATX_PARTITION_HEADERSIZE];
+    unsigned char  partitionInfo[FATX_PARTITION_HEADERSIZE];
     FATXPartition *partition;
-    int readSize;
-    unsigned int chainTableSize;
+    int            readSize;
+    unsigned int   chainTableSize;
 
 #ifdef FATX_DEBUG
     printk("OpenFATXPartition : Read partition header\n");
@@ -285,7 +283,7 @@ FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partition
     readSize = FATXRawRead(driveId, partitionOffset, 0, FATX_PARTITION_HEADERSIZE, (unsigned char *)&partitionInfo);
 
     if (readSize != FATX_PARTITION_HEADERSIZE) {
-        VIDEO_ATTR=0xffe8e8e8;
+        VIDEO_ATTR = 0xffe8e8e8;
 #ifdef FATX_INFO
         printk("OpenFATXPartition : Out of data while reading partition header\n");
 #endif
@@ -293,8 +291,8 @@ FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partition
     }
 
     // check the magic
-    if (*((uint32_t*) &partitionInfo) != FATX_PARTITION_MAGIC) {
-        VIDEO_ATTR=0xffe8e8e8;
+    if (*((uint32_t *)&partitionInfo) != FATX_PARTITION_MAGIC) {
+        VIDEO_ATTR = 0xffe8e8e8;
 #ifdef FATX_INFO
         printk("OpenFATXPartition : No FATX partition found at requested offset\n");
 #endif
@@ -305,7 +303,7 @@ FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partition
     printk("OpenFATXPartition : Allocating Partition struct\n");
 #endif
     // make up new structure
-    partition = (FATXPartition*) malloc(sizeof(FATXPartition));
+    partition = (FATXPartition *)malloc(sizeof(FATXPartition));
     if (partition == NULL) {
 #ifdef FATX_INFO
         printk("OpenFATXPartition : Out of memory\n");
@@ -315,18 +313,18 @@ FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partition
 #ifdef FATX_DEBUG
     printk("OpenFATXPartition : Allocating Partition struct done\n");
 #endif
-    memset(partition,0,sizeof(FATXPartition));
+    memset(partition, 0, sizeof(FATXPartition));
 
     // setup the easy bits
-    partition->nDriveIndex = driveId;
-    partition->partitionStart = partitionOffset;
-    partition->partitionSize = partitionSize;
-    partition->clusterSize = 0x4000;
-    partition->clusterCount = partition->partitionSize / 0x4000;
+    partition->nDriveIndex       = driveId;
+    partition->partitionStart    = partitionOffset;
+    partition->partitionSize     = partitionSize;
+    partition->clusterSize       = 0x4000;
+    partition->clusterCount      = partition->partitionSize / 0x4000;
     partition->chainMapEntrySize = (partition->clusterCount >= 0xfff4) ? 4 : 2;
 
     // Now, work out the size of the cluster chain map table
-    chainTableSize = partition->clusterCount * partition->chainMapEntrySize;
+    chainTableSize               = partition->clusterCount * partition->chainMapEntrySize;
     if (chainTableSize % FATX_CHAINTABLE_BLOCKSIZE) {
         // round up to nearest FATX_CHAINTABLE_BLOCKSIZE bytes
         chainTableSize = ((chainTableSize / FATX_CHAINTABLE_BLOCKSIZE) + 1) * FATX_CHAINTABLE_BLOCKSIZE;
@@ -335,10 +333,10 @@ FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partition
 #ifdef FATX_DEBUG
     printk("OpenFATXPartition : Allocating chaintable struct\n");
 #endif
-      // Load the cluster chain map table
-    partition->clusterChainMap.words = (uint16_t*) malloc(chainTableSize);
+    // Load the cluster chain map table
+    partition->clusterChainMap.words = (uint16_t *)malloc(chainTableSize);
     if (partition->clusterChainMap.words == NULL) {
-        VIDEO_ATTR=0xffe8e8e8;
+        VIDEO_ATTR = 0xffe8e8e8;
 #ifdef FATX_INFO
         printk("OpenFATXPartition : Out of memory\n");
 #endif
@@ -355,15 +353,15 @@ FATXPartition *OpenFATXPartition(const unsigned char driveId, uint64_t partition
 #endif
 
     readSize = FATXRawRead(driveId, partitionOffset, FATX_PARTITION_HEADERSIZE,
-            chainTableSize, (unsigned char *)partition->clusterChainMap.words);
+                           chainTableSize, (unsigned char *)partition->clusterChainMap.words);
 
     if (readSize != chainTableSize) {
-        VIDEO_ATTR=0xffe8e8e8;
+        VIDEO_ATTR = 0xffe8e8e8;
 #ifdef FATX_INFO
         printk("Out of data while reading cluster chain map table\n");
 #endif
     }
-    partition->cluster1Address = ( ( FATX_PARTITION_HEADERSIZE + chainTableSize) );
+    partition->cluster1Address = ((FATX_PARTITION_HEADERSIZE + chainTableSize));
 
     return partition;
 }
@@ -373,25 +371,25 @@ void DumpFATXTree(FATXPartition *partition) {
     _DumpFATXTree(partition, FATX_ROOT_FAT_CLUSTER, 0);
 }
 
-void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting) {
-    int endOfDirectory;
-    unsigned char* curEntry;
-    unsigned char clusterData[partition->clusterSize];
-    int i;
-    char filename[50];
-    uint32_t filenameSize;
-    uint32_t fileSize;
-    uint32_t entryClusterId;
-    unsigned char flags;
-    char flagsStr[5];
+void _DumpFATXTree(FATXPartition *partition, int clusterId, int nesting) {
+    int            endOfDirectory;
+    unsigned char *curEntry;
+    unsigned char  clusterData[partition->clusterSize];
+    int            i;
+    char           filename[50];
+    uint32_t       filenameSize;
+    uint32_t       fileSize;
+    uint32_t       entryClusterId;
+    unsigned char  flags;
+    char           flagsStr[5];
 
     // OK, output all the directory entries
     endOfDirectory = 0;
-    while(clusterId != -1) {
+    while (clusterId != -1) {
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // loop through it, outputing entries
-        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
+        for (i = 0; i < partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
             // work out the currentEntry
             curEntry = clusterData + (i * FATX_DIRECTORYENTRY_SIZE);
 
@@ -411,19 +409,19 @@ void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting) {
 
             // check size is OK
             if ((filenameSize < 1) || (filenameSize > FATX_FILENAME_MAX)) {
-                VIDEO_ATTR=0xffe8e8e8;
+                VIDEO_ATTR = 0xffe8e8e8;
                 printk("_DumpFATXTree : Invalid filename size: %i\n", filenameSize);
             }
 
             // extract the filename
             memset(filename, 0, 50);
-            memcpy(filename, curEntry+2, filenameSize);
+            memcpy(filename, curEntry + 2, filenameSize);
             filename[filenameSize] = 0;
 
             // get rest of data
-            flags = curEntry[1];
-            entryClusterId = *((uint32_t*) (curEntry + 0x2c));
-            fileSize = *((uint32_t*) (curEntry + 0x30));
+            flags                  = curEntry[1];
+            entryClusterId         = *((uint32_t *)(curEntry + 0x2c));
+            fileSize               = *((uint32_t *)(curEntry + 0x30));
 
             // wipe fileSize
             if (flags & FATX_FILEATTR_DIRECTORY) {
@@ -435,7 +433,7 @@ void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting) {
 
             // work out other flags
             if (flags & FATX_FILEATTR_READONLY) {
-                          flagsStr[0] = 'R';
+                flagsStr[0] = 'R';
             }
             if (flags & FATX_FILEATTR_HIDDEN) {
                 flagsStr[1] = 'H';
@@ -448,16 +446,16 @@ void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting) {
             }
 
             // check we don't have any unknown flags
-/*
-            if (flags & 0xc8) {
-                VIDEO_ATTR=0xffe8e8e8;
-                printk("WARNING: file %s has unknown flags %x\n", filename, flags);
-            }
-*/
+            /*
+                        if (flags & 0xc8) {
+                            VIDEO_ATTR=0xffe8e8e8;
+                            printk("WARNING: file %s has unknown flags %x\n", filename, flags);
+                        }
+            */
 
-            VIDEO_ATTR=0xffe8e8e8;
-            printk("/%s  [%s] (SZ:%i CL%x))\n",filename, flagsStr,
-                    fileSize, entryClusterId);
+            VIDEO_ATTR = 0xffe8e8e8;
+            printk("/%s  [%s] (SZ:%i CL%x))\n", filename, flagsStr,
+                   fileSize, entryClusterId);
 
             // If it is a sub-directory, recurse
             /*
@@ -475,27 +473,27 @@ void _DumpFATXTree(FATXPartition* partition, int clusterId, int nesting) {
     }
 }
 
-bool FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo) {
-    unsigned char clusterData[partition->clusterSize];
-    int fileSize = fileinfo->fileSize;
-    int written;
-    int clusterId = fileinfo->clusterId;
+bool FATXLoadFromDisk(FATXPartition *partition, FATXFILEINFO *fileinfo) {
+    unsigned char  clusterData[partition->clusterSize];
+    int            fileSize = fileinfo->fileSize;
+    int            written;
+    int            clusterId = fileinfo->clusterId;
     unsigned char *ptr;
 
     fileinfo->fileRead = 0;
-    ptr = fileinfo->buffer;
+    ptr                = fileinfo->buffer;
 
     // loop, outputting clusters
-    while(clusterId != -1) {
+    while (clusterId != -1) {
         // Load the cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // Now, output it
         written = (fileSize <= partition->clusterSize) ? fileSize : partition->clusterSize;
-        memcpy(ptr,clusterData,written);
+        memcpy(ptr, clusterData, written);
         fileSize -= written;
-        fileinfo->fileRead+=written;
-        ptr+=written;
+        fileinfo->fileRead += written;
+        ptr += written;
 
         // Find next cluster
         clusterId = getNextClusterInChain(partition, clusterId);
@@ -504,58 +502,58 @@ bool FATXLoadFromDisk(FATXPartition* partition, FATXFILEINFO *fileinfo) {
     // check we actually found enough data
     if (fileSize != 0) {
 #ifdef FATX_INFO
-       printk("Hit end of cluster chain before file size was zero\n");
+        printk("Hit end of cluster chain before file size was zero\n");
 #endif
-        //free(fileinfo->buffer);
-        //fileinfo->buffer = NULL;
+        // free(fileinfo->buffer);
+        // fileinfo->buffer = NULL;
         return false;
     }
     return true;
 }
 
-int FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXFILEINFO *fileinfo) {
+int FATXFindFile(FATXPartition *partition, char *filename, int clusterId, FATXFILEINFO *fileinfo) {
     int i = 0;
 #ifdef FATX_DEBUG
-    VIDEO_ATTR=0xffc8c8c8;
-    printk("FATXFindFile : %s\n",filename);
+    VIDEO_ATTR = 0xffc8c8c8;
+    printk("FATXFindFile : %s\n", filename);
 #endif
 
     // convert any '\' to '/' characters
-    while(filename[i] != 0) {
+    while (filename[i] != 0) {
         if (filename[i] == '\\') {
-              filename[i] = '/';
+            filename[i] = '/';
         }
         i++;
     }
 
     // skip over any leading / characters
-    i=0;
-    while((filename[i] != 0) && (filename[i] == '/')) {
+    i = 0;
+    while ((filename[i] != 0) && (filename[i] == '/')) {
         i++;
     }
 
-    return _FATXFindFile(partition,&filename[i],clusterId,fileinfo);
+    return _FATXFindFile(partition, &filename[i], clusterId, fileinfo);
 }
 
-int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXFILEINFO *fileinfo) {
-    unsigned char* curEntry;
-    unsigned char clusterData[partition->clusterSize];
-    int i = 0;
-    int endOfDirectory;
-    uint32_t filenameSize;
-    uint32_t flags;
-    uint32_t entryClusterId;
-    uint32_t fileSize;
-    char seekFilename[50];
-    char foundFilename[50];
-    char* slashPos;
-    int lookForDirectory = 0;
-    int lookForFile = 0;
+int _FATXFindFile(FATXPartition *partition, char *filename, int clusterId, FATXFILEINFO *fileinfo) {
+    unsigned char *curEntry;
+    unsigned char  clusterData[partition->clusterSize];
+    int            i = 0;
+    int            endOfDirectory;
+    uint32_t       filenameSize;
+    uint32_t       flags;
+    uint32_t       entryClusterId;
+    uint32_t       fileSize;
+    char           seekFilename[50];
+    char           foundFilename[50];
+    char          *slashPos;
+    int            lookForDirectory = 0;
+    int            lookForFile      = 0;
 
     // work out the filename we're looking for
-    slashPos = strrchr0(filename, '/');
+    slashPos                        = strrchr0(filename, '/');
     if (slashPos == NULL) {
-    // looking for file
+        // looking for file
         lookForFile = 1;
 
         // check seek filename size
@@ -586,17 +584,17 @@ int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXF
     }
 
 #ifdef FATX_DEBUG
-    VIDEO_ATTR=0xffc8c8c8;
-    printk("_FATXFindFile : %s\n",filename);
+    VIDEO_ATTR = 0xffc8c8c8;
+    printk("_FATXFindFile : %s\n", filename);
 #endif
     // OK, search through directory entries
     endOfDirectory = 0;
-    while(clusterId != -1) {
+    while (clusterId != -1) {
         // load cluster data
         LoadFATXCluster(partition, clusterId, clusterData);
 
         // loop through it, outputing entries
-        for(i=0; i< partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
+        for (i = 0; i < partition->clusterSize / FATX_DIRECTORYENTRY_SIZE; i++) {
             // work out the currentEntry
             curEntry = clusterData + (i * FATX_DIRECTORYENTRY_SIZE);
 
@@ -624,20 +622,20 @@ int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXF
 
             // extract the filename
             memset(foundFilename, 0, 50);
-            memcpy(foundFilename, curEntry+2, filenameSize);
+            memcpy(foundFilename, curEntry + 2, filenameSize);
             foundFilename[filenameSize] = 0;
 
             // get rest of data
-            flags = curEntry[1];
-            entryClusterId = *((uint32_t*) (curEntry + 0x2c));
-            fileSize = *((uint32_t*) (curEntry + 0x30));
+            flags                       = curEntry[1];
+            entryClusterId              = *((uint32_t *)(curEntry + 0x2c));
+            fileSize                    = *((uint32_t *)(curEntry + 0x30));
 
             // is it what we're looking for...
-            if (strlen(seekFilename)==strlen(foundFilename) && _strncasecmp(foundFilename, seekFilename,strlen(seekFilename)) == 0) {
+            if (strlen(seekFilename) == strlen(foundFilename) && _strncasecmp(foundFilename, seekFilename, strlen(seekFilename)) == 0) {
                 // if we're looking for a directory and found a directory
                 if (lookForDirectory) {
                     if (flags & FATX_FILEATTR_DIRECTORY) {
-                        return _FATXFindFile(partition, slashPos+1, entryClusterId,fileinfo);
+                        return _FATXFindFile(partition, slashPos + 1, entryClusterId, fileinfo);
                     } else {
 #ifdef FATX_INFO
                         printk("File not found\n");
@@ -650,13 +648,13 @@ int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXF
                 if (lookForFile) {
                     if (!(flags & FATX_FILEATTR_DIRECTORY)) {
                         fileinfo->clusterId = entryClusterId;
-                        fileinfo->fileSize = fileSize;
-                        memset(fileinfo->filename,0,sizeof(fileinfo->filename));
-                        strcpy(fileinfo->filename,filename);
+                        fileinfo->fileSize  = fileSize;
+                        memset(fileinfo->filename, 0, sizeof(fileinfo->filename));
+                        strcpy(fileinfo->filename, filename);
                         return true;
                     } else {
 #ifdef FATX_INFO
-                        printk("File not found %s\n",filename);
+                        printk("File not found %s\n", filename);
 #endif
                         return false;
                     }
@@ -680,31 +678,31 @@ int _FATXFindFile(FATXPartition* partition, char* filename, int clusterId, FATXF
     return false;
 }
 
-uint32_t getNextClusterInChain(const FATXPartition* partition, const int clusterId) {
-    int nextClusterId = 0;
-    uint32_t eocMarker = 0;
+uint32_t getNextClusterInChain(const FATXPartition *partition, const int clusterId) {
+    int      nextClusterId = 0;
+    uint32_t eocMarker     = 0;
     uint32_t rootFatMarker = 0;
-    uint32_t maxCluster = 0;
+    uint32_t maxCluster    = 0;
 
     // check
     if (clusterId < 1) {
-        VIDEO_ATTR=0xffe8e8e8;
+        VIDEO_ATTR = 0xffe8e8e8;
         printk("getNextClusterInChain : Attempt to access invalid cluster: %i\n", clusterId);
     }
 
     // get the next ID
     if (partition->chainMapEntrySize == 2) {
         nextClusterId = partition->clusterChainMap.words[clusterId];
-        eocMarker = 0xffff;
+        eocMarker     = 0xffff;
         rootFatMarker = 0xfff8;
-        maxCluster = 0xfff4;
+        maxCluster    = 0xfff4;
     } else if (partition->chainMapEntrySize == 4) {
         nextClusterId = partition->clusterChainMap.dwords[clusterId];
-        eocMarker = 0xffffffff;
+        eocMarker     = 0xffffffff;
         rootFatMarker = 0xfffffff8;
-        maxCluster = 0xfffffff4;
+        maxCluster    = 0xfffffff4;
     } else {
-        VIDEO_ATTR=0xffe8e8e8;
+        VIDEO_ATTR = 0xffe8e8e8;
         printk("getNextClusterInChain : Unknown cluster chain map entry size: %i\n", partition->chainMapEntrySize);
     }
 
@@ -715,7 +713,7 @@ uint32_t getNextClusterInChain(const FATXPartition* partition, const int cluster
 
     // is it something else unknown?
     if (nextClusterId == 0) {
-        VIDEO_ATTR=0xffe8e8e8;
+        VIDEO_ATTR = 0xffe8e8e8;
         printk("getNextClusterInChain : Cluster chain problem: Next cluster after %i is unallocated!\n", clusterId);
     }
     if (nextClusterId > maxCluster) {
@@ -726,7 +724,7 @@ uint32_t getNextClusterInChain(const FATXPartition* partition, const int cluster
     return nextClusterId;
 }
 
-void LoadFATXCluster(const FATXPartition* partition, const int clusterId, unsigned char* clusterData) {
+void LoadFATXCluster(const FATXPartition *partition, const int clusterId, unsigned char *clusterData) {
     uint64_t clusterAddress;
     uint64_t readSize;
 
@@ -734,7 +732,7 @@ void LoadFATXCluster(const FATXPartition* partition, const int clusterId, unsign
     clusterAddress = partition->cluster1Address + ((uint64_t)(clusterId - 1) * partition->clusterSize);
 
     // Now, load it
-    readSize = FATXRawRead(partition->nDriveIndex, partition->partitionStart, clusterAddress, partition->clusterSize, clusterData);
+    readSize       = FATXRawRead(partition->nDriveIndex, partition->partitionStart, clusterAddress, partition->clusterSize, clusterData);
 
     if (readSize != partition->clusterSize) {
         printk("LoadFATXCluster : Out of data while reading cluster %i\n", clusterId);
@@ -747,36 +745,36 @@ int FATXRawRead(const unsigned char driveId, uint64_t sector, uint64_t byte_offs
 
     // printk("rawread: sector=0x%X, byte_offset=0x%X, len=%d\n", sector, byte_offset, byte_len);
 
-    sector+=byte_offset/512;
-    byte_offset%=512;
+    sector += byte_offset / 512;
+    byte_offset %= 512;
 
-    while(byte_len) {
-        int nThisTime=512;
+    while (byte_len) {
+        int nThisTime = 512;
 
-        if(byte_len<512) {
-            nThisTime=byte_len;
+        if (byte_len < 512) {
+            nThisTime = byte_len;
         }
 
-        if(byte_offset) {
-            //unsigned char ba[512];
-            if(BootIdeReadSector(driveId, buf, sector, 0, 512)) {
-                VIDEO_ATTR=0xffe8e8e8;
+        if (byte_offset) {
+            // unsigned char ba[512];
+            if (BootIdeReadSector(driveId, buf, sector, 0, 512)) {
+                VIDEO_ATTR = 0xffe8e8e8;
                 printk("Unable to get first sector\n");
                 return false;
             }
-            //memcpy(buf, &ba[byte_offset], nThisTime-byte_offset);
-            buf += nThisTime-byte_offset;
-            byte_len -= nThisTime-byte_offset;
-            byte_read += nThisTime-byte_offset;
+            // memcpy(buf, &ba[byte_offset], nThisTime-byte_offset);
+            buf += nThisTime - byte_offset;
+            byte_len -= nThisTime - byte_offset;
+            byte_read += nThisTime - byte_offset;
             byte_offset = 0;
         } else {
-            if(BootIdeReadSector(driveId, buf, sector, 0, nThisTime)) {
-                VIDEO_ATTR=0xffe8e8e8;
+            if (BootIdeReadSector(driveId, buf, sector, 0, nThisTime)) {
+                VIDEO_ATTR = 0xffe8e8e8;
                 printk("Unable to get first sector\n");
                 return false;
             }
-            buf+=nThisTime;
-            byte_len-=nThisTime;
+            buf += nThisTime;
+            byte_len -= nThisTime;
             byte_read += nThisTime;
         }
         sector++;
@@ -784,74 +782,74 @@ int FATXRawRead(const unsigned char driveId, uint64_t sector, uint64_t byte_offs
     return byte_read;
 }
 
-void CloseFATXPartition(FATXPartition* partition) {
-    if(partition != NULL) {
+void CloseFATXPartition(FATXPartition *partition) {
+    if (partition != NULL) {
         free(partition->clusterChainMap.words);
         free(partition);
         partition = NULL;
     }
 }
 
-void FATXCreateDirectoryEntry(unsigned char * buffer, char *entryName, unsigned int entryNumber, unsigned int cluster) {
-    unsigned int offset = entryNumber * 0x40;
+void FATXCreateDirectoryEntry(unsigned char *buffer, char *entryName, unsigned int entryNumber, unsigned int cluster) {
+    unsigned int offset   = entryNumber * 0x40;
 
     FATXDIRINFO *dirEntry = (FATXDIRINFO *)&buffer[offset];
-    memset(&buffer[offset],0xff,0x40);
+    memset(&buffer[offset], 0xff, 0x40);
 
     dirEntry->FilenameLength = strlen(entryName);
-    strncpy(dirEntry->Filename,entryName,42);
-    if(dirEntry->FilenameLength < 42) {
-        //Terminate it.
+    strncpy(dirEntry->Filename, entryName, 42);
+    if (dirEntry->FilenameLength < 42) {
+        // Terminate it.
         dirEntry->Filename[dirEntry->FilenameLength] = 0xFF;
     }
-    dirEntry->Attrib = FATX_FILEATTR_DIRECTORY;
+    dirEntry->Attrib       = FATX_FILEATTR_DIRECTORY;
     dirEntry->FirstCluster = cluster;
-    dirEntry->FileSize = 0;
-    dirEntry->UpdateTime = 0x5153;
+    dirEntry->FileSize     = 0;
+    dirEntry->UpdateTime   = 0x5153;
     dirEntry->CreationTime = 0x5153;
-    dirEntry->AccessTime = 0x5153;
-    dirEntry->UpdateDate = 0x0442;
+    dirEntry->AccessTime   = 0x5153;
+    dirEntry->UpdateDate   = 0x0442;
     dirEntry->CreationDate = 0x0442;
-    dirEntry->AccessDate = 0x0442;
+    dirEntry->AccessDate   = 0x0442;
 
-    return;                                                     //buffer is updated, ready to be written on HDD.
+    return; // buffer is updated, ready to be written on HDD.
 }
 
 void FATXSetBRFR(const unsigned char driveId) {
-	unsigned char buffer[512];
-	unsigned int counter;
+    unsigned char buffer[512];
+    unsigned int  counter;
 
-	memset(buffer, 0, 512);
-        for(counter = 1; counter < 1024; counter++){             //Set first 512KB of HDD to 0x00.
-            if(BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)){        //512KB = 1024 sectors.
-                printk("\n           FATXSetBRFR: Write error, sector %u   ", counter);
-                cromwellWarning();
-                return;
-            }
-        }
-
-        sprintf((char *) buffer, "BRFR");
-
-        // Write "BRFR" string and number of boots(0) at absolute offset 0x600
-        if(BootIdeWriteSector(driveId, buffer, 3, DEFAULT_WRITE_RETRY)) {
-            printk("\n           FATXSetBRFR: Write error, sector %u   ", 3);
+    memset(buffer, 0, 512);
+    for (counter = 1; counter < 1024; counter++) {                               // Set first 512KB of HDD to 0x00.
+        if (BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)) { // 512KB = 1024 sectors.
+            printk("\n           FATXSetBRFR: Write error, sector %u   ", counter);
             cromwellWarning();
             return;
         }
+    }
 
-        tsaHarddiskInfo[driveId].m_enumDriveType = EDT_XBOXFS;
+    sprintf((char *)buffer, "BRFR");
+
+    // Write "BRFR" string and number of boots(0) at absolute offset 0x600
+    if (BootIdeWriteSector(driveId, buffer, 3, DEFAULT_WRITE_RETRY)) {
+        printk("\n           FATXSetBRFR: Write error, sector %u   ", 3);
+        cromwellWarning();
+        return;
+    }
+
+    tsaHarddiskInfo[driveId].m_enumDriveType = EDT_XBOXFS;
 }
 
 bool FATXCheckMBR(const unsigned char driveId) {
     unsigned char ba[512];
 
-    if(BootIdeReadSector(driveId, &ba[0], 0x00, 0, 512)) {
+    if (BootIdeReadSector(driveId, &ba[0], 0x00, 0, 512)) {
         printk("\n\n\n           FATXCheckMBR : Unable to read MBR sector\n");
         return 0;
     } else {
         // Check magic
-        for(unsigned char i = 0; i < LBA48_Partition_Table_Magic_Size; i++) {
-            if(ba[i] != LBA48_Partition_Table_Magic[i]) {
+        for (unsigned char i = 0; i < LBA48_Partition_Table_Magic_Size; i++) {
+            if (ba[i] != LBA48_Partition_Table_Magic[i]) {
                 return 0;
             }
         }
@@ -861,22 +859,22 @@ bool FATXCheckMBR(const unsigned char driveId) {
 
 bool FATXCheckFATXMagic(const unsigned char driveId) {
     unsigned char ba[512];
-    if(BootIdeReadSector(driveId, &ba[0], 0x03, 0, 512)) {
+    if (BootIdeReadSector(driveId, &ba[0], 0x03, 0, 512)) {
         printk("\n\n\n           FATXCheckFATXMagic : Unable to read MBR sector\n");
         return false;
     }
 
-    if((ba[0]=='B') && (ba[1]=='R') && (ba[2]=='F') && (ba[3]=='R')){
-        tsaHarddiskInfo[driveId].m_enumDriveType=EDT_XBOXFS;
+    if ((ba[0] == 'B') && (ba[1] == 'R') && (ba[2] == 'F') && (ba[3] == 'R')) {
+        tsaHarddiskInfo[driveId].m_enumDriveType = EDT_XBOXFS;
     }
 
     return true;
 }
 
-void FATXSetMBR(const unsigned char driveId, const XboxPartitionTable *p_table){
+void FATXSetMBR(const unsigned char driveId, const XboxPartitionTable *p_table) {
     const unsigned char *sourceTable = (const unsigned char *)p_table;
     // Write on sector 0
-    if(BootIdeWriteSector(driveId, sourceTable, 0, DEFAULT_WRITE_RETRY)) {
+    if (BootIdeWriteSector(driveId, sourceTable, 0, DEFAULT_WRITE_RETRY)) {
         printk("\n           FATXSetMBR: Write error, sector %u   ", 0);
         cromwellWarning();
         return;
@@ -890,283 +888,276 @@ void FATXSetInitMBR(const unsigned char driveId) {
     FATXSetMBR(driveId, &BackupPartTbl);
 }
 
-void FATXFormatCacheDrives(const unsigned char driveId, const bool verbose){
-    unsigned char buffer[512], headerBuf[0x1000], driveLetter[3];
-    unsigned char *ptrBuffer;
-    unsigned int counter;
-    unsigned int whichpartition;
+void FATXFormatCacheDrives(const unsigned char driveId, const bool verbose) {
+    unsigned char    buffer[512], headerBuf[0x1000], driveLetter[3];
+    unsigned char   *ptrBuffer;
+    unsigned int     counter;
+    unsigned int     whichpartition;
     PARTITIONHEADER *header;
 
-    VIDEO_ATTR=0xffd8d8d8;
+    VIDEO_ATTR = 0xffd8d8d8;
 
-    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
-    	FATXSetBRFR(driveId);
+    if (tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
+        FATXSetBRFR(driveId);
     }
 
-    memset(headerBuf,0xff,0x1000);              //First sector(and only one used) of the Partition header area.
-    header = (PARTITIONHEADER *)headerBuf;
-    header->magic = FATX_PARTITION_MAGIC;       //Whooo, magic!
-    header->volumeID = 'X';					    //Goes with the HDD.
-    header->clusterSize = 0x20;                 //16KB cluster, so 32 clusters per sector.
-    header->nbFAT = 1;                          //Always 1.
-    header->unknown = 0;                        //Always 0.
-    memset(header->unused,0xff,4078);           //Fill unused area with 0xff.
-    //Partition header is ready. It's the same for all "stock" partitions.
-    //It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
-    //onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
+    memset(headerBuf, 0xff, 0x1000); // First sector(and only one used) of the Partition header area.
+    header              = (PARTITIONHEADER *)headerBuf;
+    header->magic       = FATX_PARTITION_MAGIC; // Whooo, magic!
+    header->volumeID    = 'X';                  // Goes with the HDD.
+    header->clusterSize = 0x20;                 // 16KB cluster, so 32 clusters per sector.
+    header->nbFAT       = 1;                    // Always 1.
+    header->unknown     = 0;                    // Always 0.
+    memset(header->unused, 0xff, 4078);         // Fill unused area with 0xff.
+    // Partition header is ready. It's the same for all "stock" partitions.
+    // It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
+    // onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
 
-    ptrBuffer = (unsigned char *)malloc(192 * 512);    //chainmap buffer total length.
-    memset(ptrBuffer,0x0,512 * 192);
-    ptrBuffer[0]=0xf8;                        //First 2 clusters are 0xFFF8 in word mode (FATX16).
-    ptrBuffer[1]=0xff;
-    ptrBuffer[2]=0xff;
-    ptrBuffer[3]=0xff;
+    ptrBuffer = (unsigned char *)malloc(192 * 512); // chainmap buffer total length.
+    memset(ptrBuffer, 0x0, 512 * 192);
+    ptrBuffer[0] = 0xf8; // First 2 clusters are 0xFFF8 in word mode (FATX16).
+    ptrBuffer[1] = 0xff;
+    ptrBuffer[2] = 0xff;
+    ptrBuffer[3] = 0xff;
 
     // Cycle through all 3 cache partitions.
-    for(whichpartition = SECTOR_CACHE1; whichpartition <= SECTOR_CACHE3; whichpartition += (SECTOR_CACHE2 - SECTOR_CACHE1)){
-        if(whichpartition == SECTOR_CACHE1)
-        {
-            sprintf((char *) driveLetter, "%s", "X:");
+    for (whichpartition = SECTOR_CACHE1; whichpartition <= SECTOR_CACHE3; whichpartition += (SECTOR_CACHE2 - SECTOR_CACHE1)) {
+        if (whichpartition == SECTOR_CACHE1) {
+            sprintf((char *)driveLetter, "%s", "X:");
             header->volumeID = 'X';
-        }
-        else if(whichpartition == SECTOR_CACHE2)
-        {
-            sprintf((char *) driveLetter, "%s", "Y:");
+        } else if (whichpartition == SECTOR_CACHE2) {
+            sprintf((char *)driveLetter, "%s", "Y:");
             header->volumeID = 'Y';
-        }
-        else
-        {
-            sprintf((char *) driveLetter, "%s", "Z:");
+        } else {
+            sprintf((char *)driveLetter, "%s", "Z:");
             header->volumeID = 'Z';
         }
 
-        memset(buffer,0xff,512);                    //Killer buffer.
+        memset(buffer, 0xff, 512); // Killer buffer.
 
-        if(verbose)
-        {
+        if (verbose) {
             printk("\n\n           %s  Writing Boot Block.   ", driveLetter);
         }
         // Starting (from 0 to 512*8 = 0x1000). Erasing Partition header data.
-        //4KB so 8*512 bytes sectors.
-        for (counter=whichpartition;counter<(whichpartition+8); counter++) {
-            if(BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)){
+        // 4KB so 8*512 bytes sectors.
+        for (counter = whichpartition; counter < (whichpartition + 8); counter++) {
+            if (BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)) {
                 printk("\n           Write error, sector %u   ", counter);
                 cromwellWarning();
                 return;
             }
         }
-        //Write Partition info on first sector. Last seven sectors of the first 0x1000 are already 0xff anyway.
-        if(BootIdeWriteSector(driveId, headerBuf, whichpartition, DEFAULT_WRITE_RETRY)){   //Partition header write.
+        // Write Partition info on first sector. Last seven sectors of the first 0x1000 are already 0xff anyway.
+        if (BootIdeWriteSector(driveId, headerBuf, whichpartition, DEFAULT_WRITE_RETRY)) { // Partition header write.
             printk("\n           Write error, sector %u   ", whichpartition);
             cromwellWarning();
             return;
         }
-        if(verbose)
+        if (verbose)
             cromwellSuccess();
 
-        if(verbose)
+        if (verbose)
             printk("           %s  Writing Cluster Chain map.   ", driveLetter);
-        if(BootIdeWriteMultiple(driveId, ptrBuffer, whichpartition+8, 192, DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
-            printk("\n           Write error, Cluster Chainmap   ");                                   //Length for cache drive is fixed at 192 sectors
+        if (BootIdeWriteMultiple(driveId, ptrBuffer, whichpartition + 8, 192, DEFAULT_WRITE_RETRY)) { // Initial Cluster chain map write.
+            printk("\n           Write error, Cluster Chainmap   ");                                  // Length for cache drive is fixed at 192 sectors
             cromwellWarning();
             return;
         }
-        if(verbose)
+        if (verbose)
             cromwellSuccess();
 
-        if(verbose)
+        if (verbose)
             printk("           %s  Finalizing.   ", driveLetter);
         // Root Dir (from 512*200 = 0x19000 to 0x1d000 = 512*232)
-        memset(buffer,0x00,512);
-        //Format 2 first clusters
-        for (counter=(whichpartition+200);counter<(whichpartition+200+(32*2)); counter++) {
-            if(BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)){
+        memset(buffer, 0x00, 512);
+        // Format 2 first clusters
+        for (counter = (whichpartition + 200); counter < (whichpartition + 200 + (32 * 2)); counter++) {
+            if (BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)) {
                 printk("\n           Write error, sector %u   ", counter);
                 cromwellWarning();
                 return;
             }
         }
-        //For a total of 264 sectors written, each partition.
-        if(verbose) {
+        // For a total of 264 sectors written, each partition.
+        if (verbose) {
             cromwellSuccess();
         }
     }
     free(ptrBuffer);
 }
 
-void FATXFormatDriveC(const unsigned char driveId, const bool verbose){
-    unsigned char buffer[512], headerBuf[0x1000];
-    unsigned char *ptrBuffer;
+void FATXFormatDriveC(const unsigned char driveId, const bool verbose) {
+    unsigned char    buffer[512], headerBuf[0x1000];
+    unsigned char   *ptrBuffer;
 
 
-    unsigned int counter;
+    unsigned int     counter;
     PARTITIONHEADER *header;
 
-    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
+    if (tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
         FATXSetBRFR(driveId);
     }
 
-    memset(headerBuf,0xff,0x1000);              //First sector(and only one used) of the Partition header area.
-    header = (PARTITIONHEADER *)headerBuf;
-    header->magic = FATX_PARTITION_MAGIC;       //Whooo, magic!
-    header->volumeID = 'C';    					//Goes with the HDD.
-    header->clusterSize = 0x20;                 //16KB cluster, so 32 clusters per sector.
-    header->nbFAT = 1;                          //Always 1.
-    header->unknown = 0;                        //Always 0.
-    memset(header->unused,0xff,4078);           //Fill unused area with 0xff.
-    //Partition header is ready. It's the same for all "stock" partitions.
-    //It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
-    //onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
+    memset(headerBuf, 0xff, 0x1000); // First sector(and only one used) of the Partition header area.
+    header              = (PARTITIONHEADER *)headerBuf;
+    header->magic       = FATX_PARTITION_MAGIC; // Whooo, magic!
+    header->volumeID    = 'C';                  // Goes with the HDD.
+    header->clusterSize = 0x20;                 // 16KB cluster, so 32 clusters per sector.
+    header->nbFAT       = 1;                    // Always 1.
+    header->unknown     = 0;                    // Always 0.
+    memset(header->unused, 0xff, 4078);         // Fill unused area with 0xff.
+    // Partition header is ready. It's the same for all "stock" partitions.
+    // It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
+    // onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
 
-    ptrBuffer = (unsigned char *)malloc(128 * 512);    //chainmap buffer total length.
-    memset(ptrBuffer,0x0,512 * 128);
+    ptrBuffer = (unsigned char *)malloc(128 * 512); // chainmap buffer total length.
+    memset(ptrBuffer, 0x0, 512 * 128);
 
-    ptrBuffer[0]=0xf8;                        //First 2 clusters are 0xFFF8  and 0xFFFF in word mode cluster.
-    ptrBuffer[1]=0xff;
-    ptrBuffer[2]=0xff;
-    ptrBuffer[3]=0xff;
+    ptrBuffer[0] = 0xf8; // First 2 clusters are 0xFFF8  and 0xFFFF in word mode cluster.
+    ptrBuffer[1] = 0xff;
+    ptrBuffer[2] = 0xff;
+    ptrBuffer[3] = 0xff;
 
-    memset(buffer,0xff,512);                    //Killer buffer.
+    memset(buffer, 0xff, 512); // Killer buffer.
 
-    if(verbose)
+    if (verbose)
         printk("\n\n           Writing Boot Block.   ");
     // Starting (from 0 to 512*8 = 0x1000). Erasing Partition header data.
-    //4KB so 8*512 bytes sectors.
-    for (counter=SECTOR_SYSTEM;counter<(SECTOR_SYSTEM+8); counter++) {
-        if(BootIdeWriteSector(driveId, buffer,counter, DEFAULT_WRITE_RETRY)){
+    // 4KB so 8*512 bytes sectors.
+    for (counter = SECTOR_SYSTEM; counter < (SECTOR_SYSTEM + 8); counter++) {
+        if (BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)) {
             printk("\n           Write error, sector %u   ", counter);
             cromwellWarning();
             return;
         }
     }
-    //Write Partition info on first sector. lest seven sectors of the first 0x1000 are already 0xff anyway.
-    if(BootIdeWriteSector(driveId, headerBuf,SECTOR_SYSTEM, DEFAULT_WRITE_RETRY)){   //Partition header write.
+    // Write Partition info on first sector. lest seven sectors of the first 0x1000 are already 0xff anyway.
+    if (BootIdeWriteSector(driveId, headerBuf, SECTOR_SYSTEM, DEFAULT_WRITE_RETRY)) { // Partition header write.
         printk("\n           Write error, sector %u   ", SECTOR_SYSTEM);
         cromwellWarning();
         return;
     }
-    if(verbose)
+    if (verbose)
         cromwellSuccess();
 
-    if(verbose)
+    if (verbose)
         printk("\n\n           Writing Cluster Chain map.   ");
 
 
-    if(BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_SYSTEM+8, 128, DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
-            printk("\n           Write error, Cluster Chainmap   ");                               //Length for C: drive is fixed at 128 sectors
-            cromwellWarning();
-            return;
-    }
-    free(ptrBuffer);
-
-
-
-    if(verbose) {
-        cromwellSuccess();
-    }
-
-    if(verbose) {
-        printk("\n\n           Finalizing.   ");
-    }
-
-    // Root Dir (from 512*136 = 0x11000 )
-    memset(buffer,0x00,512);
-    //Format 2 first clusters
-    for (counter=(SECTOR_SYSTEM+136);counter<(SECTOR_SYSTEM+136+(32*2)); counter++) {
-        if(BootIdeWriteSector(driveId, buffer,counter, DEFAULT_WRITE_RETRY)){
-            printk("\n           Write error, sector %u   ", counter);
-            cromwellWarning();
-            return;
-        }
-    }
-    //For a total of 200 consecutive sectors written.
-    if(verbose) {
-        cromwellSuccess();
-    }
-}
-
-void FATXFormatDriveE(const unsigned char driveId, const bool verbose){
-    unsigned char buffer[512], headerBuf[0x1000], i;
-    unsigned char *ptrBuffer;
-    unsigned int counter;
-    PARTITIONHEADER *header;
-
-    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
-        FATXSetBRFR(driveId);
-    }
-
-    memset(headerBuf,0xff,0x1000);              //First sector(and only one used) of the Partition header area.
-    header = (PARTITIONHEADER *)headerBuf;
-    header->magic = FATX_PARTITION_MAGIC;       //Whooo, magic!
-    header->volumeID = 'E';					    //Goes with the HDD.
-    header->clusterSize = 0x20;                 //16KB cluster, so 32 clusters per sector.
-    header->nbFAT = 1;                          //Always 1.
-    header->unknown = 0;                        //Always 0.
-    memset(header->unused,0xff,4078);           //Fill unused area with 0xff.
-    //Partition header is ready. It's the same for all "stock" paritions.
-    //It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
-    //onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
-
-    ptrBuffer = (unsigned char *)malloc(256 * 512);    //chainmap buffer. Length is of a single MULTIPLE WRITE ATA command.
-    memset(ptrBuffer,0x0,512 * 256);
-
-    memset(buffer,0xff,512);                    //Killer buffer.
-
-    if(verbose)
-        printk("\n\n           Writing Boot Block.   ");
-    // Starting (from 0 to 512*8 = 0x1000). Erasing Partition header data.
-    //4KB so 8*512 bytes sectors.
-    for (counter=SECTOR_STORE;counter<(SECTOR_STORE+8); counter++) {
-        if(BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)){
-            printk("\n           Write error, sector %u   ", counter);
-            cromwellWarning();
-            return;
-        }
-    }
-    //Write Partition info on first sector. last seven sectors of the first 0x1000 are already 0xff anyway.
-    if(BootIdeWriteSector(driveId, headerBuf, SECTOR_STORE, DEFAULT_WRITE_RETRY)){   //Partition header write.
-        printk("\n           Write error, sector %u   ", SECTOR_STORE);
-        cromwellWarning();
-    }
-    if(verbose)
-        cromwellSuccess();
-
-    if(verbose)
-        printk("\n\n           Writing Cluster Chain map.   ");
-
-    for(i = 0; i < 9; i++){                                    //Must be done 9 times as WRITE MULTIPLE will only take buffers of 256 sectors long.
-        //Start by writing 0 everywhere, skip the first 144 sectors to write 9*256 sectors up to the end,
-        //Reuse 9 times memory allocated (all set to 0x00) of 256*512 bytes in size
-        if(BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_STORE+8+144+(i << 8), 256, DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
-            printk("\n           Write error, Cluster Chainmap   ");                               //Length for E: drive is fixed at 2448 sectors
-            cromwellWarning();
-            return;
-        }
-    }
-    memset(ptrBuffer,0xff,4*7);               //We'll use 5 clusters for base folders(+2 first clusters used as specs).
-    ptrBuffer[0]=0xf8;                        //First cluster is 0xFFFFFFF8 in 4 byte mode cluster.
-
-    //One last time for the first 144 sectors, with initial cluster entries.
-    if(BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_STORE+8, 144, DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
-        printk("\n           Write error, Cluster Chainmap   ");                               //Length for E: drive is fixed at 2448 sectors
+    if (BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_SYSTEM + 8, 128, DEFAULT_WRITE_RETRY)) { // Initial Cluster chain map write.
+        printk("\n           Write error, Cluster Chainmap   ");                                 // Length for C: drive is fixed at 128 sectors
         cromwellWarning();
         return;
     }
     free(ptrBuffer);
 
-    if(verbose)
+
+    if (verbose) {
+        cromwellSuccess();
+    }
+
+    if (verbose) {
+        printk("\n\n           Finalizing.   ");
+    }
+
+    // Root Dir (from 512*136 = 0x11000 )
+    memset(buffer, 0x00, 512);
+    // Format 2 first clusters
+    for (counter = (SECTOR_SYSTEM + 136); counter < (SECTOR_SYSTEM + 136 + (32 * 2)); counter++) {
+        if (BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)) {
+            printk("\n           Write error, sector %u   ", counter);
+            cromwellWarning();
+            return;
+        }
+    }
+    // For a total of 200 consecutive sectors written.
+    if (verbose) {
+        cromwellSuccess();
+    }
+}
+
+void FATXFormatDriveE(const unsigned char driveId, const bool verbose) {
+    unsigned char    buffer[512], headerBuf[0x1000], i;
+    unsigned char   *ptrBuffer;
+    unsigned int     counter;
+    PARTITIONHEADER *header;
+
+    if (tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
+        FATXSetBRFR(driveId);
+    }
+
+    memset(headerBuf, 0xff, 0x1000); // First sector(and only one used) of the Partition header area.
+    header              = (PARTITIONHEADER *)headerBuf;
+    header->magic       = FATX_PARTITION_MAGIC; // Whooo, magic!
+    header->volumeID    = 'E';                  // Goes with the HDD.
+    header->clusterSize = 0x20;                 // 16KB cluster, so 32 clusters per sector.
+    header->nbFAT       = 1;                    // Always 1.
+    header->unknown     = 0;                    // Always 0.
+    memset(header->unused, 0xff, 4078);         // Fill unused area with 0xff.
+    // Partition header is ready. It's the same for all "stock" paritions.
+    // It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
+    // onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
+
+    ptrBuffer = (unsigned char *)malloc(256 * 512); // chainmap buffer. Length is of a single MULTIPLE WRITE ATA command.
+    memset(ptrBuffer, 0x0, 512 * 256);
+
+    memset(buffer, 0xff, 512); // Killer buffer.
+
+    if (verbose)
+        printk("\n\n           Writing Boot Block.   ");
+    // Starting (from 0 to 512*8 = 0x1000). Erasing Partition header data.
+    // 4KB so 8*512 bytes sectors.
+    for (counter = SECTOR_STORE; counter < (SECTOR_STORE + 8); counter++) {
+        if (BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)) {
+            printk("\n           Write error, sector %u   ", counter);
+            cromwellWarning();
+            return;
+        }
+    }
+    // Write Partition info on first sector. last seven sectors of the first 0x1000 are already 0xff anyway.
+    if (BootIdeWriteSector(driveId, headerBuf, SECTOR_STORE, DEFAULT_WRITE_RETRY)) { // Partition header write.
+        printk("\n           Write error, sector %u   ", SECTOR_STORE);
+        cromwellWarning();
+    }
+    if (verbose)
         cromwellSuccess();
 
-    if(verbose)
+    if (verbose)
+        printk("\n\n           Writing Cluster Chain map.   ");
+
+    for (i = 0; i < 9; i++) { // Must be done 9 times as WRITE MULTIPLE will only take buffers of 256 sectors long.
+        // Start by writing 0 everywhere, skip the first 144 sectors to write 9*256 sectors up to the end,
+        // Reuse 9 times memory allocated (all set to 0x00) of 256*512 bytes in size
+        if (BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_STORE + 8 + 144 + (i << 8), 256, DEFAULT_WRITE_RETRY)) { // Initial Cluster chain map write.
+            printk("\n           Write error, Cluster Chainmap   ");                                                 // Length for E: drive is fixed at 2448 sectors
+            cromwellWarning();
+            return;
+        }
+    }
+    memset(ptrBuffer, 0xff, 4 * 7); // We'll use 5 clusters for base folders(+2 first clusters used as specs).
+    ptrBuffer[0] = 0xf8;            // First cluster is 0xFFFFFFF8 in 4 byte mode cluster.
+
+    // One last time for the first 144 sectors, with initial cluster entries.
+    if (BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_STORE + 8, 144, DEFAULT_WRITE_RETRY)) { // Initial Cluster chain map write.
+        printk("\n           Write error, Cluster Chainmap   ");                                // Length for E: drive is fixed at 2448 sectors
+        cromwellWarning();
+        return;
+    }
+    free(ptrBuffer);
+
+    if (verbose)
+        cromwellSuccess();
+
+    if (verbose)
         printk("\n\n           Finalizing, creating directories.   ");
     // Root Dir (from 512*2456 = 0x133000 to 0x1d000 = 512*232)
-    //memset(buffer,0xff,512);
-    //Format 6 first clusters
-    ptrBuffer = (unsigned char *)malloc(224 * 512);    //chainmap buffer. Length is of a single MULTIPLE WRITE ATA command.
-    memset(ptrBuffer,0x00,512 * 224);
+    // memset(buffer,0xff,512);
+    // Format 6 first clusters
+    ptrBuffer = (unsigned char *)malloc(224 * 512); // chainmap buffer. Length is of a single MULTIPLE WRITE ATA command.
+    memset(ptrBuffer, 0x00, 512 * 224);
 
-    if(BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_STORE+2456, 224, DEFAULT_WRITE_RETRY)){   //Format 7 first clusters.
-        printk("\n           Write error, Clusters 0 to 6   ");                               //Length is fixed at 224 sectors
+    if (BootIdeWriteMultiple(driveId, ptrBuffer, SECTOR_STORE + 2456, 224, DEFAULT_WRITE_RETRY)) { // Format 7 first clusters.
+        printk("\n           Write error, Clusters 0 to 6   ");                                    // Length is fixed at 224 sectors
         cromwellWarning();
         return;
     }
@@ -1174,134 +1165,135 @@ void FATXFormatDriveE(const unsigned char driveId, const bool verbose){
 
     // memset(buffer,0x00,512);
     // TDATA Dir points to Cluster 2
-    FATXCreateDirectoryEntry(buffer,"TDATA",0,2);
+    FATXCreateDirectoryEntry(buffer, "TDATA", 0, 2);
     // UDATA Dir points to Cluster 4
-    FATXCreateDirectoryEntry(buffer,"UDATA",1,4);
+    FATXCreateDirectoryEntry(buffer, "UDATA", 1, 4);
     // CACHE Dir points to Cluster 6
-    FATXCreateDirectoryEntry(buffer,"CACHE",2,6);
-    if(BootIdeWriteSector(driveId,buffer,SECTOR_STORE+2456, DEFAULT_WRITE_RETRY)){   // Write Cluster 1(E: Root).
-        printk("\n           Write error, sector %u   ", SECTOR_STORE+2456);
+    FATXCreateDirectoryEntry(buffer, "CACHE", 2, 6);
+    if (BootIdeWriteSector(driveId, buffer, SECTOR_STORE + 2456, DEFAULT_WRITE_RETRY)) { // Write Cluster 1(E: Root).
+        printk("\n           Write error, sector %u   ", SECTOR_STORE + 2456);
         cromwellWarning();
         return;
     }
 
-    memset(buffer,0x00,512);
-    //CACHE dir is empty to 0x00 everywhere.
-    //BootIdeWriteSector(nIndexDrive,buffer,SECTOR_STORE+2456+32+32+32+32+32+32);   // Write Cluster 6(CACHE).
-    // FFFE0000 Dir points to Cluster 3
-    FATXCreateDirectoryEntry(buffer,"FFFE0000",0,3);
-    if(BootIdeWriteSector(driveId,buffer,SECTOR_STORE+2456+32, DEFAULT_WRITE_RETRY)){   // Write Cluster 2(TDATA).
-        printk("\n           Write error, sector %u   ", SECTOR_STORE+2456+32);
+    memset(buffer, 0x00, 512);
+    // CACHE dir is empty to 0x00 everywhere.
+    // BootIdeWriteSector(nIndexDrive,buffer,SECTOR_STORE+2456+32+32+32+32+32+32);   // Write Cluster 6(CACHE).
+    //  FFFE0000 Dir points to Cluster 3
+    FATXCreateDirectoryEntry(buffer, "FFFE0000", 0, 3);
+    if (BootIdeWriteSector(driveId, buffer, SECTOR_STORE + 2456 + 32, DEFAULT_WRITE_RETRY)) { // Write Cluster 2(TDATA).
+        printk("\n           Write error, sector %u   ", SECTOR_STORE + 2456 + 32);
         cromwellWarning();
         return;
     }
-    memset(buffer,0x00,512);
+    memset(buffer, 0x00, 512);
     // Music Dir points to Cluster 5
-    FATXCreateDirectoryEntry(buffer,"Music",0,5);
-    if(BootIdeWriteSector(driveId,buffer,SECTOR_STORE+2456+32+32+32, DEFAULT_WRITE_RETRY)){   // Write Cluster 4(UDATA).
-        printk("\n           Write error, sector %u   ", SECTOR_STORE+2456+32+32+32);
+    FATXCreateDirectoryEntry(buffer, "Music", 0, 5);
+    if (BootIdeWriteSector(driveId, buffer, SECTOR_STORE + 2456 + 32 + 32 + 32, DEFAULT_WRITE_RETRY)) { // Write Cluster 4(UDATA).
+        printk("\n           Write error, sector %u   ", SECTOR_STORE + 2456 + 32 + 32 + 32);
         cromwellWarning();
         return;
     }
-    //For a total of 2648 sectors written
-    if(verbose) {
+    // For a total of 2648 sectors written
+    if (verbose) {
         cromwellSuccess();
     }
 }
 
 void FATXFormatExtendedDrive(const unsigned char driveId, const unsigned char partition, const uint64_t lbaStart, const uint64_t lbaSize) {
     if (partition >= XboxPartitionTableEntryCount) {
-        VIDEO_ATTR=0xffff0000;
+        VIDEO_ATTR = 0xffff0000;
         printk("\n\1                Partition index out of bounds");
         cromwellWarning();
         return;
     }
 
-    unsigned char buffer[512], headerBuf[0x1000];
-    unsigned int i;
-    unsigned char *ptrBuffer;
-    uint32_t counter, chainmapSize = 0;
+    unsigned char    buffer[512], headerBuf[0x1000];
+    unsigned int     i;
+    unsigned char   *ptrBuffer;
+    uint32_t         counter, chainmapSize = 0;
     PARTITIONHEADER *header;
 
-    VIDEO_ATTR=0xffd8d8d8;
+    VIDEO_ATTR              = 0xffd8d8d8;
 
-    XboxPartitionTable * mbr = (XboxPartitionTable *)buffer;
+    XboxPartitionTable *mbr = (XboxPartitionTable *)buffer;
 
-    if(tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
-       FATXSetBRFR(driveId);
+    if (tsaHarddiskInfo[driveId].m_enumDriveType != EDT_XBOXFS) {
+        FATXSetBRFR(driveId);
     }
 
     const unsigned int clusterSize = CalculateClusterSize(lbaSize);
 
-    //Calculate size of FAT, in number of 512-byte sectors.
-    chainmapSize = (lbaSize / clusterSize);                                 // Divide total of sectors(512 bytes) by number of sector contained in a cluster
-    chainmapSize = chainmapSize * ((lbaSize < FATX16_MAXLBA) ? 2 : 4);      // Multiply by length(in bytes) of a single entry in FAT.
-                                                                            // FATX16 has 2 byte FAT entries and FATX32 has 4 bytes entries.
-    chainmapSize = (chainmapSize >> 9);                                     // Divide by 512bytes,
+    // Calculate size of FAT, in number of 512-byte sectors.
+    chainmapSize                   = (lbaSize / clusterSize);                            // Divide total of sectors(512 bytes) by number of sector contained in a cluster
+    chainmapSize                   = chainmapSize * ((lbaSize < FATX16_MAXLBA) ? 2 : 4); // Multiply by length(in bytes) of a single entry in FAT.
+                                                                                         // FATX16 has 2 byte FAT entries and FATX32 has 4 bytes entries.
+    chainmapSize                   = (chainmapSize >> 9);                                // Divide by 512bytes,
 
     // Round it to 4096 byte boundary
-    while((chainmapSize % 8) != 0) {
+    while ((chainmapSize % 8) != 0) {
         chainmapSize += 1;
     }
 
-    if(tsaHarddiskInfo[driveId].m_fHasPartitionTable == 1) {
-        if(BootIdeReadSector(driveId, &buffer[0], 0x00, 0, 512)) {
-            VIDEO_ATTR=0xffff0000;
+    if (tsaHarddiskInfo[driveId].m_fHasPartitionTable == 1) {
+        if (BootIdeReadSector(driveId, &buffer[0], 0x00, 0, 512)) {
+            VIDEO_ATTR = 0xffff0000;
             printk("\n\1                Unable to read Partition Table sector");
             cromwellWarning();
             return;
         }
-    } else  {
-        //If no MBR already on disk
+    } else {
+        // If no MBR already on disk
         memcpy(mbr, &BackupPartTbl, sizeof(BackupPartTbl)); // Copy backup in working buffer and work from there.
     }
 
     printk("\n\n\n           Writing partition table in MBR.   ");
-    mbr->TableEntries[partition].Flags = PE_PARTFLAGS_IN_USE;
-    mbr->TableEntries[partition].LBAStart = (uint32_t)(lbaStart & LBA_LOWER_BITS);;
+    mbr->TableEntries[partition].Flags    = PE_PARTFLAGS_IN_USE;
+    mbr->TableEntries[partition].LBAStart = (uint32_t)(lbaStart & LBA_LOWER_BITS);
+    ;
     mbr->TableEntries[partition].LBAStart_high = (uint16_t)((lbaStart >> 32) && LBA_HIGHER_BITS);
-    mbr->TableEntries[partition].LBASize = (uint32_t)(lbaSize & LBA_LOWER_BITS);
-    mbr->TableEntries[partition].LBASize_high = (uint16_t)((lbaSize >> 32) && LBA_HIGHER_BITS);
+    mbr->TableEntries[partition].LBASize       = (uint32_t)(lbaSize & LBA_LOWER_BITS);
+    mbr->TableEntries[partition].LBASize_high  = (uint16_t)((lbaSize >> 32) && LBA_HIGHER_BITS);
     FATXSetMBR(driveId, mbr);
     cromwellSuccess();
 
-    memset(headerBuf,0xff,0x1000);              //First sector(and only one used) of the Partition header area.
-    header = (PARTITIONHEADER *)headerBuf;
-    header->magic = FATX_PARTITION_MAGIC;       //Whoop, magic!
-    header->volumeID = partition <= 5 ? 'F' : 'G';    //Goes with the HDD.
-    header->clusterSize = clusterSize;          //16KB = 32 sector/cluster. 32KB = 64 sector/cluster. 64KB = 128 sector/cluster.
-    header->nbFAT = 1;                          //Always 1.
-    header->unknown = 0;                        //Always 0.
-    memset(header->unused,0xff,4078);           //Fill unused area with 0xff.
-    //Partition header is ready.
-    //It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
-    //onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
+    memset(headerBuf, 0xff, 0x1000); // First sector(and only one used) of the Partition header area.
+    header              = (PARTITIONHEADER *)headerBuf;
+    header->magic       = FATX_PARTITION_MAGIC;       // Whoop, magic!
+    header->volumeID    = partition <= 5 ? 'F' : 'G'; // Goes with the HDD.
+    header->clusterSize = clusterSize;                // 16KB = 32 sector/cluster. 32KB = 64 sector/cluster. 64KB = 128 sector/cluster.
+    header->nbFAT       = 1;                          // Always 1.
+    header->unknown     = 0;                          // Always 0.
+    memset(header->unused, 0xff, 4078);               // Fill unused area with 0xff.
+    // Partition header is ready.
+    // It's not necessary to fill unused area up to 0x1000 because we'll only write the first 512 bytes of headerBuf
+    // onto the HDD. Let's do it for the exercise OK? A few wasted cycles isn't going to hurt anybody.
 
-    ptrBuffer = (unsigned char *)malloc(256 * 512);    //chainmap buffer. Length is of a single MULTIPLE WRITE ATA command.
-    memset(ptrBuffer,0x0,512 * 256);
+    ptrBuffer = (unsigned char *)malloc(256 * 512); // chainmap buffer. Length is of a single MULTIPLE WRITE ATA command.
+    memset(ptrBuffer, 0x0, 512 * 256);
 
-    if((chainmapSize % 256) == 0){          //If we'll only issue WRITE MULTIPLE ATA commands with full 256 sectors writes.
-                                            //We'll put the initial clusters reservation right now.
-        ptrBuffer[0]=0xf8;                        //First cluster is 0xFFFFFFF8 in 4 byte mode cluster.
-        ptrBuffer[1]=0xff;
-        ptrBuffer[3]=0xff;
-        ptrBuffer[4]=0xff;
+    if ((chainmapSize % 256) == 0) { // If we'll only issue WRITE MULTIPLE ATA commands with full 256 sectors writes.
+                                     // We'll put the initial clusters reservation right now.
+        ptrBuffer[0] = 0xf8;         // First cluster is 0xFFFFFFF8 in 4 byte mode cluster.
+        ptrBuffer[1] = 0xff;
+        ptrBuffer[3] = 0xff;
+        ptrBuffer[4] = 0xff;
         // FATX16 stops there. Only 2-byte entries in cluster chain
-        if(lbaSize >= FATX16_MAXLBA){
-            ptrBuffer[5]=0xff;
-            ptrBuffer[6]=0xff;
-            ptrBuffer[7]=0xff;
-            ptrBuffer[8]=0xff;
+        if (lbaSize >= FATX16_MAXLBA) {
+            ptrBuffer[5] = 0xff;
+            ptrBuffer[6] = 0xff;
+            ptrBuffer[7] = 0xff;
+            ptrBuffer[8] = 0xff;
         }
     }
 
-    memset(buffer,0xff,512);                    //Killer buffer.
+    memset(buffer, 0xff, 512); // Killer buffer.
 
     printk("\n\n           Writing Boot Block.   ");
     // Starting (from 0 to 512*8 = 0x1000). Erasing Partition header data.
     // 4KB so 8*512 bytes sectors.
     for (counter = lbaStart; counter < (lbaStart + 8); counter++) {
-        if(BootIdeWriteSector(driveId,buffer,counter, DEFAULT_WRITE_RETRY)){
+        if (BootIdeWriteSector(driveId, buffer, counter, DEFAULT_WRITE_RETRY)) {
             printk("\n           Write error, sector %u   ", counter);
             cromwellWarning();
             return;
@@ -1309,7 +1301,7 @@ void FATXFormatExtendedDrive(const unsigned char driveId, const unsigned char pa
     }
 
     // Write Partition info on first sector. last seven sectors of the first 0x1000 are already 0xff anyway.
-    if(BootIdeWriteSector(driveId,headerBuf,lbaStart, DEFAULT_WRITE_RETRY)){   //Partition header write.
+    if (BootIdeWriteSector(driveId, headerBuf, lbaStart, DEFAULT_WRITE_RETRY)) { // Partition header write.
         printk("\n           Write error, sector %u   ", lbaStart);
         cromwellWarning();
         return;
@@ -1320,31 +1312,29 @@ void FATXFormatExtendedDrive(const unsigned char driveId, const unsigned char pa
     printk("\n\n           Writing Cluster Chain map.   ");
 
 
-    for(i = 0; i < (chainmapSize >> 8); i++){                         //Must be done multiple times as WRITE MULTIPLE will only take buffers of 256 sectors long.
-                                                                      //In fact, the number of time chainmapSize can fit 256.
-        //Start by writing 0 everywhere, skip the first 144 sectors to write 9*256 sectors up to the end,
-        //Reuse n times memory allocated (all set to 0x00) of 256*512 bytes in size in the event (chainmapSize % 256) != 0.
-        //If (chainmapSize % 256) == 0, start of buffer contains initial chainmap initialization.
-        if(BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart + 8 + (chainmapSize % 256) + (i << 8), 256, DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
-            printk("\n           Write error, Cluster Chainmap   ");                               //Length for E: drive is fixed at 2448 sectors
+    for (i = 0; i < (chainmapSize >> 8); i++) { // Must be done multiple times as WRITE MULTIPLE will only take buffers of 256 sectors long.
+                                                // In fact, the number of time chainmapSize can fit 256.
+        // Start by writing 0 everywhere, skip the first 144 sectors to write 9*256 sectors up to the end,
+        // Reuse n times memory allocated (all set to 0x00) of 256*512 bytes in size in the event (chainmapSize % 256) != 0.
+        // If (chainmapSize % 256) == 0, start of buffer contains initial chainmap initialization.
+        if (BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart + 8 + (chainmapSize % 256) + (i << 8), 256, DEFAULT_WRITE_RETRY)) { // Initial Cluster chain map write.
+            printk("\n           Write error, Cluster Chainmap   ");                                                              // Length for E: drive is fixed at 2448 sectors
             cromwellWarning();
             return;
         }
     }
 
-    if(chainmapSize % 256){                       //If there's a partial WRITE MULTIPLE COMMAND to be issued.
-        if(lbaSize >= FATX16_MAXLBA) {
-            memset(ptrBuffer,0xff,4*2);          //FATX32 partition, cluster entry is Dword-sized
+    if (chainmapSize % 256) { // If there's a partial WRITE MULTIPLE COMMAND to be issued.
+        if (lbaSize >= FATX16_MAXLBA) {
+            memset(ptrBuffer, 0xff, 4 * 2); // FATX32 partition, cluster entry is Dword-sized
+        } else {
+            memset(ptrBuffer, 0xff, 2 * 2);
         }
-        else
-        {
-            memset(ptrBuffer,0xff,2*2);
-        }
-        ptrBuffer[0]=0xf8;                        //FATX16 partitions, cluster entry is word-sized
+        ptrBuffer[0] = 0xf8; // FATX16 partitions, cluster entry is word-sized
 
-        //One last time for the first 144 sectors, with initial cluster entries.
-        if(BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart+8, (chainmapSize % 256), DEFAULT_WRITE_RETRY)){   //Initial Cluster chain map write.
-            printk("\n           Write error, Cluster Chainmap   ");                               //Length for E: drive is fixed at 2448 sectors
+        // One last time for the first 144 sectors, with initial cluster entries.
+        if (BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart + 8, (chainmapSize % 256), DEFAULT_WRITE_RETRY)) { // Initial Cluster chain map write.
+            printk("\n           Write error, Cluster Chainmap   ");                                             // Length for E: drive is fixed at 2448 sectors
             cromwellWarning();
             return;
         }
@@ -1356,17 +1346,17 @@ void FATXFormatExtendedDrive(const unsigned char driveId, const unsigned char pa
     // 2 clusters formatted.
     printk("\n\n           Finalizing.   ");
 
-    ptrBuffer = (unsigned char *)malloc(clusterSize*2 * 512);    //2 first clusters.
-    memset(ptrBuffer,0xff,512 * clusterSize*2);
+    ptrBuffer = (unsigned char *)malloc(clusterSize * 2 * 512); // 2 first clusters.
+    memset(ptrBuffer, 0xff, 512 * clusterSize * 2);
 
-    if(BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart+8+chainmapSize, clusterSize*2, DEFAULT_WRITE_RETRY)){   //Format 6 first clusters.
-        printk("\n           Write error, Clusters 0 to 1   ");                               //Length is fixed at 192 sectors
+    if (BootIdeWriteMultiple(driveId, ptrBuffer, lbaStart + 8 + chainmapSize, clusterSize * 2, DEFAULT_WRITE_RETRY)) { // Format 6 first clusters.
+        printk("\n           Write error, Clusters 0 to 1   ");                                                        // Length is fixed at 192 sectors
         cromwellWarning();
         return;
     }
 
     free(ptrBuffer);
-    //for a total of 8 + chainmapSize + (clustersize * 2) sectors written.
+    // for a total of 8 + chainmapSize + (clustersize * 2) sectors written.
     cromwellSuccess();
 
 

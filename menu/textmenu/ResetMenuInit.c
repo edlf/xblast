@@ -8,58 +8,58 @@
  ***************************************************************************/
 
 #include "MenuInits.h"
-#include "boot.h"
 #include "ResetMenuActions.h"
+#include "boot.h"
 #include "string.h"
 
-TEXTMENU* ResetMenuInit(void) {
+TEXTMENU *ResetMenuInit(void) {
     TEXTMENUITEM *itemPtr;
-    TEXTMENU *menuPtr;
-    
+    TEXTMENU     *menuPtr;
+
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "Power Menu");
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Reboot");
-    itemPtr->functionPtr=SlowReboot;
+    itemPtr->functionPtr     = SlowReboot;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 #ifdef DEV_FEATURES
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Reboot (fast)");
-    itemPtr->functionPtr=QuickReboot;
+    itemPtr->functionPtr     = QuickReboot;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 #endif
-    
+
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Power off");
-    itemPtr->functionPtr=PowerOff;
+    itemPtr->functionPtr     = PowerOff;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Reboot without saving");
-    itemPtr->functionPtr=SlowRebootNoSave;
+    itemPtr->functionPtr     = SlowRebootNoSave;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 #ifdef DEV_FEATURES
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Reboot without saving(fast)");
-    itemPtr->functionPtr=QuickRebootNoSave;
+    itemPtr->functionPtr     = QuickRebootNoSave;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 #endif
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Power offwithout saving");
-    itemPtr->functionPtr=PowerOffNoSave;
+    itemPtr->functionPtr     = PowerOffNoSave;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Restart XBlast OS");
-    itemPtr->functionPtr=Restart_Xblast;
+    itemPtr->functionPtr     = Restart_Xblast;
     itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 

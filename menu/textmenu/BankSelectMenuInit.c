@@ -6,207 +6,172 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************
-*/
+ */
 
-#include "MenuInits.h"
-#include "lpcmod_v1.h"
-#include "config.h"
 #include "FlashMenuActions.h"
+#include "MenuInits.h"
+#include "WebServerOps.h"
 #include "boot.h"
+#include "config.h"
+#include "lib/LPCMod/BootLPCMod.h"
+#include "lpcmod_v1.h"
 #include "string.h"
 #include "xblast/HardwareIdentifier.h"
-#include "lib/LPCMod/BootLPCMod.h"
-#include "WebServerOps.h"
 
 
-TEXTMENU* BankSelectMenuInit(void)
-{
-    TEXTMENUITEM* itemPtr;
-    TEXTMENU* menuPtr;
+TEXTMENU *BankSelectMenuInit(void) {
+    TEXTMENUITEM *itemPtr;
+    TEXTMENU     *menuPtr;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "Select flash bank");
 
-    //Bank0 (512KB)
+    // Bank0 (512KB)
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Bank0 (512KB)");
-    itemPtr->functionPtr = BankSelectDynamic;
-    itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
+    itemPtr->functionPtr                   = BankSelectDynamic;
+    itemPtr->functionDataPtr               = malloc(sizeof(FlashBank));
     *(FlashBank *)itemPtr->functionDataPtr = FlashBank_512Bank;
-    itemPtr->dataPtrAlloc = true;
+    itemPtr->dataPtrAlloc                  = true;
     TextMenuAddItem(menuPtr, itemPtr);
 
-    //Bank1 (256KB)
+    // Bank1 (256KB)
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Bank1 (256KB)");
-    itemPtr->functionPtr = BankSelectDynamic;
-    itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
+    itemPtr->functionPtr                   = BankSelectDynamic;
+    itemPtr->functionDataPtr               = malloc(sizeof(FlashBank));
     *(FlashBank *)itemPtr->functionDataPtr = FlashBank_256Bank;
-    itemPtr->dataPtrAlloc = true;
+    itemPtr->dataPtrAlloc                  = true;
     TextMenuAddItem(menuPtr, itemPtr);
 
-    //Bank2 (OS)
+    // Bank2 (OS)
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "Bank2 (OS)");
-    itemPtr->functionPtr = BankSelectDynamic;
-    itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
+    itemPtr->functionPtr                   = BankSelectDynamic;
+    itemPtr->functionDataPtr               = malloc(sizeof(FlashBank));
     *(FlashBank *)itemPtr->functionDataPtr = FlashBank_OSBank;
-    itemPtr->dataPtrAlloc = true;
+    itemPtr->dataPtrAlloc                  = true;
     TextMenuAddItem(menuPtr, itemPtr);
-    
+
     return menuPtr;
 }
 
-void TSOPBankSelectMenuDynamic(void* bank)
-{
-    TEXTMENUITEM* itemPtr;
-    TEXTMENU* menuPtr;
+void TSOPBankSelectMenuDynamic(void *bank) {
+    TEXTMENUITEM *itemPtr;
+    TEXTMENU     *menuPtr;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "Select TSOP flash bank");
 
-    //Bank0
+    // Bank0
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "TSOP bank0");
-    itemPtr->functionPtr = BankSelectDynamic;
-    itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
+    itemPtr->functionPtr                   = BankSelectDynamic;
+    itemPtr->functionDataPtr               = malloc(sizeof(FlashBank));
     *(FlashBank *)itemPtr->functionDataPtr = FlashBank_SplitTSOP0Bank;
-    itemPtr->dataPtrAlloc = true;
+    itemPtr->dataPtrAlloc                  = true;
     TextMenuAddItem(menuPtr, itemPtr);
 
-    //Bank1
+    // Bank1
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, "TSOP bank1");
-    itemPtr->functionPtr = BankSelectDynamic;
-    itemPtr->functionDataPtr = malloc(sizeof(FlashBank));
+    itemPtr->functionPtr                   = BankSelectDynamic;
+    itemPtr->functionDataPtr               = malloc(sizeof(FlashBank));
     *(FlashBank *)itemPtr->functionDataPtr = FlashBank_SplitTSOP1Bank;
-    itemPtr->dataPtrAlloc = true;
+    itemPtr->dataPtrAlloc                  = true;
     TextMenuAddItem(menuPtr, itemPtr);
 
     ResetDrawChildTextMenu(menuPtr);
 }
 
-void BankSelectDynamic(void* bank)
-{
-    TEXTMENUITEM* itemPtr;
-    TEXTMENU* menuPtr;
-    int i = 0;
-    FlashBank target = *(FlashBank *)bank;
+void BankSelectDynamic(void *bank) {
+    TEXTMENUITEM *itemPtr;
+    TEXTMENU     *menuPtr;
+    int           i      = 0;
+    FlashBank     target = *(FlashBank *)bank;
 
-    menuPtr = calloc(1, sizeof(TEXTMENU));
+    menuPtr              = calloc(1, sizeof(TEXTMENU));
 
-    if(TSOPRecoveryMode)
-    {
-        if(target == FlashBank_FullTSOPBank)
-        {
-           strcpy(menuPtr->szCaption, "Flash menu : Full TSOP recover");
-        }
-        else if(target == FlashBank_SplitTSOP0Bank)
-        {
+    if (TSOPRecoveryMode) {
+        if (target == FlashBank_FullTSOPBank) {
+            strcpy(menuPtr->szCaption, "Flash menu : Full TSOP recover");
+        } else if (target == FlashBank_SplitTSOP0Bank) {
             strcpy(menuPtr->szCaption, "Flash menu : bank0 TSOP recover");
-        }
-        else if(target == FlashBank_SplitTSOP1Bank)
-        {
+        } else if (target == FlashBank_SplitTSOP1Bank) {
             strcpy(menuPtr->szCaption, "Flash menu : bank1 TSOP recover");
-        }
-        else
-        {
+        } else {
             strcpy(menuPtr->szCaption, "UNKNOWN BANK. GO BACK!");
             target = FlashBank_NoBank;
         }
 
         switchOSBank(target);
 
-    }
-    else if(isXBlastOnLPC())
-    {
-        if(target == FlashBank_OSBank)
-        {
+    } else if (isXBlastOnLPC()) {
+        if (target == FlashBank_OSBank) {
             strcpy(menuPtr->szCaption, "Flash menu : OS bank");
-        }
-        else if(target == FlashBank_256Bank)
-        {
+        } else if (target == FlashBank_256Bank) {
             strcpy(menuPtr->szCaption, "Flash menu : 256KB bank");
-        }
-        else if(target == FlashBank_512Bank)
-        {
+        } else if (target == FlashBank_512Bank) {
             strcpy(menuPtr->szCaption, "Flash menu : 512KB bank");
-        }
-        else
-        {
+        } else {
             strcpy(menuPtr->szCaption, "UNKNOWN BANK. GO BACK!");
             target = FlashBank_NoBank;
         }
 
         switchOSBank(target);
-    }
-    else if(isXBlastOnTSOP())
-    {
-        if(LPCmodSettings.OSsettings.TSOPcontrol)
-        {
-    	    if(target == FlashBank_SplitTSOP0Bank)
-    	    {
+    } else if (isXBlastOnTSOP()) {
+        if (LPCmodSettings.OSsettings.TSOPcontrol) {
+            if (target == FlashBank_SplitTSOP0Bank) {
                 strcpy(menuPtr->szCaption, "Flash menu : TSOP bank0");
-    	    }
-            else if(target == FlashBank_SplitTSOP1Bank)
-            {
+            } else if (target == FlashBank_SplitTSOP1Bank) {
                 strcpy(menuPtr->szCaption, "Flash menu : TSOP bank1");
-            }
-            else
-            {
+            } else {
                 strcpy(menuPtr->szCaption, "UNKNOWN BANK. GO BACK!");
                 target = FlashBank_NoBank;
             }
 
             switchOSBank(target);
-        }
-        else
-        {
+        } else {
             strcpy(menuPtr->szCaption, "Flash menu : TSOP");
-            switchOSBank(FlashBank_FullTSOPBank);	//Release everything.
+            switchOSBank(FlashBank_FullTSOPBank); // Release everything.
         }
-    }
-    else
-    {
+    } else {
         strcpy(menuPtr->szCaption, "Flash menu : Unknown device");
         target = FlashBank_NoBank;
     }
-    
+
 #ifdef LWIP
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     sprintf(itemPtr->szCaption, "Net Flash");
-    itemPtr->functionPtr = enableNetflash;
-    itemPtr->functionDataPtr = malloc(sizeof(WebServerOps));
+    itemPtr->functionPtr                      = enableNetflash;
+    itemPtr->functionDataPtr                  = malloc(sizeof(WebServerOps));
     *(WebServerOps *)itemPtr->functionDataPtr = WebServerOps_BIOSFlash;
-    itemPtr->dataPtrAlloc = true;
+    itemPtr->dataPtrAlloc                     = true;
     TextMenuAddItem(menuPtr, itemPtr);
 #ifdef DEV_FEATURES
     itemPtr = malloc(sizeof(TEXTMENUITEM));
-    memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
-    sprintf(itemPtr->szCaption,"Web Update");
-    itemPtr->functionPtr = enableWebupdate;
-    itemPtr->functionDataPtr= NULL;
+    memset(itemPtr, 0x00, sizeof(TEXTMENUITEM));
+    sprintf(itemPtr->szCaption, "Web Update");
+    itemPtr->functionPtr     = enableWebupdate;
+    itemPtr->functionDataPtr = NULL;
     TextMenuAddItem(menuPtr, itemPtr);
 #endif
 #endif
 
-    for (i = 0; i < 2; ++i)
-    {
-        if(tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi)
-        {
+    for (i = 0; i < 2; ++i) {
+        if (tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi) {
             itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-            sprintf(itemPtr->szCaption, "CD Flash (image.bin)");// (hd%c)",i ? 'b':'a');
-            itemPtr->functionPtr = FlashBiosFromCD;
-            itemPtr->functionDataPtr = malloc(sizeof(int));
-            *(int*)itemPtr->functionDataPtr = i;
-            itemPtr->dataPtrAlloc = true;
+            sprintf(itemPtr->szCaption, "CD Flash (image.bin)"); // (hd%c)",i ? 'b':'a');
+            itemPtr->functionPtr             = FlashBiosFromCD;
+            itemPtr->functionDataPtr         = malloc(sizeof(int));
+            *(int *)itemPtr->functionDataPtr = i;
+            itemPtr->dataPtrAlloc            = true;
             TextMenuAddItem(menuPtr, itemPtr);
         }
     }
 
-    //Only Master HDD will be supported here.
-    if(tsaHarddiskInfo[0].m_fDriveExists && tsaHarddiskInfo[0].m_fAtapi == 0)
-    {
+    // Only Master HDD will be supported here.
+    if (tsaHarddiskInfo[0].m_fDriveExists && tsaHarddiskInfo[0].m_fAtapi == 0) {
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption, "HDD Flash");
         itemPtr->functionPtr = HDDFlashMenuDynamic;
@@ -215,4 +180,3 @@ void BankSelectDynamic(void* bank)
 
     ResetDrawChildTextMenu(menuPtr);
 }
-

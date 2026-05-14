@@ -18,29 +18,29 @@
  * gzip declarations
  */
 
-#define OF(args)  args
-#define STATIC static
+#define OF(args) args
+#define STATIC   static
 
 /*
  * Why do we do this? Don't ask me..
  *
  * Incomprehensible are the ways of bootloaders.
  */
-#define memzero(s, n)     memset ((s), 0, (n))
+#define memzero(s, n) memset((s), 0, (n))
 
 typedef unsigned char  uch;
 typedef unsigned short ush;
 typedef unsigned long  ulg;
 
-#define WSIZE 0x8000        /* Window size must be at least 32k, */
-                /* and a power of two */
+#define WSIZE 0x8000 /* Window size must be at least 32k, */
+                     /* and a power of two */
 
-static uch *inbuf;         /* input buffer */
-static uch window[WSIZE];    /* Sliding window buffer */
+static uch     *inbuf;         /* input buffer */
+static uch      window[WSIZE]; /* Sliding window buffer */
 
-static unsigned insize = 0;  /* valid bytes in inbuf */
-static unsigned inptr = 0;   /* index of next byte to be processed in inbuf */
-static unsigned outcnt = 0;  /* bytes in output buffer */
+static unsigned insize = 0; /* valid bytes in inbuf */
+static unsigned inptr  = 0; /* index of next byte to be processed in inbuf */
+static unsigned outcnt = 0; /* bytes in output buffer */
 
 /* gzip flag byte */
 #define ASCII_FLAG   0x01 /* bit 0 set: file probably ASCII text */
@@ -51,86 +51,87 @@ static unsigned outcnt = 0;  /* bytes in output buffer */
 #define ENCRYPTED    0x20 /* bit 5 set: file is encrypted */
 #define RESERVED     0xC0 /* bit 6,7:   reserved */
 
-#define get_byte()  (inptr < insize ? inbuf[inptr++] : fill_inbuf())
+#define get_byte() (inptr < insize ? inbuf[inptr++] : fill_inbuf())
 
 /* Diagnostic functions */
-#  define Assert(cond,msg)
-#  define Trace(x)
-#  define Tracev(x)
-#  define Tracevv(x)
-#  define Tracec(c,x)
-#  define Tracecv(c,x)
+#define Assert(cond, msg)
+#define Trace(x)
+#define Tracev(x)
+#define Tracevv(x)
+#define Tracec(c, x)
+#define Tracecv(c, x)
 
-static int  fill_inbuf(void);
-static void flush_window(void);
-static void gzip_mark(void **);
-static void gzip_release(void **);
+static int           fill_inbuf(void);
+static void          flush_window(void);
+static void          gzip_mark(void **);
+static void          gzip_release(void **);
 
-unsigned char *input_data;
-int input_len;
+unsigned char       *input_data;
+int                  input_len;
 
-static long bytes_out = 0;
-static uch *output_data;
+static long          bytes_out = 0;
+static uch          *output_data;
 static unsigned long output_ptr = 0;
 
-void *gzip_malloc(int size);
-void gzip_free(void *where);
+void                *gzip_malloc(int size);
+void                 gzip_free(void *where);
 
-long free_mem_ptr;
-long free_mem_end_ptr;
+long                 free_mem_ptr;
+long                 free_mem_end_ptr;
 
-#define INPLACE_MOVE_ROUTINE  0x1000
-#define LOW_BUFFER_START      0x2000
+#define INPLACE_MOVE_ROUTINE 0x1000
+#define LOW_BUFFER_START     0x2000
 #define LOW_BUFFER_MAX       0x90000
-#define HEAP_SIZE             0x3000
+#define HEAP_SIZE            0x3000
 
 #include "inflate.c"
 
-void *gzip_malloc(int size)
-{
+void *gzip_malloc(int size) {
     void *p;
 
-    if (size <0) while(1);  //Error... stall.
-    if (free_mem_ptr <= 0) while(1);  //Error... stall.
+    if (size < 0)
+        while (1)
+            ; // Error... stall.
+    if (free_mem_ptr <= 0)
+        while (1)
+            ; // Error... stall.
 
-    free_mem_ptr = (free_mem_ptr + 3) & ~3;    /* Align */
+    free_mem_ptr = (free_mem_ptr + 3) & ~3; /* Align */
 
-    p = (void *)free_mem_ptr;
+    p            = (void *)free_mem_ptr;
     free_mem_ptr += size;
 
     if (free_mem_ptr >= free_mem_end_ptr)
-        while(1);  //Error... stall.
+        while (1)
+            ; // Error... stall.
 
     return p;
 }
 
-void gzip_free(void *where)
-{    /* Don't care */
+void gzip_free(void *where) { /* Don't care */
 }
 
-static void gzip_mark(void **ptr)
-{
-    *ptr = (void *) free_mem_ptr;
+static void gzip_mark(void **ptr) {
+    *ptr = (void *)free_mem_ptr;
 }
 
-static void gzip_release(void **ptr)
-{
-    free_mem_ptr = (long) *ptr;
+static void gzip_release(void **ptr) {
+    free_mem_ptr = (long)*ptr;
 }
 
 /* ===========================================================================
  * Fill the input buffer. This is called only when the buffer is empty
  * and at least one byte is really needed.
  */
-static int fill_inbuf(void)
-{
+static int fill_inbuf(void) {
     if (insize != 0) {
-        while(1);  //Error... stall.
+        while (1)
+            ; // Error... stall.
     }
 
-    inbuf = input_data;
+    inbuf  = input_data;
     insize = input_len;
-    inptr = 1;
+    inptr  = 1;
     return inbuf[0];
 }
 
@@ -138,17 +139,16 @@ static int fill_inbuf(void)
  * Write the output window window[0..outcnt-1] and update crc and bytes_out.
  * (Used for the decompressed data only.)
  */
-static void flush_window(void)
-{
-    ulg c = crc;         /* temporary variable */
+static void flush_window(void) {
+    ulg      c = crc; /* temporary variable */
     unsigned n;
-    uch *in, *out, ch;
+    uch     *in, *out, ch;
 
-    in = window;
+    in  = window;
     out = &output_data[output_ptr];
     for (n = 0; n < outcnt; n++) {
         ch = *out++ = *in++;
-        c = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
+        c           = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
     }
     crc = c;
     bytes_out += (ulg)outcnt;
@@ -158,21 +158,20 @@ static void flush_window(void)
 
 #define STACK_SIZE (4096)
 
-long user_stack [STACK_SIZE];
+long user_stack[STACK_SIZE];
 
 struct {
-    long * a;
+    long *a;
     short b;
-    } stack_start = { & user_stack [STACK_SIZE] , __KERNEL_DS };
+} stack_start = {&user_stack[STACK_SIZE], __KERNEL_DS};
 
-int decompress_kernel(unsigned char *out, unsigned char *data, int len)
-{
-    input_data = data;
-    input_len = len;
+int decompress_kernel(unsigned char *out, unsigned char *data, int len) {
+    input_data       = data;
+    input_len        = len;
 
-    output_data = out;
+    output_data      = out;
 
-    free_mem_ptr = 0x01000000;
+    free_mem_ptr     = 0x01000000;
     free_mem_end_ptr = 0x02000000;
 
     makecrc();

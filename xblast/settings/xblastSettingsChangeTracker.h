@@ -10,29 +10,28 @@
 
 #include <stdbool.h>
 
-typedef struct OSSettingsChangeEntry
-{
-    const char* label;
-    char changeString[21 + 21 + 3];
-    void* newSetting;
-    void* origSettings;
-    unsigned char settingSize;
-    struct OSSettingsChangeEntry* nextChange;
-}OSSettingsChangeEntry_t;
+typedef struct OSSettingsChangeEntry {
+    const char                   *label;
+    char                          changeString[21 + 21 + 3];
+    void                         *newSetting;
+    void                         *origSettings;
+    unsigned char                 settingSize;
+    struct OSSettingsChangeEntry *nextChange;
+} OSSettingsChangeEntry_t;
 
 typedef struct
 {
-    unsigned char changeCount;
-    OSSettingsChangeEntry_t* firstChangeEntry;
-}OSSettingsChangeList;
+    unsigned char            changeCount;
+    OSSettingsChangeEntry_t *firstChangeEntry;
+} OSSettingsChangeList;
 
 extern OSSettingsChangeList osSettingsChangeList;
 
-void settingsTrackerInit(void);
+void                        settingsTrackerInit(void);
 
-unsigned char LPCMod_CountNumberOfChangesInSettings(bool generateChangeStruct, OSSettingsChangeList* output);
-bool LPCMod_checkForBootScriptChanges(void);
-bool LPCMod_checkForBackupEEPROMChange(void);
-void cleanOSSettingsChangeListStruct(OSSettingsChangeList* input);
+unsigned char               LPCMod_CountNumberOfChangesInSettings(bool generateChangeStruct, OSSettingsChangeList *output);
+bool                        LPCMod_checkForBootScriptChanges(void);
+bool                        LPCMod_checkForBackupEEPROMChange(void);
+void                        cleanOSSettingsChangeListStruct(OSSettingsChangeList *input);
 
 #endif /* XBLASTSETTINGSCHANGETRACKER_H_ */

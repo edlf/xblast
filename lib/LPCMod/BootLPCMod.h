@@ -11,23 +11,23 @@
 #ifndef _BootLPCMod_H_
 #define _BootLPCMod_H_
 
+#include "config.h"
+#include "lpcmod_v1.h"
 #include "xblast/settings/xblastSettingsDefs.h"
 #include "xblastDebug.h"
-#include "lpcmod_v1.h"
-#include "config.h"
 #include <stdbool.h>
 
 
-//Globals to save value of LPC register
+// Globals to save value of LPC register
 extern unsigned char xF70ELPCRegister;
 extern unsigned char x00FFLPCRegister;
 
-extern bool TSOPRecoveryMode;
+extern bool          TSOPRecoveryMode;
 
-extern FlashBank currentFlashBank;
+extern FlashBank     currentFlashBank;
 extern unsigned char A19controlModBoot;
 
-typedef struct __attribute__((packed)) _GenPurposeIOs{
+typedef struct __attribute__((packed)) _GenPurposeIOs {
     bool GPO3;
     bool GPO2;
     bool GPO1;
@@ -39,24 +39,24 @@ typedef struct __attribute__((packed)) _GenPurposeIOs{
     bool A19BufEn;
 
     bool EN_5V;
-} _GenPurposeIOs;  //byte-long struct.
+} _GenPurposeIOs; // byte-long struct.
 
 extern _GenPurposeIOs GenPurposeIOs;
 
-unsigned short LPCMod_HW_rev(void);
-void LPCMod_ReadIO(struct _GenPurposeIOs *GPIOstruct);
-int LPCMod_ReadJPGFromHDD(const char *jpgFilename);
-void LPCMod_WriteIO(unsigned char port, unsigned char value);
-void LPCMod_FastWriteIO(unsigned char port, unsigned char value);
-void LPCMod_WriteGenPurposeIOs(void);
+unsigned short        LPCMod_HW_rev(void);
+void                  LPCMod_ReadIO(struct _GenPurposeIOs *GPIOstruct);
+int                   LPCMod_ReadJPGFromHDD(const char *jpgFilename);
+void                  LPCMod_WriteIO(unsigned char port, unsigned char value);
+void                  LPCMod_FastWriteIO(unsigned char port, unsigned char value);
+void                  LPCMod_WriteGenPurposeIOs(void);
 
-void quickboot(unsigned char bank);
+void                  quickboot(unsigned char bank);
 
-void switchOSBank(FlashBank bank);
-void switchBootBank(FlashBank bank);
+void                  switchOSBank(FlashBank bank);
+void                  switchBootBank(FlashBank bank);
 
-void WriteToIO(unsigned short address, unsigned char data);
-unsigned char ReadFromIO(unsigned short address);
+void                  WriteToIO(unsigned short address, unsigned char data);
+unsigned char         ReadFromIO(unsigned short address);
 
 /**
  * USB_DEVICE - macro used to describe a specific usb device
@@ -66,7 +66,7 @@ unsigned char ReadFromIO(unsigned short address);
  * This macro is used to create a struct usb_device_id that matches a
  * specific device.
  */
-#define USB_DEVICE_XBLAST(vend,prod, extra) \
+#define USB_DEVICE_XBLAST(vend, prod, extra) \
     .match_flags = USB_DEVICE_ID_MATCH_DEVICE, .idVendor = (vend), .idProduct = (prod), .driver_info = extra
 
 #endif // _BootLPCMod_H_

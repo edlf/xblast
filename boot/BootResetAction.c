@@ -12,220 +12,208 @@
  ***************************************************************************
  */
 
-#include "boot.h"
 #include "BootEEPROM.h"
 #include "BootFATX.h"
-#include "i2c.h"
-#include "lib/LPCMod/BootLPCMod.h"
-#include "lib/LPCMod/BootLCD.h"
-#include "xblast/settings/xblastSettingsImportExport.h"
-#include "xblast/settings/xblastSettingsChangeTracker.h"
-#include "cpu.h"
-#include "config.h"
-#include "video.h"
-#include "memory_layout.h"
-#include "lpcmod_v1.h"
-#include "xblast/scriptEngine/xblastScriptEngine.h"
-#include "xblast/settings/xblastSettings.h"
-#include "cromwell.h"
+#include "FlashDriver.h"
+#include "FlashMenuActions.h"
 #include "IconMenu.h"
+#include "LEDMenuActions.h"
 #include "MenuActions.h"
 #include "MenuInits.h"
-#include "menu/misc/ConfirmDialog.h"
 #include "XBlastScriptMenuActions.h"
-#include "LEDMenuActions.h"
-#include "FlashMenuActions.h"
-#include "string.h"
-#include "xblast/HardwareIdentifier.h"
-#include "FlashDriver.h"
+#include "boot.h"
+#include "config.h"
+#include "cpu.h"
+#include "cromwell.h"
+#include "i2c.h"
+#include "lib/LPCMod/BootLCD.h"
+#include "lib/LPCMod/BootLPCMod.h"
 #include "lib/time/timeManagement.h"
+#include "lpcmod_v1.h"
+#include "memory_layout.h"
+#include "menu/misc/ConfirmDialog.h"
+#include "string.h"
+#include "video.h"
+#include "xblast/HardwareIdentifier.h"
+#include "xblast/scriptEngine/xblastScriptEngine.h"
+#include "xblast/settings/xblastSettings.h"
+#include "xblast/settings/xblastSettingsChangeTracker.h"
+#include "xblast/settings/xblastSettingsImportExport.h"
 
-JPEG jpegBackdrop;
+JPEG                                jpegBackdrop;
 
-int nTempCursorMbrX, nTempCursorMbrY;
+int                                 nTempCursorMbrX, nTempCursorMbrY;
 
-extern volatile int nInteruptable;
+extern volatile int                 nInteruptable;
 
 volatile CURRENT_VIDEO_MODE_DETAILS vmode;
 
-void ClearScreen (void)
-{
+void                                ClearScreen(void) {
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
 }
 
-void printMainMenuHeader(void)
-{
-    //Length of array is set depending on how many revision can be uniquely identified.
-    //Modify this enum if you modify the "XBOX_REVISION" enum in boot.h
+void printMainMenuHeader(void) {
+    // Length of array is set depending on how many revision can be uniquely identified.
+    // Modify this enum if you modify the "XBOX_REVISION" enum in boot.h
 
     ClearScreen();
 
-    VIDEO_CURSOR_POSX=(vmode.xmargin/*+64*/)*4;
-    VIDEO_CURSOR_POSY=vmode.ymargin;
+    VIDEO_CURSOR_POSX = (vmode.xmargin /*+64*/) * 4;
+    VIDEO_CURSOR_POSY = vmode.ymargin;
 
     printk("\n\n");
-    if(isXBE())
-    {
-        printk("           \2"PROG_NAME" (XBE) v" VERSION " Mod\n\n\2");
-    }
-    else
-    {
-        printk("           \2"PROG_NAME" (ROM) v" VERSION " Mod\n\n\2");
+    if (isXBE()) {
+        printk("           \2" PROG_NAME " (XBE) v" VERSION " Mod\n\n\2");
+    } else {
+        printk("           \2" PROG_NAME " (ROM) v" VERSION " Mod\n\n\2");
     }
 
-    VIDEO_ATTR=0xff00ff00;
+    VIDEO_ATTR        = 0xff00ff00;
 
-    VIDEO_CURSOR_POSX=(vmode.xmargin/*+64*/)*4;
-    VIDEO_CURSOR_POSY=vmode.ymargin+64;
+    VIDEO_CURSOR_POSX = (vmode.xmargin /*+64*/) * 4;
+    VIDEO_CURSOR_POSY = vmode.ymargin + 64;
 
 
-    VIDEO_ATTR=0xff00ff00;
+    VIDEO_ATTR        = 0xff00ff00;
 #ifdef DEV_FEATURES
     printk("           Modchip: %s    fHasHardware: 0x%04x   fSpecialEdition: %02x\n", getModchipName(), fHasHardware, fSpecialEdition);
-    VIDEO_ATTR=0xffc8c8c8;
-    const OBJECT_FLASH* bootFlash = NULL;
+    VIDEO_ATTR                    = 0xffc8c8c8;
+    const OBJECT_FLASH *bootFlash = NULL;
     Flash_ReadDeviceInfo(&bootFlash);
     printk("           THIS IS A WIP BUILD, flash manID= %x  devID= %x\n", bootFlash->flashType.m_bManufacturerId, bootFlash->flashType.m_bDeviceId);
 #else
     printk("           Modchip: ");
 
-    switch(fSpecialEdition)
-    {
+    switch (fSpecialEdition) {
     case SYSCON_ID_V1_PRE_EDITION:
-    	VIDEO_ATTR=0xffef37;
-    	break;
+        VIDEO_ATTR = 0xffef37;
+        break;
     default:
         break;
     }
-        printk("%s\n",getModchipName());
+    printk("%s\n", getModchipName());
 #endif
-    VIDEO_ATTR=0xff00ff00;
+    VIDEO_ATTR = 0xff00ff00;
 
 
-   printk("           Xbox revision: %s ", getMotherboardRevisionString());
-   if (xbox_ram > 64)
-   {
-        VIDEO_ATTR=0xff00ff00;
-   }
-   else
-   {
-        VIDEO_ATTR=0xffffa20f;
-   }
-   printk("  CPU: %uMHz   RAM: %dMiB\n", getCPUSPeedInMHz(), xbox_ram);
+    printk("           Xbox revision: %s ", getMotherboardRevisionString());
+    if (xbox_ram > 64) {
+        VIDEO_ATTR = 0xff00ff00;
+    } else {
+        VIDEO_ATTR = 0xffffa20f;
+    }
+    printk("  CPU: %uMHz   RAM: %dMiB\n", getCPUSPeedInMHz(), xbox_ram);
 
-    VIDEO_CURSOR_POSX=(vmode.xmargin/*+64*/)*4;
+    VIDEO_CURSOR_POSX = (vmode.xmargin /*+64*/) * 4;
 #ifndef SILENT_MODE
     // capture title area
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
     printk("           Encoder: ");
-    VIDEO_ATTR=0xffc8c800;
+    VIDEO_ATTR = 0xffc8c800;
     printk("%s  ", VideoEncoderName());
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
     printk("Cable: ");
-    VIDEO_ATTR=0xffc8c800;
+    VIDEO_ATTR = 0xffc8c800;
     printk("%s  ", AvCableName());
 
-    if (I2CGetTemperature(&n, &nx))
-    {
-        VIDEO_ATTR=0xffc8c8c8;
+    if (I2CGetTemperature(&n, &nx)) {
+        VIDEO_ATTR = 0xffc8c8c8;
         printk("CPU Temp: ");
-        VIDEO_ATTR=0xffc8c800;
+        VIDEO_ATTR = 0xffc8c800;
         printk("%doC  ", n);
-        VIDEO_ATTR=0xffc8c8c8;
+        VIDEO_ATTR = 0xffc8c8c8;
         printk("M/b Temp: ");
-        VIDEO_ATTR=0xffc8c800;
+        VIDEO_ATTR = 0xffc8c800;
         printk("%doC  ", nx);
     }
 
     printk("\n");
-    nTempCursorX=VIDEO_CURSOR_POSX;
-    nTempCursorY=VIDEO_CURSOR_POSY;
+    nTempCursorX = VIDEO_CURSOR_POSX;
+    nTempCursorY = VIDEO_CURSOR_POSY;
 #endif
 
-    VIDEO_ATTR=0xffffffff;
-
+    VIDEO_ATTR = 0xffffffff;
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 //  BootResetAction()
 
-extern void BootResetAction ( void ) {
-    bool fFirstBoot=false; //Flag to indicate first boot since flash update
-    int nTempCursorX = 0, nTempCursorY = 0;
-    int i, returnValue = 255;
-    unsigned char tempFanSpeed = 20;
-    int res, dcluster;
+extern void BootResetAction(void) {
+    bool           fFirstBoot   = false; // Flag to indicate first boot since flash update
+    int            nTempCursorX = 0, nTempCursorY = 0;
+    int            i, returnValue                 = 255;
+    unsigned char  tempFanSpeed = 20;
+    int            res, dcluster;
     FATXPartition *partition;
-    FATXFILEINFO fileinfo;
+    FATXFILEINFO   fileinfo;
 
-    unsigned char EjectButtonPressed=0;
+    unsigned char  EjectButtonPressed = 0;
 
 #ifdef SPITRACE
-    //Required to populate GenPurposeIOs before toggling GPIOs.
-    WriteToIO (XBLAST_CONTROL, FlashBank_OSBank);    // switch to proper bank
-    LPCMod_WriteIO(0x4, 0x4); // /CS to '1'
+    // Required to populate GenPurposeIOs before toggling GPIOs.
+    WriteToIO(XBLAST_CONTROL, FlashBank_OSBank); // switch to proper bank
+    LPCMod_WriteIO(0x4, 0x4);                    // /CS to '1'
 #endif
 
     debugSPIPrint(DEBUG_ALWAYS_SHOW, "XBlast OS is starting.\n");
 
-    A19controlModBoot = BNKFULLTSOP;        //Start assuming no control over A19 line.
+    A19controlModBoot = BNKFULLTSOP; // Start assuming no control over A19 line.
 
-    //Set to NULL as it's not used yet.
-    //gobalGenericPtr = NULL;
+    // Set to NULL as it's not used yet.
+    // gobalGenericPtr = NULL;
 
-    xF70ELPCRegister = 0x03;       //Assume no control over the banks but we are booting from bank3
-    x00FFLPCRegister = ReadFromIO(XODUS_CONTROL);       //Read A15 and D0 states.
-                                                        //Should return 0x04 on normal boot, 0x08 on TSOP recovery.
+    xF70ELPCRegister  = 0x03;                      // Assume no control over the banks but we are booting from bank3
+    x00FFLPCRegister  = ReadFromIO(XODUS_CONTROL); // Read A15 and D0 states.
+                                                   // Should return 0x04 on normal boot, 0x08 on TSOP recovery.
 
-    TSOPRecoveryMode = 0;
-    //TSOPRecoveryMode = (x00FFLPCRegister & 0x08) >> 3;  //If we booted and A15 was already set.
-                                                        //It means we are in TSOP recovery. Set to 1.
-                                                        //We'll check later if TSOP flash is accessible.
+    TSOPRecoveryMode  = 0;
+    // TSOPRecoveryMode = (x00FFLPCRegister & 0x08) >> 3;  //If we booted and A15 was already set.
+    // It means we are in TSOP recovery. Set to 1.
+    // We'll check later if TSOP flash is accessible.
 
-#ifndef SPITRACE        //Do not reset GenPurposeIOs values as they've been updated when "LPCMod_WriteIO(0x4, 0x4)" function was called.
-    GenPurposeIOs.GPO3 = 0;
-    GenPurposeIOs.GPO2 = 0;
-    GenPurposeIOs.GPO1 = 0;
-    GenPurposeIOs.GPO0 = 0;
-    GenPurposeIOs.GPI1 = 0;
-    GenPurposeIOs.GPI0 = 0;
+#ifndef SPITRACE // Do not reset GenPurposeIOs values as they've been updated when "LPCMod_WriteIO(0x4, 0x4)" function was called.
+    GenPurposeIOs.GPO3     = 0;
+    GenPurposeIOs.GPO2     = 0;
+    GenPurposeIOs.GPO1     = 0;
+    GenPurposeIOs.GPO0     = 0;
+    GenPurposeIOs.GPI1     = 0;
+    GenPurposeIOs.GPI0     = 0;
     GenPurposeIOs.A19BufEn = 0;
-    GenPurposeIOs.EN_5V = 0;
+    GenPurposeIOs.EN_5V    = 0;
 #endif
 
-    memcpy(&cromwell_config, (void*)(CODE_LOC_START + 0x20), sizeof(cromwell_config));
-    memcpy(&cromwell_retryload, (void*)(CODE_LOC_START + 0x20 + sizeof(cromwell_config)), sizeof(cromwell_retryload));
-    memcpy(&cromwell_2blversion, (void*)(CODE_LOC_START + 0x20 + sizeof(cromwell_config) + sizeof(cromwell_retryload)), sizeof(cromwell_2blversion));
-    memcpy(&cromwell_2blsize, (void*)(CODE_LOC_START + 0x20 + sizeof(cromwell_config) + sizeof(cromwell_retryload) + sizeof(cromwell_2blversion)), sizeof(cromwell_2blsize));
+    memcpy(&cromwell_config, (void *)(CODE_LOC_START + 0x20), sizeof(cromwell_config));
+    memcpy(&cromwell_retryload, (void *)(CODE_LOC_START + 0x20 + sizeof(cromwell_config)), sizeof(cromwell_retryload));
+    memcpy(&cromwell_2blversion, (void *)(CODE_LOC_START + 0x20 + sizeof(cromwell_config) + sizeof(cromwell_retryload)), sizeof(cromwell_2blversion));
+    memcpy(&cromwell_2blsize, (void *)(CODE_LOC_START + 0x20 + sizeof(cromwell_config) + sizeof(cromwell_retryload) + sizeof(cromwell_2blversion)), sizeof(cromwell_2blsize));
 
-    VIDEO_CURSOR_POSX=40;
-    VIDEO_CURSOR_POSY=140;
+    VIDEO_CURSOR_POSX = 40;
+    VIDEO_CURSOR_POSY = 140;
 
-    VIDEO_AV_MODE = 0xff;
-    nInteruptable = 0;
+    VIDEO_AV_MODE     = 0xff;
+    nInteruptable     = 0;
 
     // prep our BIOS console print state
-    VIDEO_ATTR = 0xffffffff;
+    VIDEO_ATTR        = 0xffffffff;
 
     // init malloc() and free() structures
     MemoryManagementInitialization((void *)MEMORYMANAGERSTART, MEMORYMANAGERSIZE);
-    debugSPIPrint(DEBUG_BOOT_LOG,"Init soft MMU.\n");
+    debugSPIPrint(DEBUG_BOOT_LOG, "Init soft MMU.\n");
 
     BootInterruptsWriteIdt();
 
     // initialize the PCI devices
-    //bprintf("BOOT: starting PCI init\n\r");
+    // bprintf("BOOT: starting PCI init\n\r");
     BootPciPeripheralInitialization();
 
 
     I2CTransmitWord(0x10, 0x1901); // no reset on eject
-    if(I2CTransmitByteGetReturn(0x10, 0x03) & 0x01)
-    {
+    if (I2CTransmitByteGetReturn(0x10, 0x03) & 0x01) {
         EjectButtonPressed = 1;
-        I2CTransmitByteGetReturn(0x10, 0x11);       // dummy Query IRQ
-        I2CWriteBytetoRegister(0x10, 0x03,0x00);    // Clear Tray Register
-        I2CTransmitWord(0x10, 0x0c01); // close DVD tray
+        I2CTransmitByteGetReturn(0x10, 0x11);     // dummy Query IRQ
+        I2CWriteBytetoRegister(0x10, 0x03, 0x00); // Clear Tray Register
+        I2CTransmitWord(0x10, 0x0c01);            // close DVD tray
     }
 
     /* Here, the interrupts are Switched on now */
@@ -246,17 +234,16 @@ extern void BootResetAction ( void ) {
     // Reset the AGP bus and start with good condition
     BootAGPBUSInitialization();
 
-    I2CTransmitByteGetReturn(0x10, 0x11);       // dummy Query IRQ
-    I2CTransmitWord(0x10, 0x1a01); // Enable PIC interrupts. Cannot be deactivated once set.
+    I2CTransmitByteGetReturn(0x10, 0x11); // dummy Query IRQ
+    I2CTransmitWord(0x10, 0x1a01);        // Enable PIC interrupts. Cannot be deactivated once set.
 
-    if(EjectButtonPressed == 0 && isXBE() == false) {
-        setLED("rrrr");       //Signal the user to press Eject button to avoid Quickboot.
+    if (EjectButtonPressed == 0 && isXBE() == false) {
+        setLED("rrrr"); // Signal the user to press Eject button to avoid Quickboot.
     }
     wait_us_blocking(760000);
 
     debugSPIPrint(DEBUG_BOOT_LOG, "Read persistent OS settings from flash.\n");
-    if(bootReadXBlastOSSettings() == false)
-    {
+    if (bootReadXBlastOSSettings() == false) {
         debugSPIPrint(DEBUG_BOOT_LOG, "No persistent OS settings found on flash. Created default settings.\n");
         fFirstBoot = true;
         LEDFirstBoot(NULL);
@@ -274,61 +261,49 @@ extern void BootResetAction ( void ) {
 #endif
 
 
-    if(isXBE() && isXBlastOnLPC() == false) //If coming from XBE and no XBlast Mod is detected
+    if (isXBE() && isXBlastOnLPC() == false) // If coming from XBE and no XBlast Mod is detected
     {
         tempFanSpeed = I2CGetFanSpeed();
-        if(tempFanSpeed < 10)
-        {
+        if (tempFanSpeed < 10) {
             tempFanSpeed = 10;
-        }
-        else if(tempFanSpeed > 100)
-        {
+        } else if (tempFanSpeed > 100) {
             tempFanSpeed = 100;
         }
 
-        LPCmodSettings.OSsettings.fanSpeed = tempFanSpeed;      //Get previously set fan speed
-    }
-    else
-    {
+        LPCmodSettings.OSsettings.fanSpeed = tempFanSpeed; // Get previously set fan speed
+    } else {
         // Make sure fan speed is always within normal values.
-        if(LPCmodSettings.OSsettings.fanSpeed < 10)
-        {
+        if (LPCmodSettings.OSsettings.fanSpeed < 10) {
             LPCmodSettings.OSsettings.fanSpeed = 10;
-        }
-        else if(LPCmodSettings.OSsettings.fanSpeed > 100)
-        {
+        } else if (LPCmodSettings.OSsettings.fanSpeed > 100) {
             LPCmodSettings.OSsettings.fanSpeed = 100;
         }
-        I2CSetFanSpeed(LPCmodSettings.OSsettings.fanSpeed);     //Else we're booting in ROM mode and have a fan speed to set.
+        I2CSetFanSpeed(LPCmodSettings.OSsettings.fanSpeed); // Else we're booting in ROM mode and have a fan speed to set.
     }
     debugSPIPrint(DEBUG_BOOT_LOG, "Fan speed adjustment if needed.\n");
 
-    if(isPureXBlast() && isXBlastOnTSOP())
-    {
-        //LPCmodSettings.OSsettings.TSOPcontrol = (ReadFromIO(XODUS_CONTROL) & 0x20) >> 5;     //A19ctrl maps to bit5
+    if (isPureXBlast() && isXBlastOnTSOP()) {
+        // LPCmodSettings.OSsettings.TSOPcontrol = (ReadFromIO(XODUS_CONTROL) & 0x20) >> 5;     //A19ctrl maps to bit5
         LPCmodSettings.OSsettings.TSOPcontrol = (unsigned char)GenPurposeIOs.A19BufEn;
-        debugSPIPrint(DEBUG_BOOT_LOG, "Buffer enable for A19 control : %sabled.\n", GenPurposeIOs.A19BufEn? "En" : "Dis");
+        debugSPIPrint(DEBUG_BOOT_LOG, "Buffer enable for A19 control : %sabled.\n", GenPurposeIOs.A19BufEn ? "En" : "Dis");
     }
 
-    BootLCDInit();    //Basic init. Do it even if no LCD is connected on the system.
+    BootLCDInit(); // Basic init. Do it even if no LCD is connected on the system.
     debugSPIPrint(DEBUG_BOOT_LOG, "BootLCDInit done.\n");
 
-    //Stuff to do right after loading persistent settings from flash.
-    if(fFirstBoot == false)
-    {
-        if(emergencyRecoverSettings())
-        {
+    // Stuff to do right after loading persistent settings from flash.
+    if (fFirstBoot == false) {
+        if (emergencyRecoverSettings()) {
             debugSPIPrint(DEBUG_BOOT_LOG, "Emergency recover triggered. Resetting settings.\n");
             fFirstBoot = true;
             LEDFirstBoot(NULL);
         }
 
-        if(isLCDSupported())
-        {
+        if (isLCDSupported()) {
             debugSPIPrint(DEBUG_BOOT_LOG, "Check if we need to drive the LCD.\n");
-            assertInitLCD();                            //Function in charge of checking if a init of LCD is needed.
+            assertInitLCD(); // Function in charge of checking if a init of LCD is needed.
         }
-        //further init here.
+        // further init here.
     }
 
 
@@ -338,7 +313,7 @@ extern void BootResetAction ( void ) {
     display_cpuid_update_microcode();
     // We Enable The CPU Cache
     cache_enable();
-    //setup_ioapic();
+    // setup_ioapic();
 
     identifyXboxHardware();
 
@@ -349,57 +324,47 @@ extern void BootResetAction ( void ) {
 
     I2CTransmitWord(0x10, 0x1b04); // unknown
 
-    //Let's set that up right here.
+    // Let's set that up right here.
     settingsTrackerInit();
     setCFGFileTransferPtr(&LPCmodSettings, &settingsPtrStruct);
 
     // Load and Init the Background image
     // clear the Video Ram
-    memset((void *)FB_START,0x00,FB_SIZE);
+    memset((void *)FB_START, 0x00, FB_SIZE);
 
     BootVgaInitializationKernelNG((CURRENT_VIDEO_MODE_DETAILS *)&vmode);
-    jpegBackdrop.pData =NULL;
-    jpegBackdrop.pBackdrop = NULL; //Static memory alloc now.
+    jpegBackdrop.pData     = NULL;
+    jpegBackdrop.pBackdrop = NULL; // Static memory alloc now.
 
 
-    if(isTSOPSplitCapable() == false)
-    {
-       LPCmodSettings.OSsettings.TSOPcontrol = 0;       //Make sure to not show split TSOP options. Useful if modchip was moved from 1 console to another.
+    if (isTSOPSplitCapable() == false) {
+        LPCmodSettings.OSsettings.TSOPcontrol = 0; // Make sure to not show split TSOP options. Useful if modchip was moved from 1 console to another.
     }
 
-    //Load up some more custom settings right before booting to OS.
-    if(fFirstBoot == false)
-    {
-        if(LPCmodSettings.OSsettings.runBootScript && isXBE() == false)
-        {
+    // Load up some more custom settings right before booting to OS.
+    if (fFirstBoot == false) {
+        if (LPCmodSettings.OSsettings.runBootScript && isXBE() == false) {
             debugSPIPrint(DEBUG_BOOT_LOG, "Running boot script.\n");
-            if(LPCmodSettings.flashScript.scriptSize > 0)
-            {
+            if (LPCmodSettings.flashScript.scriptSize > 0) {
                 i = BNKOS;
                 runScript(LPCmodSettings.flashScript.scriptData, LPCmodSettings.flashScript.scriptSize, 1, &i);
             }
             debugSPIPrint(DEBUG_BOOT_LOG, "Boot script execution done.\n");
         }
 
-        if(isXBlastOnLPC() && isXBE() == false)       //Quickboot only if on the right hardware.
-		{
-            if(LPCmodSettings.OSsettings.Quickboot)
-            {
+        if (isXBlastOnLPC() && isXBE() == false) // Quickboot only if on the right hardware.
+        {
+            if (LPCmodSettings.OSsettings.Quickboot) {
                 debugSPIPrint(DEBUG_BOOT_LOG, "Check any Quickboot or EjectButton boot rule.\n");
 
                 // No quickboot if both button pressed at that point.
-                if(EjectButtonPressed == 0)
-                {
-                    if(traystate == ETS_NOTHING && LPCmodSettings.OSsettings.activeBank != BNKOS)
-                    {
+                if (EjectButtonPressed == 0) {
+                    if (traystate == ETS_NOTHING && LPCmodSettings.OSsettings.activeBank != BNKOS) {
                         debugSPIPrint(DEBUG_BOOT_LOG, "Going to Power Button Quickboot.\n");
                         quickboot(LPCmodSettings.OSsettings.activeBank);
                     }
-                }
-                else
-                {
-                    if(LPCmodSettings.OSsettings.altBank != BNKOS)
-                    {
+                } else {
+                    if (LPCmodSettings.OSsettings.altBank != BNKOS) {
                         debugSPIPrint(DEBUG_BOOT_LOG, "Eject button press boot detected.\n");
                         debugSPIPrint(DEBUG_BOOT_LOG, "Going to alt Quickboot.\n");
                         quickboot(LPCmodSettings.OSsettings.altBank);
@@ -407,28 +372,24 @@ extern void BootResetAction ( void ) {
                 }
             }
 
-            I2CTransmitByteGetReturn(0x10, 0x11);       // dummy Query IRQ
-            I2CWriteBytetoRegister(0x10, 0x03,0x00);    // Clear Tray Register
-            I2CTransmitWord(0x10, 0x0c01); // close DVD tray
+            I2CTransmitByteGetReturn(0x10, 0x11);     // dummy Query IRQ
+            I2CWriteBytetoRegister(0x10, 0x03, 0x00); // Clear Tray Register
+            I2CTransmitWord(0x10, 0x0c01);            // close DVD tray
         }
 
         debugSPIPrint(DEBUG_BOOT_LOG, "No Quickboot or EjectButton boot this time.\n");
         initialSetLED(LPCmodSettings.OSsettings.LEDColor);
-    }
-    else
-    {
+    } else {
         debugSPIPrint(DEBUG_BOOT_LOG, "First boot so no script or bank loading before going to OS at least once.\n");
     }
 
-    if(BootVideoInitJPEGBackdropBuffer(&jpegBackdrop))
-    { // decode and malloc backdrop bitmap
+    if (BootVideoInitJPEGBackdropBuffer(&jpegBackdrop)) { // decode and malloc backdrop bitmap
         extern int _start_backdrop;
         extern int _end_backdrop;
         BootVideoJpegUnpackAsRgb(
             (unsigned char *)&_start_backdrop,
-             &jpegBackdrop,
-            _end_backdrop - _start_backdrop
-        );
+            &jpegBackdrop,
+            _end_backdrop - _start_backdrop);
     }
     // paint the backdrop
     debugSPIPrint(DEBUG_BOOT_LOG, "Print Main Menu header.\n");
@@ -436,9 +397,11 @@ extern void BootResetAction ( void ) {
 
     // set Ethernet MAC address from EEPROM
     {
-        volatile unsigned char * pb=(unsigned char *)0xfef000a8;  // Ethernet MMIO base + MAC register offset (<--thanks to Anders Gustafsson)
-        int n;
-        for(n=5;n>=0;n--) { *pb++=    eeprom.MACAddress[n]; } // send it in backwards, its reversed by the driver
+        volatile unsigned char *pb = (unsigned char *)0xfef000a8; // Ethernet MMIO base + MAC register offset (<--thanks to Anders Gustafsson)
+        int                     n;
+        for (n = 5; n >= 0; n--) {
+            *pb++ = eeprom.MACAddress[n];
+        } // send it in backwards, its reversed by the driver
     }
 
 #ifndef SILENT_MODE
@@ -447,11 +410,11 @@ extern void BootResetAction ( void ) {
 
     // init the IDE devices
 #ifndef SILENT_MODE
-    VIDEO_ATTR=0xffc8c8c8;
+    VIDEO_ATTR = 0xffc8c8c8;
     printk("           Initializing IDE Controller\n");
 #endif
-//    BootIdeWaitNotBusy(0x1f0);
-//    wait_ms(100);
+// BootIdeWaitNotBusy(0x1f0);
+// wait_ms(100);
 #ifndef SILENT_MODE
     printk("           Ready\n");
 #endif
@@ -461,63 +424,50 @@ extern void BootResetAction ( void ) {
     BootIdeInit();
     debugSPIPrint(DEBUG_BOOT_LOG, "IDE init done.\n");
 
-    //Load settings from xblast.cfg file if no settings were detected.
-    //But first do we have a HDD on Master?
-    if(tsaHarddiskInfo[0].m_fDriveExists && tsaHarddiskInfo[0].m_fAtapi == false)
-    {
+    // Load settings from xblast.cfg file if no settings were detected.
+    // But first do we have a HDD on Master?
+    if (tsaHarddiskInfo[0].m_fDriveExists && tsaHarddiskInfo[0].m_fAtapi == false) {
         debugSPIPrint(DEBUG_BOOT_LOG, "Master HDD exist.\n");
-        if(fFirstBoot == false)
-        {
-            //TODO: Load optional JPEG backdrop from HDD here. Maybe fetch skin name from cfg file?
+        if (fFirstBoot == false) {
+            // TODO: Load optional JPEG backdrop from HDD here. Maybe fetch skin name from cfg file?
             debugSPIPrint(DEBUG_BOOT_LOG, "Trying to load new JPEG from HDD.\n");
-            if(LPCMod_ReadJPGFromHDD("\\XBlast\\icons.jpg") == false)
-            {
+            if (LPCMod_ReadJPGFromHDD("\\XBlast\\icons.jpg") == false) {
                 debugSPIPrint(DEBUG_BOOT_LOG, "\"Ã¬cons.jpg\" loaded. Moving on to \"backdrop.jpg\".\n");
             }
-            if(LPCMod_ReadJPGFromHDD("\\XBlast\\backdrop.jpg") == false)
-            {
+            if (LPCMod_ReadJPGFromHDD("\\XBlast\\backdrop.jpg") == false) {
                 debugSPIPrint(DEBUG_BOOT_LOG, "\"backdrop.jpg\" loaded. Repainting.\n");
                 printMainMenuHeader();
             }
 
-            if(isXBE() && isXBlastOnLPC() == false)
-            {
+            if (isXBE() && isXBlastOnLPC() == false) {
                 debugSPIPrint(DEBUG_BOOT_LOG, "Trying to load settings from cfg file on HDD.\n");
                 _LPCmodSettings tempLPCmodSettings;
                 returnValue = LPCMod_ReadCFGFromHDD(&tempLPCmodSettings, &settingsPtrStruct);
-                if(returnValue == 0)
-                {
+                if (returnValue == 0) {
                     importNewSettingsFromCFGLoad(&tempLPCmodSettings);
 
                     partition = OpenFATXPartition(0, SECTOR_SYSTEM, SYSTEM_SIZE);
-                    if(partition != NULL)
-                    {
+                    if (partition != NULL) {
                         dcluster = FATXFindDir(partition, FATX_ROOT_FAT_CLUSTER, "XBlast");
-                        if((dcluster != -1) && (dcluster != 1))
-                        {
+                        if ((dcluster != -1) && (dcluster != 1)) {
                             dcluster = FATXFindDir(partition, dcluster, "scripts");
                         }
-                        if((dcluster != -1) && (dcluster != 1))
-                        {
+                        if ((dcluster != -1) && (dcluster != 1)) {
                             res = FATXFindFile(partition, "bank.script", FATX_ROOT_FAT_CLUSTER, &fileinfo);
-                            if(res == 0 || fileinfo.fileSize == 0)
-                            {
+                            if (res == 0 || fileinfo.fileSize == 0) {
                                 LPCmodSettings.OSsettings.runBankScript = 0;
                             }
                             res = FATXFindFile(partition, "boot.script", FATX_ROOT_FAT_CLUSTER, &fileinfo);
-                            if(res == 0 || fileinfo.fileSize == 0)
-                            {
+                            if (res == 0 || fileinfo.fileSize == 0) {
                                 LPCmodSettings.OSsettings.runBootScript = 0;
                             }
                         }
-                            CloseFATXPartition(partition);
+                        CloseFATXPartition(partition);
                     }
-                    //bootScriptSize should not have changed if we're here.
-                    if(LPCmodSettings.OSsettings.runBootScript && LPCmodSettings.flashScript.scriptSize == 0)
-                    {
+                    // bootScriptSize should not have changed if we're here.
+                    if (LPCmodSettings.OSsettings.runBootScript && LPCmodSettings.flashScript.scriptSize == 0) {
                         debugSPIPrint(DEBUG_BOOT_LOG, "Running boot script.\n");
-                        if(loadScriptFromHDD("\\XBlast\\scripts\\boot.script", &fileinfo))
-                        {
+                        if (loadScriptFromHDD("\\XBlast\\scripts\\boot.script", &fileinfo)) {
                             i = BNKOS;
                             runScript(fileinfo.buffer, fileinfo.fileSize, 1, &i);
                         }
@@ -528,69 +478,62 @@ extern void BootResetAction ( void ) {
         }
     }
 
-    VIDEO_CURSOR_POSX=nTempCursorX;
-    VIDEO_CURSOR_POSY=nTempCursorY;
-    VIDEO_CURSOR_POSX=vmode.xmargin;
-    VIDEO_CURSOR_POSY=vmode.ymargin;
+    VIDEO_CURSOR_POSX = nTempCursorX;
+    VIDEO_CURSOR_POSY = nTempCursorY;
+    VIDEO_CURSOR_POSX = vmode.xmargin;
+    VIDEO_CURSOR_POSY = vmode.ymargin;
 
     printk("\n\n\n\n");
 
-    nTempCursorMbrX=VIDEO_CURSOR_POSX;
-    nTempCursorMbrY=VIDEO_CURSOR_POSY;
+    nTempCursorMbrX = VIDEO_CURSOR_POSX;
+    nTempCursorMbrY = VIDEO_CURSOR_POSY;
 
-    videosavepage = malloc(FB_SIZE);
+    videosavepage   = malloc(FB_SIZE);
 
-    //Check for unformatted drives.
-    for (i=0; i<2; ++i)
-    {
-        if (tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi == false
-            && tsaHarddiskInfo[i].m_dwCountSectorsTotal >= (SECTOR_EXTEND - 1)
-            && (tsaHarddiskInfo[i].m_securitySettings&0x0002) == 0)
-        {    //Drive not locked.
-            if(tsaHarddiskInfo[i].m_enumDriveType != EDT_XBOXFS)
-            {
+    // Check for unformatted drives.
+    for (i = 0; i < 2; ++i) {
+        if (tsaHarddiskInfo[i].m_fDriveExists && tsaHarddiskInfo[i].m_fAtapi == false && tsaHarddiskInfo[i].m_dwCountSectorsTotal >= (SECTOR_EXTEND - 1) && (tsaHarddiskInfo[i].m_securitySettings & 0x0002) == 0) { // Drive not locked.
+            if (tsaHarddiskInfo[i].m_enumDriveType != EDT_XBOXFS) {
                 debugSPIPrint(DEBUG_BOOT_LOG, "No FATX detected on %s HDD.\n", i ? "Slave" : "Master");
                 // We save the complete framebuffer to memory (we restore at exit)
-                //videosavepage = malloc(FB_SIZE);
-                memcpy(videosavepage,(void*)FB_START,FB_SIZE);
+                // videosavepage = malloc(FB_SIZE);
+                memcpy(videosavepage, (void *)FB_START, FB_SIZE);
                 char ConfirmDialogString[50];
-                sprintf(ConfirmDialogString, "Format new drive (%s)?", i ? "slave":"master");
-                if(ConfirmDialog(ConfirmDialogString, 1) == false)
-                {
+                sprintf(ConfirmDialogString, "Format new drive (%s)?", i ? "slave" : "master");
+                if (ConfirmDialog(ConfirmDialogString, 1) == false) {
                     debugSPIPrint(DEBUG_BOOT_LOG, "Formatting base partitions.\n");
-                    FATXFormatDriveC(i, 0);                     //'0' is for non verbose
+                    FATXFormatDriveC(i, 0); //'0' is for non verbose
                     FATXFormatDriveE(i, 0);
                     FATXFormatCacheDrives(i, 0);
                     FATXSetBRFR(i);
-                    //If there's enough sectors to make F and/or G drive(s).
-                    if(tsaHarddiskInfo[i].m_dwCountSectorsTotal >= (SECTOR_EXTEND + SECTORS_SYSTEM))
-                    {
+                    // If there's enough sectors to make F and/or G drive(s).
+                    if (tsaHarddiskInfo[i].m_dwCountSectorsTotal >= (SECTOR_EXTEND + SECTORS_SYSTEM)) {
                         debugSPIPrint(DEBUG_BOOT_LOG, "Show user extended partitions format options.\n");
-                        DrawLargeHDDTextMenu(i);//Launch LargeHDDMenuInit textmenu.
+                        DrawLargeHDDTextMenu(i); // Launch LargeHDDMenuInit textmenu.
                     }
 
-                    if(tsaHarddiskInfo[i].m_fHasPartitionTable == 0) {
+                    if (tsaHarddiskInfo[i].m_fHasPartitionTable == 0) {
                         FATXSetInitMBR(i); // Since I'm such a nice program, I will write the partition table
                     }
                     debugSPIPrint(DEBUG_BOOT_LOG, "HDD format done.\n");
                 }
-                memcpy((void*)FB_START,videosavepage,FB_SIZE);
-                //free(videosavepage);
+                memcpy((void *)FB_START, videosavepage, FB_SIZE);
+                // free(videosavepage);
             }
         }
     }
 
-//    printk("i2C=%d SMC=%d, IDE=%d, tick=%d una=%d unb=%d\n", nCountI2cinterrupts, nCountInterruptsSmc, nCountInterruptsIde, BIOS_TICK_COUNT, nCountUnusedInterrupts, nCountUnusedInterruptsPic2);
+    // printk("i2C=%d SMC=%d, IDE=%d, tick=%d una=%d unb=%d\n", nCountI2cinterrupts, nCountInterruptsSmc, nCountInterruptsIde, BIOS_TICK_COUNT, nCountUnusedInterrupts, nCountUnusedInterruptsPic2);
     IconMenuInit();
     debugSPIPrint(DEBUG_BOOT_LOG, "Starting IconMenu.\n");
-    while(IconMenu())
-    {
+    while (IconMenu()) {
         ClearScreen();
         printMainMenuHeader();
     }
-    //Good practice.
+    // Good practice.
     free(videosavepage);
 
-    //Should never come back here.
-    while(1);
+    // Should never come back here.
+    while (1)
+        ;
 }

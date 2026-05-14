@@ -7,9 +7,9 @@
 typedef unsigned char *POINTER;
 
 /* UINT2 defines a two byte word */
-typedef uint16_t UINT2;
+typedef uint16_t       UINT2;
 
 /* UINT4 defines a four byte word */
-typedef uint32_t UINT4;
+typedef uint32_t       UINT4;
 
 #define PROTO_LIST(list) list

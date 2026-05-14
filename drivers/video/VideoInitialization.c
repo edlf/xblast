@@ -15,16 +15,16 @@
 
 
 #ifdef JUSTVIDEO
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #endif
-#include <boot.h>
-#include "lib/LPCMod/xblastDebug.h"
 #include "VideoInitialization.h"
+#include "lib/LPCMod/xblastDebug.h"
+#include <boot.h>
 
 extern unsigned char VIDEO_AV_MODE;
 // functions defined elsewhere
-int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite);
+int                  I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite);
 
 // internally used structures
 
@@ -36,20 +36,20 @@ typedef struct {
     long vscale;
 } BLANKING_PARAMETER;
 
-static unsigned char NvGetCrtc(volatile unsigned char * pbRegs, int nIndex) {
-    pbRegs[0x6013d4]=nIndex;
+static unsigned char NvGetCrtc(volatile unsigned char *pbRegs, int nIndex) {
+    pbRegs[0x6013d4] = nIndex;
     return pbRegs[0x6013d5];
 }
 
-static void NvSetCrtc(volatile unsigned char * pbRegs, int nIndex, unsigned char b) {
-    pbRegs[0x6013d4]=nIndex;
-    pbRegs[0x6013d5]=b;
+static void NvSetCrtc(volatile unsigned char *pbRegs, int nIndex, unsigned char b) {
+    pbRegs[0x6013d4] = nIndex;
+    pbRegs[0x6013d5] = b;
 }
 
 xbox_tv_encoding DetectVideoStd(void) {
     xbox_tv_encoding videoStd;
-    unsigned char b=I2CTransmitByteGetReturn(0x54, 0x5A); // the eeprom defines the TV standard for the box
-    if(b == 0x40) {
+    unsigned char    b = I2CTransmitByteGetReturn(0x54, 0x5A); // the eeprom defines the TV standard for the box
+    if (b == 0x40) {
         videoStd = TV_ENC_NTSC;
     } else {
         videoStd = TV_ENC_PALBDGHI;
@@ -62,21 +62,35 @@ xbox_av_type DetectAvType(void) {
     xbox_av_type avType;
 
     switch (VIDEO_AV_MODE) {
-        case 0: avType = AV_SCART_RGB; break;  // mode 1+2+3
-        case 1: avType = AV_HDTV; break;       // mode 2+3
-        case 2: avType = AV_VGA_SOG; break;    // mode 1+3
-        case 4: avType = AV_SVIDEO; break;     // mode 1+2  AKA PAL Stereo
-        case 6: avType = AV_COMPOSITE; break;  // mode 1   AKA NTSC Stereo
-        case 7: avType = AV_VGA; break;        // mode 0
-        default: avType = AV_COMPOSITE; break; // mode 3, mode 2
+    case 0:
+        avType = AV_SCART_RGB;
+        break; // mode 1+2+3
+    case 1:
+        avType = AV_HDTV;
+        break; // mode 2+3
+    case 2:
+        avType = AV_VGA_SOG;
+        break; // mode 1+3
+    case 4:
+        avType = AV_SVIDEO;
+        break; // mode 1+2  AKA PAL Stereo
+    case 6:
+        avType = AV_COMPOSITE;
+        break; // mode 1   AKA NTSC Stereo
+    case 7:
+        avType = AV_VGA;
+        break; // mode 0
+    default:
+        avType = AV_COMPOSITE;
+        break; // mode 3, mode 2
     }
 
     return avType;
 }
 
-void SetGPURegister(const GPU_PARAMETER* gpu, volatile unsigned char * pbRegs) {
+void SetGPURegister(const GPU_PARAMETER *gpu, volatile unsigned char *pbRegs) {
     unsigned char b;
-    unsigned int m = 0;
+    unsigned int  m                               = 0;
     // NVHDISPEND
     *((volatile unsigned int *)&pbRegs[0x680820]) = gpu->crtchdispend - 1;
     // NVHTOTAL
@@ -88,29 +102,29 @@ void SetGPURegister(const GPU_PARAMETER* gpu, volatile unsigned char * pbRegs) {
     // NVHSYNCSTART
     *((volatile unsigned int *)&pbRegs[0x68082c]) = gpu->nvhstart;
     // NVHSYNCEND = NVHSYNCSTART + 32
-    *((volatile unsigned int *)&pbRegs[0x680830]) = gpu->nvhstart+32;
+    *((volatile unsigned int *)&pbRegs[0x680830]) = gpu->nvhstart + 32;
     // NVHVALIDEND
     *((volatile unsigned int *)&pbRegs[0x680838]) = gpu->xres - 1;
     // CRTC_HSYNCSTART = h_total - 32 (heuristic)
-    m = gpu->nvhtotal - 32;
-    NvSetCrtc(pbRegs, 4, m/8);
+    m                                             = gpu->nvhtotal - 32;
+    NvSetCrtc(pbRegs, 4, m / 8);
     // CRTC_HSYNCEND = CRTC_HSYNCSTART + 16
-    NvSetCrtc(pbRegs, 5, (NvGetCrtc(pbRegs, 5)&0xe0) | ((((m + 16)/8)-1)&0x1f) );
+    NvSetCrtc(pbRegs, 5, (NvGetCrtc(pbRegs, 5) & 0xe0) | ((((m + 16) / 8) - 1) & 0x1f));
     // CRTC_HTOTAL = nvh_total (heuristic)
-    NvSetCrtc(pbRegs, 0, (gpu->nvhtotal/8)-5);
+    NvSetCrtc(pbRegs, 0, (gpu->nvhtotal / 8) - 5);
     // CRTC_HBLANKSTART = crtchdispend
-    NvSetCrtc(pbRegs, 2, ((gpu->crtchdispend)/8)-1);
+    NvSetCrtc(pbRegs, 2, ((gpu->crtchdispend) / 8) - 1);
     // CRTC_HBLANKEND = CRTC_HTOTAL = nvh_total
-    NvSetCrtc(pbRegs, 3, (NvGetCrtc(pbRegs, 3)&0xe0) |(((gpu->nvhtotal/8)-1)&0x1f));
-    NvSetCrtc(pbRegs, 5, (NvGetCrtc(pbRegs, 5)&(~0x80)) | ((((gpu->nvhtotal/8)-1)&0x20)<<2) );
+    NvSetCrtc(pbRegs, 3, (NvGetCrtc(pbRegs, 3) & 0xe0) | (((gpu->nvhtotal / 8) - 1) & 0x1f));
+    NvSetCrtc(pbRegs, 5, (NvGetCrtc(pbRegs, 5) & (~0x80)) | ((((gpu->nvhtotal / 8) - 1) & 0x20) << 2));
     // CRTC_HDISPEND
-    NvSetCrtc(pbRegs, 0x17, (NvGetCrtc(pbRegs, 0x17)&0x7f));
-    NvSetCrtc(pbRegs, 1, ((gpu->crtchdispend)/8)-1);
-    NvSetCrtc(pbRegs, 2, ((gpu->crtchdispend)/8)-1);
-    NvSetCrtc(pbRegs, 0x17, (NvGetCrtc(pbRegs, 0x17)&0x7f)|0x80);
+    NvSetCrtc(pbRegs, 0x17, (NvGetCrtc(pbRegs, 0x17) & 0x7f));
+    NvSetCrtc(pbRegs, 1, ((gpu->crtchdispend) / 8) - 1);
+    NvSetCrtc(pbRegs, 2, ((gpu->crtchdispend) / 8) - 1);
+    NvSetCrtc(pbRegs, 0x17, (NvGetCrtc(pbRegs, 0x17) & 0x7f) | 0x80);
     // CRTC_LINESTRIDE = (xres / 8) * pixelDepth
-    m=(gpu->xres / 8) * gpu->pixelDepth;
-    NvSetCrtc(pbRegs, 0x19, (NvGetCrtc(pbRegs, 0x19)&0x1f) | ((m >> 3) & 0xe0));
+    m = (gpu->xres / 8) * gpu->pixelDepth;
+    NvSetCrtc(pbRegs, 0x19, (NvGetCrtc(pbRegs, 0x19) & 0x1f) | ((m >> 3) & 0xe0));
     NvSetCrtc(pbRegs, 0x13, (m & 0xff));
     // NVVDISPEND
     *((volatile unsigned int *)&pbRegs[0x680800]) = gpu->yres - 1;
@@ -121,13 +135,13 @@ void SetGPURegister(const GPU_PARAMETER* gpu, volatile unsigned char * pbRegs) {
     // NVVVALIDSTART
     *((volatile unsigned int *)&pbRegs[0x680814]) = 0;
     // NVVSYNCSTART
-    *((volatile unsigned int *)&pbRegs[0x68080c])=gpu->nvvstart;
+    *((volatile unsigned int *)&pbRegs[0x68080c]) = gpu->nvvstart;
     // NVVSYNCEND = NVVSYNCSTART + 3
-    *((volatile unsigned int *)&pbRegs[0x680810])=(gpu->nvvstart+3);
+    *((volatile unsigned int *)&pbRegs[0x680810]) = (gpu->nvvstart + 3);
     // NVVVALIDEND
     *((volatile unsigned int *)&pbRegs[0x680818]) = gpu->yres - 1;
     // CRTC_VSYNCSTART
-    b = NvGetCrtc(pbRegs, 7) & 0x7b;
+    b                                             = NvGetCrtc(pbRegs, 7) & 0x7b;
     NvSetCrtc(pbRegs, 7, b | ((gpu->crtcvstart >> 2) & 0x80) | ((gpu->crtcvstart >> 6) & 0x04));
     NvSetCrtc(pbRegs, 0x10, (gpu->crtcvstart & 0xff));
     // CRTC_VTOTAL
@@ -136,29 +150,28 @@ void SetGPURegister(const GPU_PARAMETER* gpu, volatile unsigned char * pbRegs) {
     NvSetCrtc(pbRegs, 6, (gpu->crtcvtotal & 0xff));
     // CRTC_VBLANKEND = CRTC_VTOTAL
     b = NvGetCrtc(pbRegs, 0x16) & 0x80;
-    NvSetCrtc(pbRegs, 0x16, b |(gpu->crtcvtotal & 0x7f));
+    NvSetCrtc(pbRegs, 0x16, b | (gpu->crtcvtotal & 0x7f));
     // CRTC_VDISPEND = yres
     b = NvGetCrtc(pbRegs, 7) & 0xbd;
     NvSetCrtc(pbRegs, 7, b | (((gpu->yres - 1) >> 3) & 0x40) | (((gpu->yres - 1) >> 7) & 0x02));
     NvSetCrtc(pbRegs, 0x12, ((gpu->yres - 1) & 0xff));
     // CRTC_VBLANKSTART
     b = NvGetCrtc(pbRegs, 9) & 0xdf;
-    NvSetCrtc(pbRegs, 9, b | (((gpu->yres - 1)>> 4) & 0x20));
+    NvSetCrtc(pbRegs, 9, b | (((gpu->yres - 1) >> 4) & 0x20));
     b = NvGetCrtc(pbRegs, 7) & 0xf7;
     NvSetCrtc(pbRegs, 7, b | (((gpu->yres - 1) >> 5) & 0x08));
     NvSetCrtc(pbRegs, 0x15, ((gpu->yres - 1) & 0xff));
     // CRTC_LINECOMP
     m = 0x3ff; // 0x3ff = disable
     b = NvGetCrtc(pbRegs, 7) & 0xef;
-    NvSetCrtc(pbRegs, 7, b | ((m>> 4) & 0x10));
+    NvSetCrtc(pbRegs, 7, b | ((m >> 4) & 0x10));
     b = NvGetCrtc(pbRegs, 9) & 0xbf;
     NvSetCrtc(pbRegs, 9, b | ((m >> 3) & 0x40));
     NvSetCrtc(pbRegs, 0x18, (m & 0xff));
     // CRTC_REPAINT1
     if (gpu->xres < 1280) {
         b = 0x04;
-    }
-    else {
+    } else {
         b = 0x00;
     }
     NvSetCrtc(pbRegs, 0x1a, b);
@@ -170,17 +183,14 @@ void SetGPURegister(const GPU_PARAMETER* gpu, volatile unsigned char * pbRegs) {
         | ((vDisplay & 0x400) >> 9)
         | ((vTotal   & 0x400) >> 10);
     */
-    b = (((gpu->nvhtotal / 8 - 5) & 0x040) >> 2)
-        | (((gpu->yres - 1) & 0x400) >> 7)
-        | ((gpu->crtcvstart & 0x400) >> 8)
-        | (((gpu->yres - 1) & 0x400) >> 9)
-        | ((gpu->crtcvtotal & 0x400) >> 10);
+    b = (((gpu->nvhtotal / 8 - 5) & 0x040) >> 2) | (((gpu->yres - 1) & 0x400) >> 7) | ((gpu->crtcvstart & 0x400) >> 8) | (((gpu->yres - 1) & 0x400) >> 9) | ((gpu->crtcvtotal & 0x400) >> 10);
     NvSetCrtc(pbRegs, 0x25, b);
 
     b = gpu->pixelDepth;
-    if (b >= 3) b = 3;
+    if (b >= 3)
+        b = 3;
     /* switch pixel mode to TV */
-    b  |= 0x80;
+    b |= 0x80;
     NvSetCrtc(pbRegs, 0x28, b);
 
     b = NvGetCrtc(pbRegs, 0x2d) & 0xe0;
@@ -189,4 +199,3 @@ void SetGPURegister(const GPU_PARAMETER* gpu, volatile unsigned char * pbRegs) {
     }
     NvSetCrtc(pbRegs, 0x2d, b);
 }
-

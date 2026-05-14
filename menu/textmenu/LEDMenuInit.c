@@ -7,17 +7,16 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "LEDMenuActions.h"
 #include "MenuInits.h"
 #include "include/boot.h"
-#include "LEDMenuActions.h"
-#include "xblast/settings/xblastSettings.h"
 #include "string.h"
+#include "xblast/settings/xblastSettings.h"
 
-TEXTMENU* LEDMenuInit(void)
-{
-    TEXTMENUITEM* itemPtr;
-    TEXTMENU* menuPtr;
-    
+TEXTMENU *LEDMenuInit(void) {
+    TEXTMENUITEM *itemPtr;
+    TEXTMENU     *menuPtr;
+
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "LED menu");
 
@@ -40,7 +39,7 @@ TEXTMENU* LEDMenuInit(void)
     strcpy(itemPtr->szCaption, getSpecialSettingString(SpecialSettingsPtrArrayIndexName_LEDColor, LED_CYCLE));
     itemPtr->functionPtr = LEDCycle;
     TextMenuAddItem(menuPtr, itemPtr);
-    
+
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
     strcpy(itemPtr->szCaption, getSpecialSettingString(SpecialSettingsPtrArrayIndexName_LEDColor, LED_OFF));
     itemPtr->functionPtr = LEDOff;

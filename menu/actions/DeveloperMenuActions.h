@@ -9,15 +9,15 @@
  *                                                                         *
  ***************************************************************************/
 
-void LPCIOWrite(void * ignored);
-void LPCIORead(void * ignored);
+void LPCIOWrite(void *ignored);
+void LPCIORead(void *ignored);
 
-void SMBusRead(void * ignored);
+void SMBusRead(void *ignored);
 
-void GPIORead(void * ignored);
+void GPIORead(void *ignored);
 
-void settingsPrintData(void * ignored);
+void settingsPrintData(void *ignored);
 
-void printBiosIdentifier(void * ignored);
+void printBiosIdentifier(void *ignored);
 
 #endif

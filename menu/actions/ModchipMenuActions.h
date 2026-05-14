@@ -11,38 +11,38 @@
 
 #include "MenuInits.h"
 
-#define BIOSNAMEMAXLENGTH       20
+#define BIOSNAMEMAXLENGTH 20
 
 typedef struct
 {
-    char* powerButString;
-    char* ejectButString;
-    char* tsopControlString;
-    TEXTMENUITEM* bank256ItemPtr;
-    TEXTMENUITEM* tsopBank0ItemPtr;
-    TEXTMENUITEM* tsopBank1ItemPtr;
-    TEXTMENUITEM* tsopFullItemPtr;
-    TEXTMENUITEM* resetAllItemPtr;
-}BankSelectCommonParams;
+    char         *powerButString;
+    char         *ejectButString;
+    char         *tsopControlString;
+    TEXTMENUITEM *bank256ItemPtr;
+    TEXTMENUITEM *tsopBank0ItemPtr;
+    TEXTMENUITEM *tsopBank1ItemPtr;
+    TEXTMENUITEM *tsopFullItemPtr;
+    TEXTMENUITEM *resetAllItemPtr;
+} BankSelectCommonParams;
 
-void decrementActiveBank(void* itemStr);
-void incrementActiveBank(void* itemStr);
+void decrementActiveBank(void *itemStr);
+void incrementActiveBank(void *itemStr);
 
-void decrementAltBank(void* itemStr);
-void incrementAltBank(void* itemStr);
+void decrementAltBank(void *itemStr);
+void incrementAltBank(void *itemStr);
 
-void decrementbootTimeout(void* itemStr);
-void incrementbootTimeout(void* itemStr);
+void decrementbootTimeout(void *itemStr);
+void incrementbootTimeout(void *itemStr);
 
-void toggleQuickboot(void* itemStr);
+void toggleQuickboot(void *itemStr);
 
-void resetSettings(void* ignored);
+void resetSettings(void *ignored);
 
-void editBIOSName(void* bankID);
+void editBIOSName(void *bankID);
 
-void toggleTSOPcontrol(void* customStruct);
-void toggleTSOPhide(void* itemStr);
+void toggleTSOPcontrol(void *customStruct);
+void toggleTSOPhide(void *itemStr);
 
-void reorderTSOPNameMenuEntries(BankSelectCommonParams* params);
+void reorderTSOPNameMenuEntries(BankSelectCommonParams *params);
 
 #endif

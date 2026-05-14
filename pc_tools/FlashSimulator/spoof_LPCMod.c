@@ -10,10 +10,8 @@
 
 static unsigned char currentBank = BNKOS;
 
-const char* getBankName(unsigned char bank)
-{
-    switch(bank)
-    {
+const char          *getBankName(unsigned char bank) {
+    switch (bank) {
     case BNKOS:
         return "OS Bank";
     case BNK256:
@@ -34,8 +32,7 @@ const char* getBankName(unsigned char bank)
     return "No Bank!";
 }
 
-void switchOSBank(unsigned char bank)
-{
+void switchOSBank(unsigned char bank) {
     printf("Switching from \"%s\" to \"%s\"\n", getBankName(currentBank), getBankName(bank));
     currentBank = bank;
 }

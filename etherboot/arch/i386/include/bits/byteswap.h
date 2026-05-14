@@ -1,6 +1,8 @@
 #ifndef ETHERBOOT_BITS_BYTESWAP_H
 #define ETHERBOOT_BITS_BYTESWAP_H
 
+#include <stdint.h>
+
 static inline uint16_t __i386_bswap_16(uint16_t x)
 {
 	__asm__("xchgb %b0,%h0\n\t"

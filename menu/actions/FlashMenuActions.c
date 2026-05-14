@@ -7,67 +7,67 @@
  *                                                                         *
  ***************************************************************************/
 #include "FlashMenuActions.h"
-#include "MenuActions.h"
-#include "lpcmod_v1.h"
-#include "FlashUi.h"
+#include "BootFATX.h"
 #include "BootIde.h"
+#include "FlashDriver.h"
+#include "FlashUi.h"
+#include "Gentoox.h"
+#include "LEDMenuActions.h"
+#include "MenuActions.h"
 #include "TextMenu.h"
+#include "WebServerOps.h"
 #include "boot.h"
 #include "i2c.h"
-#include "video.h"
-#include "memory_layout.h"
-#include "BootFATX.h"
-#include "FlashDriver.h"
-#include "Gentoox.h"
-#include "string.h"
 #include "lib/LPCMod/BootLPCMod.h"
 #include "lib/cromwell/cromString.h"
 #include "lib/cromwell/cromSystem.h"
 #include "lib/time/timeManagement.h"
-#include "LEDMenuActions.h"
-#include "WebServerOps.h"
+#include "lpcmod_v1.h"
+#include "memory_layout.h"
+#include "string.h"
+#include "video.h"
 
 extern int etherboot(void);
 
-int BootLoadFlashCD(const int cdromId) {
+int        BootLoadFlashCD(const int cdromId) {
     busyLED();
-    long imageSize=0;
-    int n;
-    int imageFound=0;
+    long           imageSize = 0;
+    int            n;
+    int            imageFound = 0;
     unsigned char *fileBuf;
     fileBuf = (unsigned char *)malloc(1024 * 1024);
-    memset(fileBuf,0x0,1024 * 1024);
+    memset(fileBuf, 0x0, 1024 * 1024);
 
-    //See if we already have a CDROM in the drive
-    //Try for 4 seconds - takes a while to 'spin up'.
+    // See if we already have a CDROM in the drive
+    // Try for 4 seconds - takes a while to 'spin up'.
     I2CTransmitWord(0x10, 0x0c01); // close DVD tray
 
-    VIDEO_CURSOR_POSY=vmode.ymargin+96;
+    VIDEO_CURSOR_POSY = vmode.ymargin + 96;
     printk("\n\n\n\n\n           Checking disc");
     dots();
 
-    for (n=0;n<16;++n) {
-        imageSize = BootIso9660GetFile(cdromId,"/image.bin", fileBuf, 0x10);
-        if (imageSize>0) {
-            imageFound=1;
+    for (n = 0; n < 16; ++n) {
+        imageSize = BootIso9660GetFile(cdromId, "/image.bin", fileBuf, 0x10);
+        if (imageSize > 0) {
+            imageFound = 1;
             break;
         }
         wait_ms(250);
     }
 
     if (!imageFound) {
-        //Needs to be changed for non-xbox drives, which don't have an eject line
-        //Need to send ATA eject command.
+        // Needs to be changed for non-xbox drives, which don't have an eject line
+        // Need to send ATA eject command.
         I2CTransmitWord(0x10, 0x0c00); // eject DVD tray
         cromwellWarning();
-        VIDEO_ATTR=0xffeeeeff;
+        VIDEO_ATTR = 0xffeeeeff;
         printk("           Please insert a disc which contains \"image.bin\"");
         dots();
         inputLED();
 
         wait_ms(1000); // Wait for DVD to become responsive to inject command
 
-        while(cromwellLoop()) {
+        while (cromwellLoop()) {
             // Make button 'A' close the DVD tray
             if (risefall_xpad_BUTTON(TRIGGER_XPAD_KEY_A) == 1) {
                 I2CTransmitWord(0x10, 0x0c01);
@@ -91,20 +91,20 @@ int BootLoadFlashCD(const int cdromId) {
 
         busyLED();
 
-        VIDEO_ATTR=0xffffffff;
+        VIDEO_ATTR = 0xffffffff;
 
-        //Try to load image.bin - if we can't after a while, give up.
-        for (n=0;n<48;++n) {
-            imageSize = BootIso9660GetFile(cdromId,"/image.bin", fileBuf, 0x10);
-            if (imageSize>0) {
-                imageFound=1;
+        // Try to load image.bin - if we can't after a while, give up.
+        for (n = 0; n < 48; ++n) {
+            imageSize = BootIso9660GetFile(cdromId, "/image.bin", fileBuf, 0x10);
+            if (imageSize > 0) {
+                imageFound = 1;
                 break;
             }
             wait_ms(250);
         }
     }
 
-    //Failed to find the image.bin file
+    // Failed to find the image.bin file
     if (!imageFound) {
         cromwellError();
         printk("\n\n           Could not find the image.bin file.\n");
@@ -118,9 +118,9 @@ int BootLoadFlashCD(const int cdromId) {
     dots();
 
     // Read in a full 1MB bios (read will be truncated if the file is not this big).
-    imageSize=BootIso9660GetFile(cdromId, "/image.bin", fileBuf, 1024*1024);
+    imageSize = BootIso9660GetFile(cdromId, "/image.bin", fileBuf, 1024 * 1024);
 
-    if(imageSize < 0) { //It's not there
+    if (imageSize < 0) { // It's not there
         cromwellWarning();
         printk("           image.bin not found on CD.\n");
         wait_ms(2000);
@@ -132,59 +132,58 @@ int BootLoadFlashCD(const int cdromId) {
     return 0;
 }
 
-void FlashBiosFromHDD (void *fname) {
+void FlashBiosFromHDD(void *fname) {
 #ifdef FLASH
-    int res;
-    unsigned char * fileBuf;
-    FATXFILEINFO fileinfo;
+    int            res;
+    unsigned char *fileBuf;
+    FATXFILEINFO   fileinfo;
     FATXPartition *partition;
 
-    partition = OpenFATXPartition (0, SECTOR_SYSTEM, SYSTEM_SIZE);
-    fileBuf = (unsigned char *) malloc (1024 * 1024);  //1MB buffer(max BIOS size)
-    memset (fileBuf, 0x00, 1024 * 1024);   //Fill with 0.
+    partition = OpenFATXPartition(0, SECTOR_SYSTEM, SYSTEM_SIZE);
+    fileBuf   = (unsigned char *)malloc(1024 * 1024); // 1MB buffer(max BIOS size)
+    memset(fileBuf, 0x00, 1024 * 1024);               // Fill with 0.
 
-    //res = LoadFATXFilefixed(partition, fname, &fileinfo, (char*)0x100000);
+    // res = LoadFATXFilefixed(partition, fname, &fileinfo, (char*)0x100000);
     res = LoadFATXFile(partition, fname, &fileinfo);
     if (!res) {
-        printk ("\n\n\n\n\n           Loading BIOS failed");
-        dots ();
-        cromwellError ();
+        printk("\n\n\n\n\n           Loading BIOS failed");
+        dots();
+        cromwellError();
         goto jumpToEnd;
     }
     memcpy(fileBuf, fileinfo.buffer, fileinfo.fileSize);
     free(fileinfo.buffer);
     fileinfo.buffer = fileBuf;
-    FlashFileFromBuffer(fileinfo.buffer, fileinfo.fileSize, 1); //1 to display confirmDialog
+    FlashFileFromBuffer(fileinfo.buffer, fileinfo.fileSize, 1); // 1 to display confirmDialog
     free(fileinfo.buffer);
 jumpToEnd:
-    CloseFATXPartition (partition);
+    CloseFATXPartition(partition);
 
     return;
 #endif
 }
 
-void FlashBiosFromCD (void *cdromId) {
+void FlashBiosFromCD(void *cdromId) {
 #ifdef FLASH
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
-    BootLoadFlashCD (*(int *) cdromId);
+    BootLoadFlashCD(*(int *)cdromId);
 #endif
 }
 
-void enableNetflash (void *flashType) {
+void enableNetflash(void *flashType) {
 #ifdef FLASH
     static bool nicInit = false;
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
-    printk ("\n\n            Starting network interface.");
+    printk("\n\n            Starting network interface.");
     VIDEO_ATTR = 0xffc8c8c8;
 
-    if(nicInit == true || etherboot() == 0)
-    {
+    if (nicInit == true || etherboot() == 0) {
         nicInit = true;
         cromwellSuccess();
         debugSPIPrint(DEBUG_GENERAL_UI, "Starting network service\n");
         startNetFlash(*(WebServerOps *)flashType);
-        while(cromwellLoop()) {
-            if(netflashPostProcess()) {
+        while (cromwellLoop()) {
+            if (netflashPostProcess()) {
                 debugSPIPrint(DEBUG_GENERAL_UI, "Killing network service\n");
                 break;
             }
@@ -199,19 +198,18 @@ void enableNetflash (void *flashType) {
 #endif
 }
 
-void enableWebupdate (void *whatever) {
+void enableWebupdate(void *whatever) {
 #ifdef FLASH
     BootVideoClearScreen(&jpegBackdrop, 0, 0xffff);
-    printk ("\n\n");
+    printk("\n\n");
     VIDEO_ATTR = 0xffc8c8c8;
 
-    //initialiseNetwork ();
-    //webUpdate ();
+    // initialiseNetwork ();
+    // webUpdate ();
 #endif
 }
 
-void FlashFooter(void)
-{
+void FlashFooter(void) {
     UIFooter();
-    initialSetLED (LPCmodSettings.OSsettings.LEDColor);
+    initialSetLED(LPCmodSettings.OSsettings.LEDColor);
 }

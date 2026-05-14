@@ -9,18 +9,18 @@
  *                                                                         *
  ***************************************************************************/
 
-void toggleBGColor(void * itemStr);
-void bgColorString(char * stringOut);
+void toggleBGColor(void *itemStr);
+void bgColorString(char *stringOut);
 
-void incrementFanSpeed(void * itemStr);
-void decrementFanSpeed(void * itemStr);
+void incrementFanSpeed(void *itemStr);
+void decrementFanSpeed(void *itemStr);
 
-void incrementGameRegion(void * itemStr);
-void decrementGameRegion(void * itemStr);
+void incrementGameRegion(void *itemStr);
+void decrementGameRegion(void *itemStr);
 
-void incrementDVDRegion(void * itemStr);
-void decrementDVDRegion(void * itemStr);
+void incrementDVDRegion(void *itemStr);
+void decrementDVDRegion(void *itemStr);
 
-void toggleROMBus(void * itemStr);
+void toggleROMBus(void *itemStr);
 
 #endif

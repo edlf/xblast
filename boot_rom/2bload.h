@@ -10,10 +10,10 @@
  *                                                                         *
  ***************************************************************************/
 
-//#include "2bconsts.h"
-#include <stdint.h>
+// #include "2bconsts.h"
 #include "cromwell_types.h"
 #include <stddef.h>
+#include <stdint.h>
 
 #define BootloaderVersion1 0x00000001u
 
@@ -22,10 +22,10 @@
 /* BIOS-wide error codes        all have b31 set  */
 
 enum {
-    ERR_SUCCESS = 0,  // completed without error
+    ERR_SUCCESS             = 0, // completed without error
 
-    ERR_I2C_ERROR_TIMEOUT = 0x80000001,  // I2C action failed because it did not complete in a reasonable time
-    ERR_I2C_ERROR_BUS = 0x80000002, // I2C action failed due to non retryable bus error
+    ERR_I2C_ERROR_TIMEOUT   = 0x80000001, // I2C action failed because it did not complete in a reasonable time
+    ERR_I2C_ERROR_BUS       = 0x80000002, // I2C action failed due to non retryable bus error
 
     ERR_BOOT_PIC_ALG_BROKEN = 0x80000101 // PIC algorithm did not pass its self-test
 };
@@ -34,47 +34,47 @@ enum {
 //////// BootPerformPicChallengeResponseAction.c
 
 /* ----------------------------  IO primitives -----------------------------------------------------------
-*/
+ */
 
 static __inline void IoOutputByte(unsigned short wAds, unsigned char bValue) {
-    __asm__ __volatile__ ("outb %b0,%w1": :"a" (bValue), "Nd" (wAds));
+    __asm__ __volatile__("outb %b0,%w1" : : "a"(bValue), "Nd"(wAds));
 }
 
 static __inline void IoOutputWord(unsigned short wAds, unsigned short wValue) {
-    __asm__ __volatile__ ("outw %0,%w1": :"a" (wValue), "Nd" (wAds));
-    }
+    __asm__ __volatile__("outw %0,%w1" : : "a"(wValue), "Nd"(wAds));
+}
 
 static __inline unsigned char IoInputByte(unsigned short wAds) {
-  unsigned char _v;
-  __asm__ __volatile__ ("inb %w1,%0":"=a" (_v):"Nd" (wAds));
-  return _v;
+    unsigned char _v;
+    __asm__ __volatile__("inb %w1,%0" : "=a"(_v) : "Nd"(wAds));
+    return _v;
 }
 
 static __inline unsigned short IoInputWord(unsigned short wAds) {
-  unsigned short _v;
-  __asm__ __volatile__ ("inw %w1,%0":"=a" (_v):"Nd" (wAds));
-  return _v;
+    unsigned short _v;
+    __asm__ __volatile__("inw %w1,%0" : "=a"(_v) : "Nd"(wAds));
+    return _v;
 }
 
 // boot process
-int BootPerformPicChallengeResponseAction(void);
+int                   BootPerformPicChallengeResponseAction(void);
 // LED control (see associated enum above)
-//int I2cSetFrontpanelLed(unsigned char b);
+// int I2cSetFrontpanelLed(unsigned char b);
 
 ////////// BootResetActions.c
 
-void BootStartBiosLoader(void);
+void                  BootStartBiosLoader(void);
 
 ///////// BootPerformPicChallengeResponseAction.c
 
-int I2CTransmitWord(const unsigned char bPicAddressI2cFormat, const unsigned short wDataToWrite);
-int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite);
+int                   I2CTransmitWord(const unsigned char bPicAddressI2cFormat, const unsigned short wDataToWrite);
+int                   I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite);
 
-void *memcpy (void *__restrict __dest, const void *__restrict __src, size_t __n);
-void *memset (void *__s, int __c, size_t __n);
-int memcmp(const void *pb, const void *pb1, size_t n);
+void                 *memcpy(void *__restrict __dest, const void *__restrict __src, size_t __n);
+void                 *memset(void *__s, int __c, size_t __n);
+int                   memcmp(const void *pb, const void *pb1, size_t n);
 
 extern unsigned char *BufferIN;
-extern int BufferINlen;
+extern int            BufferINlen;
 extern unsigned char *BufferOUT;
-extern int BufferOUTPos;
+extern int            BufferOUTPos;

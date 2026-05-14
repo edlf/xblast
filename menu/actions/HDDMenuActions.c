@@ -7,61 +7,33 @@
  *                                                                         *
  ***************************************************************************/
 #include "HDDMenuActions.h"
-#include "boot.h"
-#include "BootIde.h"
-#include "video.h"
 #include "BootFATX.h"
-#include "TextMenu.h"
-#include "lpcmod_v1.h"
-#include "string.h"
-#include "MenuActions.h"
-#include "lib/time/timeManagement.h"
-#include "lib/cromwell/cromString.h"
+#include "BootIde.h"
 #include "FlashMenuActions.h"
 #include "Gentoox.h"
-#include "menu/misc/ConfirmDialog.h"
+#include "MenuActions.h"
+#include "TextMenu.h"
 #include "WebServerOps.h"
+#include "boot.h"
+#include "lib/cromwell/cromString.h"
+#include "lib/time/timeManagement.h"
+#include "lpcmod_v1.h"
+#include "menu/misc/ConfirmDialog.h"
+#include "string.h"
+#include "video.h"
 
-void AssertLockUnlock(void* customStructPtr)
-{
-    LockUnlockCommonParams* tempItemPtr = (LockUnlockCommonParams *)customStructPtr;
-    unsigned char nIndexDrive = tempItemPtr->driveIndex;
+void AssertLockUnlock(void *customStructPtr) {
+    LockUnlockCommonParams *tempItemPtr = (LockUnlockCommonParams *)customStructPtr;
+    unsigned char           nIndexDrive = tempItemPtr->driveIndex;
 
-    if((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002)     //Drive is already locked
+    if ((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002) // Drive is already locked
     {
-        UnlockHDD(nIndexDrive, 1, (unsigned char *)&eeprom, true);    //1 is for verbose
-    }
-    else
-    {
-        LockHDD(nIndexDrive, 1, (unsigned char *)&eeprom);    //1 is for verbose
+        UnlockHDD(nIndexDrive, 1, (unsigned char *)&eeprom, true); // 1 is for verbose
+    } else {
+        LockHDD(nIndexDrive, 1, (unsigned char *)&eeprom); // 1 is for verbose
     }
 
-    if((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002)
-    {
-        sprintf(tempItemPtr->string1, "Unl");
-        sprintf(tempItemPtr->string2, "Unl");
-
-    }
-    else
-    {
-        sprintf(tempItemPtr->string1, "L");
-        sprintf(tempItemPtr->string2, "L");
-    }
-}
-
-void AssertLockUnlockFromNetwork(void* customStructPtr)
-{
-    LockUnlockCommonParams* tempItemPtr = (LockUnlockCommonParams*)customStructPtr;
-    unsigned char nIndexDrive = tempItemPtr->driveIndex;
-    WebServerOps temp = WebServerOps_HDD1Lock;
-
-    if(nIndexDrive == 0) {
-        temp = WebServerOps_HDD0Lock;
-    }
-
-    enableNetflash((void *)&temp);
-
-    if((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002) {
+    if ((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002) {
         sprintf(tempItemPtr->string1, "Unl");
         sprintf(tempItemPtr->string2, "Unl");
 
@@ -71,46 +43,59 @@ void AssertLockUnlockFromNetwork(void* customStructPtr)
     }
 }
 
-bool LockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr)
-{
-    unsigned char password[20];
-    unsigned uIoBase = tsaHarddiskInfo[nIndexDrive].m_fwPortBase;
-    int i;
+void AssertLockUnlockFromNetwork(void *customStructPtr) {
+    LockUnlockCommonParams *tempItemPtr = (LockUnlockCommonParams *)customStructPtr;
+    unsigned char           nIndexDrive = tempItemPtr->driveIndex;
+    WebServerOps            temp        = WebServerOps_HDD1Lock;
 
-    if(eepromPtr == NULL)
-    {
+    if (nIndexDrive == 0) {
+        temp = WebServerOps_HDD0Lock;
+    }
+
+    enableNetflash((void *)&temp);
+
+    if ((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002) {
+        sprintf(tempItemPtr->string1, "Unl");
+        sprintf(tempItemPtr->string2, "Unl");
+
+    } else {
+        sprintf(tempItemPtr->string1, "L");
+        sprintf(tempItemPtr->string2, "L");
+    }
+}
+
+bool LockHDD(int nIndexDrive, bool verbose, unsigned char *eepromPtr) {
+    unsigned char password[20];
+    unsigned      uIoBase = tsaHarddiskInfo[nIndexDrive].m_fwPortBase;
+    int           i;
+
+    if (eepromPtr == NULL) {
         printk("\n\n\n\n\n");
         goto endExec;
     }
 
-    if(verbose)
-    {
-        if(ConfirmDialog("Confirm Lock HDD?", 1))
-        {
+    if (verbose) {
+        if (ConfirmDialog("Confirm Lock HDD?", 1)) {
             return false;
         }
     }
 
-    if(CalculateDrivePassword(nIndexDrive, password, eepromPtr))
-    {
+    if (CalculateDrivePassword(nIndexDrive, password, eepromPtr)) {
         printk("           Unable to calculate drive password - eeprom corrupt?");
         UIFooter();
         return false;
     }
 
-    if(verbose)
-    {
+    if (verbose) {
         printk("\n\n\n           XBlast OS locks drives with a master password of\n\n           \"\2TEAMASSEMBLY\2\"\n\n\n           Please remember this ");
         printk("as it could save your drive!\n\n");
         printk("           The normal password (user password) the drive is\n           being locked with is as follows:\n\n");
         printk("                              ");
 
         VIDEO_ATTR = 0xffef37;
-        for(i = 0; i < 20; i++)
-        {
+        for (i = 0; i < 20; i++) {
             printk("\2%02x \2", password[i]);
-            if((i + 1) % 5 == 0)
-            {
+            if ((i + 1) % 5 == 0) {
                 printk("\n\n                              ");
             }
         }
@@ -120,17 +105,15 @@ bool LockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr)
         dots();
     }
 
-    if(DriveSecurityChange(uIoBase, nIndexDrive, IDE_CMD_SECURITY_SET_PASSWORD, password))
-    {
-endExec:
+    if (DriveSecurityChange(uIoBase, nIndexDrive, IDE_CMD_SECURITY_SET_PASSWORD, password)) {
+    endExec:
         printk("\n           Locking drive failed");
         cromwellError();
         UIFooter();
         return false;
     }
 
-    if(verbose)
-    {
+    if (verbose) {
         printk("           Make a note of the password above.\n");
         UIFooter();
     }
@@ -138,30 +121,26 @@ endExec:
     return true;
 }
 
-int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool internalEEPROM)
-{
+int UnlockHDD(int nIndexDrive, bool verbose, unsigned char *eepromPtr, bool internalEEPROM) {
     unsigned char userPassword[21];
-    int result = -1; //Start assuming not good.
-    int i;
+    int           result = -1; // Start assuming not good.
+    int           i;
 
-    if(eepromPtr == NULL)
-    {
+    if (eepromPtr == NULL) {
         printk("\n\n\n\n\n           Security disable failed. No EEPROM data supplied!");
         goto endExec;
     }
 
 
-    if(tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0010)            //Unlock attempt counter expired
+    if (tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0010) // Unlock attempt counter expired
     {
         printk("\n\n\n\n\n           \2Drive is now locked out.\n           \2Reboot system to reset HDD unlock capabilities.\n\n");
         UIFooter();
         return -1;
     }
 
-    if(verbose)
-    {
-        if(ConfirmDialog("Confirm Unlock HDD?", true))
-        {
+    if (verbose) {
+        if (ConfirmDialog("Confirm Unlock HDD?", true)) {
             return false;
         }
     }
@@ -169,98 +148,87 @@ int UnlockHDD(int nIndexDrive, bool verbose, unsigned char* eepromPtr, bool inte
     CalculateDrivePassword(nIndexDrive, userPassword, eepromPtr);
     userPassword[20] = '\0';
 
-    //HDD security has been disable (ie already have access?)
-    if((tsaHarddiskInfo[nIndexDrive].m_securitySettings&0x0004)==0x0004)
-    {
-        //Do not try Master password unlock if eeprom pointer isn't pointing to internal eeprom image.
-        if(internalEEPROM) {
+    // HDD security has been disable (ie already have access?)
+    if ((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0004) == 0x0004) {
+        // Do not try Master password unlock if eeprom pointer isn't pointing to internal eeprom image.
+        if (internalEEPROM) {
             printk("\n\n           Something's wrong with the drive!\n           Jumping to Master Password Unlock sequence.");
 
-            if(masterPasswordUnlockSequence(nIndexDrive)) {
-                result = 0;	//Sucess
+            if (masterPasswordUnlockSequence(nIndexDrive)) {
+                result  = 0; // Sucess
                 verbose = true;
             } else {
                 result = -1;
             }
 
             goto endExec;
-        }
-        else
-        {
-            if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_UNLOCK, (char*) userPassword, false)) {
+        } else {
+            if (HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_UNLOCK, (char *)userPassword, false)) {
                 printk("\n\n           Unlock drive failed. Supplied EEPROM is not good!");
-       	        result = -1;
+                result = -1;
 
-       	        goto endExec;
+                goto endExec;
             }
         }
     }
 
 
-    if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_DISABLE, (char*) userPassword, false))
-    {
+    if (HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_DISABLE, (char *)userPassword, false)) {
         printk("\n\n           Unlock drive failed.");
         printk("\n           Password used was:");
 
-        for(i = 0; i < strlen((char*) userPassword); i++) {
+        for (i = 0; i < strlen((char *)userPassword); i++) {
             printk(" %02X", userPassword[i]);
         }
-    	result = -1;
+        result = -1;
 
-    	goto endExec;
+        goto endExec;
     } else {
         result = 0;
     }
 
-    if(result == 0) {
-        //Unlock successful, read if there's a MBR, only if FATX formatted drive.
-        if(FATXCheckFATXMagic(nIndexDrive)) {
+    if (result == 0) {
+        // Unlock successful, read if there's a MBR, only if FATX formatted drive.
+        if (FATXCheckFATXMagic(nIndexDrive)) {
             // report on the MBR-ness of the drive contents
             tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable = FATXCheckMBR(nIndexDrive);
         }
-        if(verbose) {
+        if (verbose) {
             printk("\n\n\n           This drive is now unlocked.\n\n");
         }
     }
 
 endExec:
-    if(verbose) {
+    if (verbose) {
         UIFooter();
     }
 
     return result;
 }
 
-bool masterPasswordUnlockSequence(int nIndexDrive)
-{
+bool masterPasswordUnlockSequence(int nIndexDrive) {
     unsigned char i;
-    const char* MasterPasswordList[] =
-    {
-        "TEAMASSEMBLY",
-        "XBOXSCENE",
-        "Seagate                         ",
-        "WDCWDCWDCWDCWDCWDCWDCWDCWDCWDCW"   //WDCWDCWDCWDCWDCWDCWDCWDCWDCWDCWD might also be valid. From personal experience WDCWDCWDCWDCWDCWDCWDCWDCWDCWDCW is more common.
-    };
+    const char   *MasterPasswordList[] =
+        {
+            "TEAMASSEMBLY",
+            "XBOXSCENE",
+            "Seagate                         ",
+            "WDCWDCWDCWDCWDCWDCWDCWDCWDCWDCW" // WDCWDCWDCWDCWDCWDCWDCWDCWDCWDCWD might also be valid. From personal experience WDCWDCWDCWDCWDCWDCWDCWDCWDCWDCW is more common.
+        };
     printk("\n           Trying Master Password unlock.");
 
-    for(i = 0; i < 4; i++)
-    {
-        if((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0010) == false)       //Drive is not locked out.
+    for (i = 0; i < 4; i++) {
+        if ((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0010) == false) // Drive is not locked out.
         {
-            if(HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_UNLOCK, (char *)MasterPasswordList[i], true))
-            {
+            if (HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_UNLOCK, (char *)MasterPasswordList[i], true)) {
                 printk("\n           Master Password(%s) Unlock failed...", MasterPasswordList[i]);
-            }
-            else
-            {
+            } else {
                 HDD_SECURITY_SendATACommand(nIndexDrive, IDE_CMD_SECURITY_DISABLE, (char *)MasterPasswordList[i], true);
                 printk("\n           Unlock Using Master Password %s successful.\n", MasterPasswordList[i]);
 
                 return true;
             }
-        }
-        else
-        {
+        } else {
             printk("\n           Drive is locked out. No further unlock attempts possible.\n           Power cycle console to reset HDD state.\n");
             break;
         }
@@ -271,17 +239,15 @@ bool masterPasswordUnlockSequence(int nIndexDrive)
 }
 
 
-void DisplayHDDPassword(void* customString)
-{
+void DisplayHDDPassword(void *customString) {
     unsigned char nIndexDrive = ((LockUnlockCommonParams *)customString)->driveIndex;
     unsigned char password[20];
-    int i;
+    int           i;
 
     printk("\n\n\n           Calculating password");
     dots();
 
-    if(CalculateDrivePassword(nIndexDrive,password, (unsigned char *)&eeprom))
-    {
+    if (CalculateDrivePassword(nIndexDrive, password, (unsigned char *)&eeprom)) {
         cromwellError();
         wait_ms(2000);
         return;
@@ -293,11 +259,9 @@ void DisplayHDDPassword(void* customString)
     printk("                              ");
 
     VIDEO_ATTR = 0xffef37;
-    for(i = 0; i < 20; i++)
-    {
-        printk("\2%02x \2",password[i]);
-        if ((i + 1) % 5 == 0)
-        {
+    for (i = 0; i < 20; i++) {
+        printk("\2%02x \2", password[i]);
+        if ((i + 1) % 5 == 0) {
             printk("\n\n                              ");
         }
     }
@@ -305,84 +269,78 @@ void DisplayHDDPassword(void* customString)
     UIFooter();
 }
 
-void FormatCacheDrives(void* driveId)
-{
+void FormatCacheDrives(void *driveId) {
     unsigned char nIndexDrive = *(unsigned char *)driveId;
 
-    if(ConfirmDialog("Confirm format cache drives?", 1))
-    {
-        return;                                 //Cancel operation.
+    if (ConfirmDialog("Confirm format cache drives?", 1)) {
+        return; // Cancel operation.
     }
 
     UiHeader("Format cache drives");
-    FATXFormatCacheDrives(nIndexDrive, 1);      //'1' for verbose
+    FATXFormatCacheDrives(nIndexDrive, 1); //'1' for verbose
     UIFooter();
 }
 
-void FormatDriveC(void* driveId)
-{
+void FormatDriveC(void *driveId) {
     unsigned char nIndexDrive = *(unsigned char *)driveId;
 
-    if(ConfirmDialog("Confirm format C: drive?", 1))
-    {
-        return;                                 //Cancel operation.
+    if (ConfirmDialog("Confirm format C: drive?", 1)) {
+        return; // Cancel operation.
     }
 
-    UiHeader("Format C: drive");      //'1' for verbose
+    UiHeader("Format C: drive"); //'1' for verbose
     FATXFormatDriveC(nIndexDrive, 1);
     UIFooter();
 }
 
-void FormatDriveE(void* driveId)
-{
+void FormatDriveE(void *driveId) {
     unsigned char nIndexDrive = *(unsigned char *)driveId;
 
-    if(ConfirmDialog("Confirm format E: drive?", 1))
-    {
-        return;                                 //Cancel operation.
+    if (ConfirmDialog("Confirm format E: drive?", 1)) {
+        return; // Cancel operation.
     }
 
-    UiHeader("Format E: drive");      //'1' for verbose
+    UiHeader("Format E: drive"); //'1' for verbose
     FATXFormatDriveE(nIndexDrive, 1);
     UIFooter();
 }
 
-void DisplayHDDInfo(void* driveId) {
-    unsigned char nIndexDrive = *(unsigned char *)driveId;
-    unsigned char MBRBuffer[512];
-    unsigned char i;
-    XboxPartitionTable* mbr = (XboxPartitionTable *)MBRBuffer;
-    uint32_t clusterSize;
-    unsigned int partSize;
+void DisplayHDDInfo(void *driveId) {
+    unsigned char       nIndexDrive = *(unsigned char *)driveId;
+    unsigned char       MBRBuffer[512];
+    unsigned char       i;
+    XboxPartitionTable *mbr = (XboxPartitionTable *)MBRBuffer;
+    uint32_t            clusterSize;
+    unsigned int        partSize;
 
     VIDEO_ATTR = 0xffffffff;
 
-    printk("\n           Hard Disk Drive(%s)", nIndexDrive ? "slave":"master");
+    printk("\n           Hard Disk Drive(%s)", nIndexDrive ? "slave" : "master");
     printk("\n\n           Model : %s", tsaHarddiskInfo[nIndexDrive].m_szIdentityModelNumber);
     printk("\n           Serial : %s", tsaHarddiskInfo[nIndexDrive].m_szSerial);
     printk("\n           Firmware : %s", tsaHarddiskInfo[nIndexDrive].m_szFirmware);
-    printk("\n           Capacity : %uGB", tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal / (2*1024*1024));     //In GB
+    printk("\n           Capacity : %uGB", tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal / (2 * 1024 * 1024)); // In GB
     printk("\n           Sectors : %u ", tsaHarddiskInfo[nIndexDrive].m_dwCountSectorsTotal);
     printk("\n           # conductors : %u ", tsaHarddiskInfo[nIndexDrive].m_bCableConductors);
-    printk("\n           Lock Status : %s ", ((tsaHarddiskInfo[nIndexDrive].m_securitySettings &0x0002)==0x0002) ? "Locked" : "Unlocked");
-    printk("\n           FATX Formatted? : %s ", tsaHarddiskInfo[nIndexDrive].m_enumDriveType==EDT_XBOXFS ? "Yes" : "No");
+    printk("\n           Lock Status : %s ", ((tsaHarddiskInfo[nIndexDrive].m_securitySettings & 0x0002) == 0x0002) ? "Locked" : "Unlocked");
+    printk("\n           FATX Formatted? : %s ", tsaHarddiskInfo[nIndexDrive].m_enumDriveType == EDT_XBOXFS ? "Yes" : "No");
     printk("\n           Xbox MBR on HDD? : %s", tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable ? "Yes" : "No");
 
-    if(tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable) {
-        if(BootIdeReadSector(nIndexDrive, MBRBuffer, 0x00, 0, 512)) {
-            //VIDEO_ATTR=0xffff0000;
+    if (tsaHarddiskInfo[nIndexDrive].m_fHasPartitionTable) {
+        if (BootIdeReadSector(nIndexDrive, MBRBuffer, 0x00, 0, 512)) {
+            // VIDEO_ATTR=0xffff0000;
             printk("\n                Unable to read MBR sector...\n");
         } else {
-            for(i = 0; i < XboxPartitionTableEntryCount; i++) {
-                if(mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0) {   // Valid partition entry only
+            for (i = 0; i < XboxPartitionTableEntryCount; i++) {
+                if (mbr->TableEntries[i].Name[0] != ' ' && mbr->TableEntries[i].LBAStart != 0) { // Valid partition entry only
                     printk("\n             %02d: %s", i, mbr->TableEntries[i].Name);
                     printk("\n                     Active: %s", mbr->TableEntries[i].Flags == PE_PARTFLAGS_IN_USE ? "Yes" : "No");
 
-                    uint64_t size = (uint64_t) mbr->TableEntries[i].LBASize_high;
-                    size = (size << 32) | mbr->TableEntries[i].LBASize;
-                    clusterSize = CalculateClusterSize(size);
+                    uint64_t size = (uint64_t)mbr->TableEntries[i].LBASize_high;
+                    size          = (size << 32) | mbr->TableEntries[i].LBASize;
+                    clusterSize   = CalculateClusterSize(size);
 
-                    partSize = size / 2048; //in MB
+                    partSize      = size / 2048; // in MB
                     printk("    Size: %uMB   Cluster: %uKB", partSize, clusterSize);
                 }
             }
@@ -392,84 +350,76 @@ void DisplayHDDInfo(void* driveId) {
     UIFooter();
 }
 
-void FormatDriveFG(void* driveId) {
-    const unsigned char nDriveIndex = (*(unsigned char *)driveId) & 0x0f;
+void FormatDriveFG(void *driveId) {
+    const unsigned char nDriveIndex  = (*(unsigned char *)driveId) & 0x0f;
     const unsigned char formatOption = (*(unsigned char *)driveId) & 0xf0;
-    uint64_t fsize,gstart = SECTOR_EXTEND,gsize = 0;
-    char buffer[512];                                  //Multi purpose
-    XboxPartitionTable* mbr = (XboxPartitionTable *)buffer;
+    uint64_t            fsize, gstart = SECTOR_EXTEND, gsize = 0;
+    char                buffer[512]; // Multi purpose
+    XboxPartitionTable *mbr            = (XboxPartitionTable *)buffer;
 
-    uint64_t nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
+    uint64_t            nExtendSectors = tsaHarddiskInfo[nDriveIndex].m_dwCountSectorsTotal - SECTOR_EXTEND;
 
     // Clamp hdd size to the max of LBA48
     if (nExtendSectors > LBA_MAX_SIZE) {
         nExtendSectors = LBA_MAX_SIZE;
     }
 
-    switch(formatOption) {
-        case F_GEQUAL:
-            // Split amount of sectors evenly on 2 partitions
-            if(nExtendSectors % 2) //Odd number of sectors
-            {
-                //F: will be 1 sector bigger than G:
-                fsize = (nExtendSectors + 1) >> 1;
-            }
-            else
-            {
-                fsize = nExtendSectors >> 1;
-            }
-            sprintf(buffer, "%s", "Confirm format:\n\2F:, G: Split evenly?");
-            break;
+    switch (formatOption) {
+    case F_GEQUAL:
+        // Split amount of sectors evenly on 2 partitions
+        if (nExtendSectors % 2) // Odd number of sectors
+        {
+            // F: will be 1 sector bigger than G:
+            fsize = (nExtendSectors + 1) >> 1;
+        } else {
+            fsize = nExtendSectors >> 1;
+        }
+        sprintf(buffer, "%s", "Confirm format:\n\2F:, G: Split evenly?");
+        break;
 
-        case F137_G:
-            // F = LBASIZE_137GB and G takes the rest (legacy)
-            fsize = LBASIZE_137GB;
-            sprintf(buffer, "%s", "Confirm format:\n\2F: = 120GB, G: takes the rest?");
-            break;
-        case F_NOG:
-            // F takes all
-            fsize = nExtendSectors;
-            sprintf(buffer, "%s", "Confirm format:\n\2F: take all, no G:?");
-            break;
-        default:
-            return;
-            break;
+    case F137_G:
+        // F = LBASIZE_137GB and G takes the rest (legacy)
+        fsize = LBASIZE_137GB;
+        sprintf(buffer, "%s", "Confirm format:\n\2F: = 120GB, G: takes the rest?");
+        break;
+    case F_NOG:
+        // F takes all
+        fsize = nExtendSectors;
+        sprintf(buffer, "%s", "Confirm format:\n\2F: take all, no G:?");
+        break;
+    default:
+        return;
+        break;
     }
 
     gstart = SECTOR_EXTEND + fsize;
-    gsize = nExtendSectors - fsize;
+    gsize  = nExtendSectors - fsize;
 
 
-    if(ConfirmDialog(buffer, 1) == false)
-    {
+    if (ConfirmDialog(buffer, 1) == false) {
         UiHeader("Format F: drive");
-        FATXFormatExtendedDrive(nDriveIndex, 5, SECTOR_EXTEND, fsize);          //F: drive is partition 5 in table
+        FATXFormatExtendedDrive(nDriveIndex, 5, SECTOR_EXTEND, fsize); // F: drive is partition 5 in table
         UIFooter();
 
-        if(formatOption != F_NOG)
-        {
+        if (formatOption != F_NOG) {
             UiHeader("Format G: drive");
-            FATXFormatExtendedDrive(nDriveIndex, 6, gstart, gsize);             //G: drive is partition 6 in table
+            FATXFormatExtendedDrive(nDriveIndex, 6, gstart, gsize); // G: drive is partition 6 in table
             UIFooter();
-        }
-        else       //Print G drive entry in partition table being inactive and of null size.
+        } else // Print G drive entry in partition table being inactive and of null size.
         {
-            if(tsaHarddiskInfo[nDriveIndex].m_fHasPartitionTable == 1)        //No need to do anything if no MBR is on disk.
+            if (tsaHarddiskInfo[nDriveIndex].m_fHasPartitionTable == 1) // No need to do anything if no MBR is on disk.
             {
-               if(BootIdeReadSector(nDriveIndex, &buffer[0], 0x00, 0, 512))
-               {
-                    VIDEO_ATTR=0xffff0000;
+                if (BootIdeReadSector(nDriveIndex, &buffer[0], 0x00, 0, 512)) {
+                    VIDEO_ATTR = 0xffff0000;
                     printk("\n\1                Unable to read MBR sector...\n");
                     UIFooter();
                     return;
-                }
-                else
-                {
-                    mbr->TableEntries[6].Flags = 0;
-                    mbr->TableEntries[6].LBAStart = SECTOR_EXTEND;
+                } else {
+                    mbr->TableEntries[6].Flags         = 0;
+                    mbr->TableEntries[6].LBAStart      = SECTOR_EXTEND;
                     mbr->TableEntries[6].LBAStart_high = 0;
-                    mbr->TableEntries[6].LBASize = 0;
-                    mbr->TableEntries[6].LBASize_high = 0;
+                    mbr->TableEntries[6].LBASize       = 0;
+                    mbr->TableEntries[6].LBASize_high  = 0;
                     FATXSetMBR(nDriveIndex, mbr);
                 }
             }
@@ -477,58 +427,43 @@ void FormatDriveFG(void* driveId) {
     }
 }
 
-void AssertSMARTEnableDisable(void* customString)
-{
-    LockUnlockCommonParams* tempItemPtr = (LockUnlockCommonParams *)customString;
-    unsigned char nIndexDrive = tempItemPtr->driveIndex;
+void AssertSMARTEnableDisable(void *customString) {
+    LockUnlockCommonParams *tempItemPtr = (LockUnlockCommonParams *)customString;
+    unsigned char           nIndexDrive = tempItemPtr->driveIndex;
 
-    if(tsaHarddiskInfo[nIndexDrive].m_fSMARTEnabled)        //Drive is already locked
+    if (tsaHarddiskInfo[nIndexDrive].m_fSMARTEnabled) // Drive is already locked
     {
-        driveToggleSMARTFeature(nIndexDrive, 0xD9);          //0xD9 is subcommand for disabling SMART.
+        driveToggleSMARTFeature(nIndexDrive, 0xD9); // 0xD9 is subcommand for disabling SMART.
+    } else {
+        driveToggleSMARTFeature(nIndexDrive, 0xD8); // 0xD8 is subcommand for enabling SMART.
     }
-    else
-    {
-        driveToggleSMARTFeature(nIndexDrive, 0xD8);          //0xD8 is subcommand for enabling SMART.
-    }
-    if(tsaHarddiskInfo[nIndexDrive].m_fSMARTEnabled)
-    {
+    if (tsaHarddiskInfo[nIndexDrive].m_fSMARTEnabled) {
         sprintf(tempItemPtr->string1, "%s", "Disable");
-    }
-    else
-    {
+    } else {
         sprintf(tempItemPtr->string1, "%s", "Enable");
     }
 }
 
-void CheckSMARTRETURNSTATUS(void* customString)
-{
+void CheckSMARTRETURNSTATUS(void *customString) {
     unsigned char nIndexDrive = ((LockUnlockCommonParams *)customString)->driveIndex;
-    int pollReturn;
+    int           pollReturn;
 
     UiHeader("Read S.M.A.R.T. status");
 
     VIDEO_ATTR = 0xffffffff;
 
-    if(tsaHarddiskInfo[nIndexDrive].m_fSMARTEnabled)
-    {
+    if (tsaHarddiskInfo[nIndexDrive].m_fSMARTEnabled) {
         pollReturn = driveSMARTRETURNSTATUS(nIndexDrive);
         printk("\n\n\n\1          S.M.A.R.T. return ");
 
-        if(pollReturn == 0)
-        {
+        if (pollReturn == 0) {
             printk("drive is fine!");
-        }
-        else if(pollReturn == 1)
-        {
+        } else if (pollReturn == 1) {
             printk("drive exceeded threshold!\n\1           Please test drive!");
-        }
-        else
-        {
+        } else {
             printk("unknown S.M.A.R.T. status...");
         }
-    }
-    else
-    {
+    } else {
         printk("\n\1          S.M.A.R.T. not enabled.\n\1          Please enable S.M.A.R.T. to use this feature.");
     }
 

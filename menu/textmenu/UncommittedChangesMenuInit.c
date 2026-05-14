@@ -7,17 +7,16 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "MenuInits.h"
-#include "include/boot.h"
 #include "BootIde.h"
+#include "MenuInits.h"
 #include "UncommittedChangesMenuActions.h"
-#include "xblast/settings/xblastSettingsChangeTracker.h"
+#include "include/boot.h"
 #include "lib/LPCMod/xblastDebug.h"
 #include "string.h"
+#include "xblast/settings/xblastSettingsChangeTracker.h"
 
-void UncommittedChangesMenuDynamic(void * nothing)
-{
+void UncommittedChangesMenuDynamic(void *nothing) {
     TEXTMENU *menuPtr = generateMenuEntries();
-        
+
     ResetDrawChildTextMenu(menuPtr);
 }

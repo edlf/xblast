@@ -13,22 +13,21 @@
 typedef struct {
     unsigned char m_bManufacturerId;
     unsigned char m_bDeviceId;
-     char m_szFlashDescription[32];
-    unsigned int m_dwLengthInBytes;
-    unsigned char m_support4KBErase; //Bit 0 set when sector erase supported. Bit 1 set for 28xxx devices
+    char          m_szFlashDescription[32];
+    unsigned int  m_dwLengthInBytes;
+    unsigned char m_support4KBErase; // Bit 0 set when sector erase supported. Bit 1 set for 28xxx devices
 } KNOWN_FLASH_TYPE;
 
 typedef struct {
-    volatile unsigned char * volatile m_pbMemoryMappedStartAddress; // fill on entry
+    volatile unsigned char *volatile m_pbMemoryMappedStartAddress; // fill on entry
     KNOWN_FLASH_TYPE flashType;
-    char m_szAdditionalErrorInfo[256];
-    bool m_fIsBelievedCapableOfWriteAndErase;
+    char             m_szAdditionalErrorInfo[256];
+    bool             m_fIsBelievedCapableOfWriteAndErase;
 } OBJECT_FLASH;
 
 extern OBJECT_FLASH flashDevice;
 
-typedef enum
-{
+typedef enum {
     FlashOp_Idle,
     FlashOp_PendingOp,
     FlashOp_EraseInProgress,
@@ -39,8 +38,7 @@ typedef enum
     FlashOp_Error
 } FlashOp;
 
-typedef enum
-{
+typedef enum {
     FlashErrorcodes_NoError = 0U,
     FlashErrorcodes_UserAbort,
     FlashErrorcodes_FailedErase,

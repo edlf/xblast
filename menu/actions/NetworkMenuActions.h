@@ -10,18 +10,18 @@
  ***************************************************************************/
 #include "boot.h"
 
-#define IP_KEYPAD   1
+#define IP_KEYPAD 1
 
-void toggleUseDHCP(void * itemStr);
-void editStaticIP(void * itemStr);
-void editStaticMask(void * itemStr);
-void editStaticGateway(void * itemStr);
-void editStaticDNS1(void * itemStr);
-void editStaticDNS2(void * itemStr);
+void           toggleUseDHCP(void *itemStr);
+void           editStaticIP(void *itemStr);
+void           editStaticMask(void *itemStr);
+void           editStaticGateway(void *itemStr);
+void           editStaticDNS1(void *itemStr);
+void           editStaticDNS2(void *itemStr);
 
-bool editIPfield(unsigned char * addr);
+bool           editIPfield(unsigned char *addr);
 
 unsigned short myAtoi(char *str);
-bool assertCorrectIPString(unsigned char *out, char *in);
+bool           assertCorrectIPString(unsigned char *out, char *in);
 
 #endif

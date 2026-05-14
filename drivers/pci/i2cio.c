@@ -1,4 +1,4 @@
- /***************************************************************************
+/***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -7,143 +7,142 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "i2c.h"
 #include "boot.h"
-#include "memory_layout.h"
+#include "i2c.h"
 #include "lib/time/timeManagement.h"
+#include "memory_layout.h"
+#include "string.h"
 #include "xblast/HardwareIdentifier.h"
 #include "xblast/PowerManagement.h"
-#include "string.h"
 
 /*
     WriteToSMBus()    by Lehner Franz (franz@caos.at)
     ReadfromSMBus() by Lehner Franz (franz@caos.at)
 */
 
-int WriteToSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, const unsigned int Data_to_smbus)
-{
-    int nRetriesToLive=50;
+int WriteToSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, const unsigned int Data_to_smbus) {
+    int nRetriesToLive = 50;
 
-    while(IoInputWord(I2C_IO_BASE+0)&0x0800) ;  // Franz's spin while bus busy with any master traffic
+    while (IoInputWord(I2C_IO_BASE + 0) & 0x0800)
+        ; // Franz's spin while bus busy with any master traffic
 
-    while(nRetriesToLive--) {
+    while (nRetriesToLive--) {
 
         unsigned char b;
-        unsigned int temp;
+        unsigned int  temp;
 
-        IoOutputByte(I2C_IO_BASE+4, (Address<<1)|0);
-        IoOutputByte(I2C_IO_BASE+8, bRegister);
+        IoOutputByte(I2C_IO_BASE + 4, (Address << 1) | 0);
+        IoOutputByte(I2C_IO_BASE + 8, bRegister);
 
         switch (Size) {
-            case 4:
-                IoOutputByte(I2C_IO_BASE+9, Data_to_smbus&0xff);
-                IoOutputByte(I2C_IO_BASE+9, (Data_to_smbus >> 8) & 0xff );
-                IoOutputByte(I2C_IO_BASE+9, (Data_to_smbus >> 16) & 0xff );
-                IoOutputByte(I2C_IO_BASE+9, (Data_to_smbus >> 24) & 0xff );
-                IoOutputWord(I2C_IO_BASE+6, 4);
-                break;
-            case 2:
-                IoOutputWord(I2C_IO_BASE+6, Data_to_smbus&0xffff);
-                break;
-            default:    // 1
-                IoOutputWord(I2C_IO_BASE+6, Data_to_smbus&0xff);
-                break;
+        case 4:
+            IoOutputByte(I2C_IO_BASE + 9, Data_to_smbus & 0xff);
+            IoOutputByte(I2C_IO_BASE + 9, (Data_to_smbus >> 8) & 0xff);
+            IoOutputByte(I2C_IO_BASE + 9, (Data_to_smbus >> 16) & 0xff);
+            IoOutputByte(I2C_IO_BASE + 9, (Data_to_smbus >> 24) & 0xff);
+            IoOutputWord(I2C_IO_BASE + 6, 4);
+            break;
+        case 2:
+            IoOutputWord(I2C_IO_BASE + 6, Data_to_smbus & 0xffff);
+            break;
+        default: // 1
+            IoOutputWord(I2C_IO_BASE + 6, Data_to_smbus & 0xff);
+            break;
         }
 
 
-        temp = IoInputWord(I2C_IO_BASE+0);
-        IoOutputWord(I2C_IO_BASE+0, temp);  // clear down all preexisting errors
+        temp = IoInputWord(I2C_IO_BASE + 0);
+        IoOutputWord(I2C_IO_BASE + 0, temp); // clear down all preexisting errors
 
         switch (Size) {
-            case 4:
-                IoOutputByte(I2C_IO_BASE+2, 0x1d);    // unsigned int modus
-                break;
-            case 2:
-                IoOutputByte(I2C_IO_BASE+2, 0x1b);    // unsigned short modus
-                break;
-            default:    // 1
-                IoOutputByte(I2C_IO_BASE+2, 0x1a);    // unsigned char modus
-                break;
+        case 4:
+            IoOutputByte(I2C_IO_BASE + 2, 0x1d); // unsigned int modus
+            break;
+        case 2:
+            IoOutputByte(I2C_IO_BASE + 2, 0x1b); // unsigned short modus
+            break;
+        default:                                 // 1
+            IoOutputByte(I2C_IO_BASE + 2, 0x1a); // unsigned char modus
+            break;
         }
 
         b = 0;
 
-        while( (b&0x36)==0 ) { b=IoInputByte(I2C_IO_BASE+0); }
+        while ((b & 0x36) == 0) {
+            b = IoInputByte(I2C_IO_BASE + 0);
+        }
 
-        if ((b&0x10) != 0) {
+        if ((b & 0x10) != 0) {
             return ERR_SUCCESS;
-
         }
 
         wait_us_blocking(1);
     }
 
     return ERR_I2C_ERROR_BUS;
-
 }
 
-int ReadfromSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, unsigned int *Data_to_smbus)
-{
-    int nRetriesToLive=50;
+int ReadfromSMBus(const unsigned char Address, const unsigned char bRegister, const unsigned char Size, unsigned int *Data_to_smbus) {
+    int nRetriesToLive = 50;
 
-    while(IoInputWord(I2C_IO_BASE+0)&0x0800) ;  // Franz's spin while bus busy with any master traffic
+    while (IoInputWord(I2C_IO_BASE + 0) & 0x0800)
+        ; // Franz's spin while bus busy with any master traffic
 
-    while(nRetriesToLive--) {
+    while (nRetriesToLive--) {
         unsigned char b;
-        int temp;
+        int           temp;
 
-        IoOutputByte(I2C_IO_BASE+4, (Address<<1)|1);
-        IoOutputByte(I2C_IO_BASE+8, bRegister);
+        IoOutputByte(I2C_IO_BASE + 4, (Address << 1) | 1);
+        IoOutputByte(I2C_IO_BASE + 8, bRegister);
 
-        temp = IoInputWord(I2C_IO_BASE+0);
-        IoOutputWord(I2C_IO_BASE+0, temp);  // clear down all preexisting errors
+        temp = IoInputWord(I2C_IO_BASE + 0);
+        IoOutputWord(I2C_IO_BASE + 0, temp); // clear down all preexisting errors
 
         switch (Size) {
-            case 4:
-                IoOutputByte(I2C_IO_BASE+2, 0x0d);    // unsigned int modus ?
-                break;
-            case 2:
-                IoOutputByte(I2C_IO_BASE+2, 0x0b);    // unsigned short modus
-                break;
-            default:
-                IoOutputByte(I2C_IO_BASE+2, 0x0a);    // unsigned char
-                break;
+        case 4:
+            IoOutputByte(I2C_IO_BASE + 2, 0x0d); // unsigned int modus ?
+            break;
+        case 2:
+            IoOutputByte(I2C_IO_BASE + 2, 0x0b); // unsigned short modus
+            break;
+        default:
+            IoOutputByte(I2C_IO_BASE + 2, 0x0a); // unsigned char
+            break;
         }
 
         b = 0;
 
 
-        while( (b&0x36)==0 ) { b=IoInputByte(I2C_IO_BASE+0); }
-
-        if(b&0x24) {
-            //printf("I2CTransmitByteGetReturn error %x\n", b);
+        while ((b & 0x36) == 0) {
+            b = IoInputByte(I2C_IO_BASE + 0);
         }
 
-        if(!(b&0x10)) {
-            //printf("I2CTransmitByteGetReturn no complete, retry\n");
+        if (b & 0x24) {
+            // printf("I2CTransmitByteGetReturn error %x\n", b);
         }
-        else {
+
+        if (!(b & 0x10)) {
+            // printf("I2CTransmitByteGetReturn no complete, retry\n");
+        } else {
             switch (Size) {
-                case 4:
-                    IoInputByte(I2C_IO_BASE+6);
-                    IoInputByte(I2C_IO_BASE+9);
-                    IoInputByte(I2C_IO_BASE+9);
-                    IoInputByte(I2C_IO_BASE+9);
-                    IoInputByte(I2C_IO_BASE+9);
-                    break;
-                case 2:
-                    *Data_to_smbus = IoInputWord(I2C_IO_BASE+6);
-                    break;
-                default:
-                    *Data_to_smbus = IoInputByte(I2C_IO_BASE+6);
-                    break;
+            case 4:
+                IoInputByte(I2C_IO_BASE + 6);
+                IoInputByte(I2C_IO_BASE + 9);
+                IoInputByte(I2C_IO_BASE + 9);
+                IoInputByte(I2C_IO_BASE + 9);
+                IoInputByte(I2C_IO_BASE + 9);
+                break;
+            case 2:
+                *Data_to_smbus = IoInputWord(I2C_IO_BASE + 6);
+                break;
+            default:
+                *Data_to_smbus = IoInputByte(I2C_IO_BASE + 6);
+                break;
             }
 
 
             return ERR_SUCCESS;
-
         }
-
     }
 
     return ERR_I2C_ERROR_BUS;
@@ -155,76 +154,70 @@ int ReadfromSMBus(const unsigned char Address, const unsigned char bRegister, co
 /* --------------------- Normal 8 bit operations -------------------------- */
 
 
-int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite)
-{
+int I2CTransmitByteGetReturn(const unsigned char bPicAddressI2cFormat, const unsigned char bDataToWrite) {
     unsigned int temp;
-    if (ReadfromSMBus(bPicAddressI2cFormat,bDataToWrite,1,&temp) != ERR_SUCCESS) {
+    if (ReadfromSMBus(bPicAddressI2cFormat, bDataToWrite, 1, &temp) != ERR_SUCCESS) {
         return ERR_I2C_ERROR_BUS;
-	}
+    }
     return temp;
 }
 
 // transmit a word, no returned data from I2C device
-int I2CTransmitWord(const unsigned char bPicAddressI2cFormat, const unsigned short wDataToWrite)
-{
-    return WriteToSMBus(bPicAddressI2cFormat,(wDataToWrite>>8)&0xff,1,(wDataToWrite&0xff));
+int I2CTransmitWord(const unsigned char bPicAddressI2cFormat, const unsigned short wDataToWrite) {
+    return WriteToSMBus(bPicAddressI2cFormat, (wDataToWrite >> 8) & 0xff, 1, (wDataToWrite & 0xff));
 }
 
-int I2CWriteBytetoRegister(const unsigned char bPicAddressI2cFormat, const unsigned char bRegister, const unsigned char wDataToWrite)
-{
-    return WriteToSMBus(bPicAddressI2cFormat,bRegister,1,(wDataToWrite&0xff));
+int I2CWriteBytetoRegister(const unsigned char bPicAddressI2cFormat, const unsigned char bRegister, const unsigned char wDataToWrite) {
+    return WriteToSMBus(bPicAddressI2cFormat, bRegister, 1, (wDataToWrite & 0xff));
 }
 
-void I2CModifyBits(const unsigned char bAds, const unsigned char bReg, const unsigned char bData, const unsigned char bMask)
-{
-    unsigned char b=I2CTransmitByteGetReturn(0x45, bReg)&(~bMask);
-    I2CTransmitWord(0x45, (bReg<<8)|((bData)&bMask)|b);
+void I2CModifyBits(const unsigned char bAds, const unsigned char bReg, const unsigned char bData, const unsigned char bMask) {
+    unsigned char b = I2CTransmitByteGetReturn(0x45, bReg) & (~bMask);
+    I2CTransmitWord(0x45, (bReg << 8) | ((bData)&bMask) | b);
 }
 
 // ----------------------------  PIC challenge/response -----------------------------------------------------------
 
-int I2cSetFrontpanelLed(const unsigned char b)
-{
-    I2CTransmitWord( 0x10, 0x800 | b);  // sequencing thanks to Jarin the Penguin!
-    I2CTransmitWord( 0x10, 0x701);
+int I2cSetFrontpanelLed(const unsigned char b) {
+    I2CTransmitWord(0x10, 0x800 | b); // sequencing thanks to Jarin the Penguin!
+    I2CTransmitWord(0x10, 0x701);
 
 
     return ERR_SUCCESS;
 }
 
-bool I2CGetTemperature(int * pnLocalTemp, int * pExternalTemp)
-{
+bool I2CGetTemperature(int *pnLocalTemp, int *pExternalTemp) {
     unsigned char cpuTempCount = 0;
     unsigned char cpu, cpudec;
-    float temp1, cpuFrac = 0.0;
+    float         temp1, cpuFrac = 0.0;
 
-    //Motherboard temp.
-    ReadfromSMBus(0x10, 0x0A, 1, (unsigned int*) pExternalTemp);
+    // Motherboard temp.
+    ReadfromSMBus(0x10, 0x0A, 1, (unsigned int *)pExternalTemp);
 
-    if(getMotherboardRevision() != XboxMotherboardRevision_1_6){
-        *pnLocalTemp=I2CTransmitByteGetReturn(0x4c, 0x01);
-    }
-    else{
-        //1.6 specific Temperature code.
-        //GPU trim
-        *pExternalTemp *= 0.8f;    //Might be unnecessary.
+    if (getMotherboardRevision() != XboxMotherboardRevision_1_6) {
+        *pnLocalTemp = I2CTransmitByteGetReturn(0x4c, 0x01);
+    } else {
+        // 1.6 specific Temperature code.
+        // GPU trim
+        *pExternalTemp *= 0.8f; // Might be unnecessary.
 
-        //Fetch CPU temp
-        while(cpuTempCount < 10){
+        // Fetch CPU temp
+        while (cpuTempCount < 10) {
             // if its a 1.6 then we get the CPU temperature from the xcalibur
             IoOutputByte(0xc004, (0x70 << 1) | 0x01);  // address
             IoOutputByte(0xc008, 0xC1);                // command
-            IoOutputWord(0xc000, IoInputWord(0xc000));      // clear errors
+            IoOutputWord(0xc000, IoInputWord(0xc000)); // clear errors
             IoOutputByte(0xc002, 0x0d);                // start block transfer
-            while ((IoInputByte(0xc000) & 8));         // wait for response
+            while ((IoInputByte(0xc000) & 8))
+                ; // wait for response
 
             if (!(IoInputByte(0xc000) & 0x23)) // if there was a error then just skip this read..
             {
-                IoInputByte(0xc004);                       // read out the data reg (no. bytes in block, will be 4)
-                cpudec = IoInputByte(0xc009);              // first byte
-                cpu    = IoInputByte(0xc009);              // second byte
-                IoInputByte(0xc009);                       // read out the two last bytes, dont' think its neccesary
-                IoInputByte(0xc009);                       // but done to be on the safe side
+                IoInputByte(0xc004);          // read out the data reg (no. bytes in block, will be 4)
+                cpudec = IoInputByte(0xc009); // first byte
+                cpu    = IoInputByte(0xc009); // second byte
+                IoInputByte(0xc009);          // read out the two last bytes, dont' think its neccesary
+                IoInputByte(0xc009);          // but done to be on the safe side
 
                 /* the temperature recieved from the xcalibur is very jumpy, so we try and smooth it
                   out by taking the average over 10 samples */
@@ -232,77 +225,74 @@ bool I2CGetTemperature(int * pnLocalTemp, int * pExternalTemp)
                 temp1 /= 10;
                 cpuFrac += temp1;
 
-                if (cpuTempCount == 9){ // if we have taken 10 samples then commit the new temperature
+                if (cpuTempCount == 9) { // if we have taken 10 samples then commit the new temperature
                     *pnLocalTemp = cpuFrac;
                     break;
-                }
-                else{
-                    cpuTempCount++;     // increase sample count
+                } else {
+                    cpuTempCount++; // increase sample count
                 }
             }
         }
     }
 
 
-    //Check for bus error - 1.6 xboxes have no readable
-    //temperature sensors.
-    //if (*pnLocalTemp==ERR_I2C_ERROR_BUS ||
-    //        *pExternalTemp==ERR_I2C_ERROR_BUS)
-    //            return false;
+    // Check for bus error - 1.6 xboxes have no readable
+    // temperature sensors.
+    // if (*pnLocalTemp==ERR_I2C_ERROR_BUS ||
+    //         *pExternalTemp==ERR_I2C_ERROR_BUS)
+    //             return false;
     return true;
 }
 
 void I2CRebootQuick(void) {
-    if(canPowerDown())
-    {
-        WriteToSMBus(0x10,0x02,1,0x01);
-        while (1);
+    if (canPowerDown()) {
+        WriteToSMBus(0x10, 0x02, 1, 0x01);
+        while (1)
+            ;
     }
 }
 
 
-void I2CRebootSlow(void)
-{
-    if(canPowerDown())
-    {
-        WriteToSMBus(0x10,0x02,1,0x40);
-        while (1);
+void I2CRebootSlow(void) {
+    if (canPowerDown()) {
+        WriteToSMBus(0x10, 0x02, 1, 0x40);
+        while (1)
+            ;
     }
 }
 
-void I2CPowerOff(void)
-{
-    if(canPowerDown())
-    {
-        WriteToSMBus(0x10,0x02,1,0x80);
-        while (1);
+void I2CPowerOff(void) {
+    if (canPowerDown()) {
+        WriteToSMBus(0x10, 0x02, 1, 0x80);
+        while (1)
+            ;
     }
 }
 
-unsigned char I2CGetFanSpeed(void){
-    //ReadfromSMBus(0x10, 0x10, 1, (unsigned int *)&temp);
+unsigned char I2CGetFanSpeed(void) {
+    // ReadfromSMBus(0x10, 0x10, 1, (unsigned int *)&temp);
     return (I2CTransmitByteGetReturn(0x10, 0x10) << 1);
 }
 
-void I2CSetFanSpeed(const unsigned char speed){
-	WriteToSMBus(0x10,0x06,1,speed >> 1);    //Send new speed to PIC, divide incoming value by 2.
-	wait_us_blocking(5);
-
-	WriteToSMBus(0x10,0x05,1,1);             //Activate manual fan speed control
+void I2CSetFanSpeed(const unsigned char speed) {
+    WriteToSMBus(0x10, 0x06, 1, speed >> 1); // Send new speed to PIC, divide incoming value by 2.
     wait_us_blocking(5);
-    WriteToSMBus(0x10,0x06,1,speed >> 1);    //Send new speed to PIC
+
+    WriteToSMBus(0x10, 0x05, 1, 1); // Activate manual fan speed control
+    wait_us_blocking(5);
+    WriteToSMBus(0x10, 0x06, 1, speed >> 1); // Send new speed to PIC
 }
 
 
-//Return coded Xbox revision. Check enum in boot.h
-//Thanks XBMC team for the code.
-//TODO: switch case for cleaner look?
-unsigned char I2CGetXboxMBRev(void){
+// Return coded Xbox revision. Check enum in boot.h
+// Thanks XBMC team for the code.
+// TODO: switch case for cleaner look?
+unsigned char I2CGetXboxMBRev(void) {
     unsigned char result = XboxMotherboardRevision_UNKNOWN;
-    unsigned int temp[3];
-    char ver[4];
-    ver[3] = 0;        //Terminator.
-    I2CTransmitWord(0x10, 0x0100);                //Reset ID counter.
+    unsigned int  temp[3];
+    char          ver[4];
+    ver[3] = 0;                    // Terminator.
+    I2CTransmitWord(0x10, 0x0100); // Reset ID counter.
     ReadfromSMBus(0x10, 0x01, 1, &temp[0]);
     ReadfromSMBus(0x10, 0x01, 1, &temp[1]);
     ReadfromSMBus(0x10, 0x01, 1, &temp[2]);
@@ -310,30 +300,23 @@ unsigned char I2CGetXboxMBRev(void){
     ver[1] = (char)temp[1];
     ver[2] = (char)temp[2];
 
-    if ( !strcmp(ver,("01D")) || !strcmp(ver,("D01")) || !strcmp(ver,("1D0")) || !strcmp(ver,("0D1"))) {
+    if (!strcmp(ver, ("01D")) || !strcmp(ver, ("D01")) || !strcmp(ver, ("1D0")) || !strcmp(ver, ("0D1"))) {
         result = XboxMotherboardRevision_DEVKIT;
-    }
-    else if (!strcmp(ver,("DBG")) || !strcmp(ver,("B11"))){
+    } else if (!strcmp(ver, ("DBG")) || !strcmp(ver, ("B11"))) {
         result = XboxMotherboardRevision_DEBUGKIT;
-    }
-    else if (!strcmp(ver,("P01"))){
+    } else if (!strcmp(ver, ("P01"))) {
         result = XboxMotherboardRevision_1_0;
-    }
-    else if (!strcmp(ver,("P05"))){
+    } else if (!strcmp(ver, ("P05"))) {
         result = XboxMotherboardRevision_1_1;
-    }
-    else if (!strcmp(ver,("P11")) || !strcmp(ver,("1P1")) || !strcmp(ver,("11P"))){
-        if(ReadfromSMBus(0x6A, 0x00, 0, temp) == 0){
+    } else if (!strcmp(ver, ("P11")) || !strcmp(ver, ("1P1")) || !strcmp(ver, ("11P"))) {
+        if (ReadfromSMBus(0x6A, 0x00, 0, temp) == 0) {
             result = XboxMotherboardRevision_1_4;
-        }
-        else {
+        } else {
             result = XboxMotherboardRevision_1_2;
         }
-    }
-    else if (!strcmp(ver,("P2L"))){
+    } else if (!strcmp(ver, ("P2L"))) {
         result = XboxMotherboardRevision_1_6;
-    }
-    else {
+    } else {
         result = XboxMotherboardRevision_UNKNOWN;
     }
     return result;

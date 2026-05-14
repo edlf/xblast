@@ -10,11 +10,11 @@
 
 #include "TextMenu.h"
 
-TEXTMENU* generateMenuEntries(void);
+TEXTMENU *generateMenuEntries(void);
 
-void revertOSChange(void* customSruct);
-void revertBootScriptChange(void* menuPtr);
-void revertBackupEEPROMChange(void* menuPtr);
-void revertEEPROMChange(void* customStruct);
+void      revertOSChange(void *customSruct);
+void      revertBootScriptChange(void *menuPtr);
+void      revertBackupEEPROMChange(void *menuPtr);
+void      revertEEPROMChange(void *customStruct);
 
 #endif /* UNCOMMITTEDCHANGESMENUACTIONS_H_ */

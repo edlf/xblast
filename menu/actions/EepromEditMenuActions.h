@@ -10,7 +10,7 @@
  ***************************************************************************/
 #include <stdbool.h>
 
-#define HEX_KEYPAD   2
+#define HEX_KEYPAD 2
 
 void displayEditEEPROMBuffer(void *ignored);
 
@@ -24,6 +24,6 @@ void editMACAddress(void *ignored);
 
 void restoreEEPROMFromFile(void *fname);
 
-int updateEEPROMEditBufferFromInputBuffer(unsigned char *buffer, unsigned int size, bool verbose);
+int  updateEEPROMEditBufferFromInputBuffer(unsigned char *buffer, unsigned int size, bool verbose);
 
 #endif

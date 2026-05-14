@@ -7,46 +7,46 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "MenuInits.h"
-#include "include/boot.h"
 #include "BootIde.h"
 #include "InfoMenuActions.h"
+#include "MenuInits.h"
+#include "include/boot.h"
 #include "string.h"
 
 TEXTMENU *InfoMenuInit(void) {
     TEXTMENUITEM *itemPtr;
-    TEXTMENU *menuPtr;
+    TEXTMENU     *menuPtr;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     strcpy(menuPtr->szCaption, "Info Menu");
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    sprintf(itemPtr->szCaption,"Temperature");
+    sprintf(itemPtr->szCaption, "Temperature");
     itemPtr->functionPtr = ShowTemperature;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    sprintf(itemPtr->szCaption,"Video");
+    sprintf(itemPtr->szCaption, "Video");
     itemPtr->functionPtr = ShowVideo;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    sprintf(itemPtr->szCaption,"EEPROM");
+    sprintf(itemPtr->szCaption, "EEPROM");
     itemPtr->functionPtr = ShowEeprom;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    sprintf(itemPtr->szCaption,"Flash Device");
+    sprintf(itemPtr->szCaption, "Flash Device");
     itemPtr->functionPtr = ShowFlashChip;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    sprintf(itemPtr->szCaption,"SMC");
+    sprintf(itemPtr->szCaption, "SMC");
     itemPtr->functionPtr = ShowSMC;
     TextMenuAddItem(menuPtr, itemPtr);
 
     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
-    sprintf(itemPtr->szCaption,"Uncommitted change(s)");
+    sprintf(itemPtr->szCaption, "Uncommitted change(s)");
     itemPtr->functionPtr = UncommittedChangesMenuDynamic;
     TextMenuAddItem(menuPtr, itemPtr);
 

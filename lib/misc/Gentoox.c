@@ -66,40 +66,40 @@ void orangeLED(void) {
 }
 
 void dots(void) {
-   wait_ms(100);
-   printk(".");
-   wait_ms(100);
-   printk(".");
-   wait_ms(100);
-   printk(".");
-   wait_ms(100);
+    wait_ms(100);
+    printk(".");
+    wait_ms(100);
+    printk(".");
+    wait_ms(100);
+    printk(".");
+    wait_ms(100);
 }
 
 void cromwellError(void) {
-   VIDEO_ATTR=0xffd8d8d8;
-   printk("\t[ ");
-   VIDEO_ATTR=0xffff0000;
-   printk("!!");
-   VIDEO_ATTR=0xffd8d8d8;
-   printk(" ]");
-   errorLED();
+    VIDEO_ATTR = 0xffd8d8d8;
+    printk("\t[ ");
+    VIDEO_ATTR = 0xffff0000;
+    printk("!!");
+    VIDEO_ATTR = 0xffd8d8d8;
+    printk(" ]");
+    errorLED();
 }
 
 void cromwellWarning(void) {
-   VIDEO_ATTR=0xffd8d8d8;
-   printk("\t[ ");
-   VIDEO_ATTR=0xffffae01;
-   printk("!!");
-   VIDEO_ATTR=0xffd8d8d8;
-   printk(" ]\n");
-   errorLED();
+    VIDEO_ATTR = 0xffd8d8d8;
+    printk("\t[ ");
+    VIDEO_ATTR = 0xffffae01;
+    printk("!!");
+    VIDEO_ATTR = 0xffd8d8d8;
+    printk(" ]\n");
+    errorLED();
 }
 
 void cromwellSuccess(void) {
-   VIDEO_ATTR=0xffd8d8d8;
-   printk("\t[ ");
-   VIDEO_ATTR=0xff00ff00;
-   printk("ok");
-   VIDEO_ATTR=0xffd8d8d8;
-   printk(" ]\n");
+    VIDEO_ATTR = 0xffd8d8d8;
+    printk("\t[ ");
+    VIDEO_ATTR = 0xff00ff00;
+    printk("ok");
+    VIDEO_ATTR = 0xffd8d8d8;
+    printk(" ]\n");
 }

@@ -7,29 +7,28 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "MenuInits.h"
-#include "FlashMenuActions.h"
-#include "boot.h"
-#include "BootIde.h"
-#include "memory_layout.h"
 #include "BootFATX.h"
+#include "BootIde.h"
+#include "FlashMenuActions.h"
+#include "MenuInits.h"
+#include "boot.h"
+#include "memory_layout.h"
 #include "string.h"
 
-void HDDFlashMenuDynamic(void* unused)
-{
-    TEXTMENUITEM* itemPtr;
-    TEXTMENU* menuPtr;
-    FATXFILEINFO fileinfo;
-    FATXPartition* partition;
+void HDDFlashMenuDynamic(void *unused) {
+    TEXTMENUITEM  *itemPtr;
+    TEXTMENU      *menuPtr;
+    FATXFILEINFO   fileinfo;
+    FATXPartition *partition;
 
-    char* fnames[FATX_MAX_FILES_FOLDER] = {NULL}; //Because Each dir can have up to 4096 files when not in root of partition.
-    short n = 0;
-    int bioses = 0;
-    int res;
-    int dcluster;
-    char* path = "\\BIOS\\";      //And we're not in root.
-    char fullPath[20];
-    char* fullPathptr = fullPath;
+    char          *fnames[FATX_MAX_FILES_FOLDER] = {NULL}; // Because Each dir can have up to 4096 files when not in root of partition.
+    short          n                             = 0;
+    int            bioses                        = 0;
+    int            res;
+    int            dcluster;
+    char          *path = "\\BIOS\\"; // And we're not in root.
+    char           fullPath[20];
+    char          *fullPathptr = fullPath;
     memset(fullPath, 0, sizeof(char) * 20);
 
     // Generate the menu title.
@@ -40,42 +39,42 @@ void HDDFlashMenuDynamic(void* unused)
     strcpy(fullPathptr, "'");
     fullPathptr = NULL;
 
-    //Only supports BIOS file fetch from Master HDD.
-    partition = OpenFATXPartition(0, SECTOR_SYSTEM, SYSTEM_SIZE);
+    // Only supports BIOS file fetch from Master HDD.
+    partition   = OpenFATXPartition(0, SECTOR_SYSTEM, SYSTEM_SIZE);
 
-    menuPtr = calloc(1, sizeof(TEXTMENU));
+    menuPtr     = calloc(1, sizeof(TEXTMENU));
 
     strcpy(menuPtr->szCaption, fullPath);
 
-    if(partition != NULL) {
+    if (partition != NULL) {
         dcluster = FATXFindDir(partition, FATX_ROOT_FAT_CLUSTER, "BIOS");
 
-        if((dcluster != -1) && (dcluster != 1)) {
+        if ((dcluster != -1) && (dcluster != 1)) {
             n = FATXListDir(partition, dcluster, &fnames[0], FATX_MAX_FILES_FOLDER, path);
 
             for (int i = 0; i < n; i++) {
                 // Check the file.
                 res = FATXFindFile(partition, fnames[i], FATX_ROOT_FAT_CLUSTER, &fileinfo);
 
-                if(res && (fileinfo.fileSize % (256 * 1024) == 0)) {
+                if (res && (fileinfo.fileSize % (256 * 1024) == 0)) {
                     // If it's a (readable) file - i.e. not a directory.
                     // AND it's filesize is divisible by 256k.
                     itemPtr = calloc(1, sizeof(TEXTMENUITEM));
                     sprintf(itemPtr->szCaption, "%s", fnames[i] + strlen(path));
-                    itemPtr->functionPtr = FlashBiosFromHDD;
-                    itemPtr->functionDataPtr = fnames[i];       //allocating char* pointer contained in char **fnames so char **fnames can be destroyed
+                    itemPtr->functionPtr     = FlashBiosFromHDD;
+                    itemPtr->functionDataPtr = fnames[i]; // allocating char* pointer contained in char **fnames so char **fnames can be destroyed
                     TextMenuAddItem(menuPtr, itemPtr);
                     bioses++;
                 }
             }
 
-            if(n < 1) {
+            if (n < 1) {
                 // If there were no directories and no files.
                 itemPtr = calloc(1, sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "No files in C:\\BIOS.");
                 itemPtr->functionPtr = NULL;
                 TextMenuAddItem(menuPtr, itemPtr);
-            } else if(bioses == 0) {
+            } else if (bioses == 0) {
                 // If there were directories, but no files.
                 itemPtr = calloc(1, sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "No BIOS files in C:\\BIOS.");

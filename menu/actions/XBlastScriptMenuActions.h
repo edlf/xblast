@@ -9,16 +9,16 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <stdbool.h>
 #include "BootFATX.h"
+#include <stdbool.h>
 
-bool loadScriptFromHDD(char * filename, FATXFILEINFO *fileinfo);
+bool loadScriptFromHDD(char *filename, FATXFILEINFO *fileinfo);
 void loadRunScript(void *fname);
 
 void saveScriptToFlash(void *fname);
-void loadScriptFromFlash(void * ignored);
-void toggleRunBootScript(void * itemStr);
-void toggleRunBankScript(void * itemStr);
-void deleteFlashScriptFromFlash(void * ignored);
+void loadScriptFromFlash(void *ignored);
+void toggleRunBootScript(void *itemStr);
+void toggleRunBankScript(void *itemStr);
+void deleteFlashScriptFromFlash(void *ignored);
 
 #endif

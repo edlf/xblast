@@ -2,9 +2,8 @@
 
 #include "include/string.h"
 
-void* __memrchr(const void*, int, size_t);
+void *__memrchr(const void *, int, size_t);
 
-char* strrchr(const char* s, int c)
-{
+char *strrchr(const char *s, int c) {
     return __memrchr(s, c, strlen(s) + 1);
 }

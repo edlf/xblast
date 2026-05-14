@@ -7,8 +7,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "i2c.h"
 #include "CDMenuActions.h"
+#include "i2c.h"
 
 void CDEject(void *whatever) {
     I2CTransmitWord(0x10, 0x0c00);

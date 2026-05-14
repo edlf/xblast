@@ -10,171 +10,149 @@
 #include "lib/time/timeManagement.h"
 #include "xblast/HardwareIdentifier.h"
 
-#define DISPLAY_E         0x04
+#define DISPLAY_E 0x04
 
 typedef struct
 {
-    unsigned char dataToWrite;
-    unsigned char rsFlag;
+    unsigned char  dataToWrite;
+    unsigned char  rsFlag;
     unsigned short delayInUs;
-}DataOperation_t;
+} DataOperation_t;
 
-typedef enum
-{
+typedef enum {
     InternalOp_ReadyForNewOp,
     InternalOp_WriteHighNibble,
     InternalOp_WriteLowNibble
-}InternalOp;
+} InternalOp;
 
 #define _ringBufSize 1024
 static const unsigned short ringBufSize = _ringBufSize;
-static unsigned char ringBuf[_ringBufSize];
-static unsigned short inPos = 0;
-static unsigned short outPos = 0;
-static bool rollOver = false;
-static InternalOp internalOp = InternalOp_ReadyForNewOp;
-static DataOperation_t currentOp;
-static unsigned int systickStartValue = 0;
+static unsigned char        ringBuf[_ringBufSize];
+static unsigned short       inPos      = 0;
+static unsigned short       outPos     = 0;
+static bool                 rollOver   = false;
+static InternalOp           internalOp = InternalOp_ReadyForNewOp;
+static DataOperation_t      currentOp;
+static unsigned int         systickStartValue = 0;
 
-static void putInBuf(DataOperation_t* input);
-static void getFromBuf(DataOperation_t* output);
-static void xecuter3LCDWrite(unsigned char data, unsigned char RSFlag);
-static void smartXXLCDwrite(unsigned char data);
+static void                 putInBuf(DataOperation_t *input);
+static void                 getFromBuf(DataOperation_t *output);
+static void                 xecuter3LCDWrite(unsigned char data, unsigned char RSFlag);
+static void                 smartXXLCDwrite(unsigned char data);
 
-void putInLCDRingBuffer(unsigned char data, unsigned char RS, unsigned short delay)
-{
+void                        putInLCDRingBuffer(unsigned char data, unsigned char RS, unsigned short delay) {
     DataOperation_t operation;
     operation.dataToWrite = data;
-    operation.rsFlag = RS;
-    operation.delayInUs = delay;
+    operation.rsFlag      = RS;
+    operation.delayInUs   = delay;
 
     putInBuf(&operation);
 }
 
-void LCDRingBufferInit(void)
-{
-    inPos = 0;
-    outPos = 0;
-    rollOver = false;
-    internalOp = InternalOp_ReadyForNewOp;
-    systickStartValue = 0;
+void LCDRingBufferInit(void) {
+    inPos               = 0;
+    outPos              = 0;
+    rollOver            = false;
+    internalOp          = InternalOp_ReadyForNewOp;
+    systickStartValue   = 0;
     currentOp.delayInUs = 0;
 }
 
-void updateLCDRingBuffer(void)
-{
-    if(getElapseMicroSecondsSince(systickStartValue) >= currentOp.delayInUs)
-    {
-        switch(internalOp)
-        {
+void updateLCDRingBuffer(void) {
+    if (getElapseMicroSecondsSince(systickStartValue) >= currentOp.delayInUs) {
+        switch (internalOp) {
         default:
         case InternalOp_ReadyForNewOp:
-            if(outPos != inPos || rollOver)
-            {
+            if (outPos != inPos || rollOver) {
                 getFromBuf(&currentOp);
                 internalOp = InternalOp_WriteHighNibble;
             }
             // Do nothing
-        break;
+            break;
         case InternalOp_WriteHighNibble:
-            if(isXecuter3())
-            {
+            if (isXecuter3()) {
                 xecuter3LCDWrite(currentOp.dataToWrite & 0xF0, currentOp.rsFlag);
-            }
-            else
-            {
-                //Maps     0,b6,b7,b4,b5,E,RS,0
+            } else {
+                // Maps     0,b6,b7,b4,b5,E,RS,0
                 unsigned char highNibble = ((currentOp.dataToWrite >> 2) & 0x28) | currentOp.rsFlag;
                 highNibble |= (currentOp.dataToWrite >> 0) & 0x50;
                 smartXXLCDwrite(highNibble);
             }
 
             systickStartValue = getUS();
-            internalOp = InternalOp_WriteLowNibble;
+            internalOp        = InternalOp_WriteLowNibble;
             break;
         case InternalOp_WriteLowNibble:
-            if(isXecuter3())
-            {
+            if (isXecuter3()) {
                 xecuter3LCDWrite(currentOp.dataToWrite << 4, currentOp.rsFlag);
-            }
-            else
-            {
-                //Maps     0,b2,b3,b0,b1,E,RS,0
+            } else {
+                // Maps     0,b2,b3,b0,b1,E,RS,0
                 unsigned char lowNibble = ((currentOp.dataToWrite << 2) & 0x28) | currentOp.rsFlag;
                 lowNibble |= (currentOp.dataToWrite << 4) & 0x50;
                 smartXXLCDwrite(lowNibble);
             }
 
             systickStartValue = getUS();
-            internalOp = InternalOp_ReadyForNewOp;
+            internalOp        = InternalOp_ReadyForNewOp;
             break;
         }
     }
 }
 
-static void putInBuf(DataOperation_t* input)
-{
-    unsigned char* data = (unsigned char*)input;
-    unsigned char i;
+static void putInBuf(DataOperation_t *input) {
+    unsigned char       *data = (unsigned char *)input;
+    unsigned char        i;
 
     const unsigned short projectedEnd = inPos + sizeof(DataOperation_t);
 
-    //Drop if no space left.
-    if((rollOver && (projectedEnd > outPos)) ||
-    (rollOver == false && (projectedEnd % ringBufSize) < projectedEnd && (projectedEnd % ringBufSize) > outPos))
-    {
+    // Drop if no space left.
+    if ((rollOver && (projectedEnd > outPos)) ||
+        (rollOver == false && (projectedEnd % ringBufSize) < projectedEnd && (projectedEnd % ringBufSize) > outPos)) {
         debugSPIPrint(DEBUG_MISC, "LCD RingBuf overflow. inPos=%u  outPos=%u    rollOver=%u\n", inPos, outPos, rollOver);
         return;
     }
 
-    for(i = 0; i < sizeof(DataOperation_t); i++)
-    {
+    for (i = 0; i < sizeof(DataOperation_t); i++) {
         ringBuf[inPos] = data[i];
         inPos++;
-        if(inPos >= ringBufSize)
-        {
-            inPos = 0;
+        if (inPos >= ringBufSize) {
+            inPos    = 0;
             rollOver = true;
         }
     }
 }
 
-static void getFromBuf(DataOperation_t* output)
-{
-    unsigned char* ptr = (unsigned char*)output;
-    unsigned char i;
+static void getFromBuf(DataOperation_t *output) {
+    unsigned char *ptr = (unsigned char *)output;
+    unsigned char  i;
 
-    for(i = 0; i < sizeof(DataOperation_t); i++)
-    {
+    for (i = 0; i < sizeof(DataOperation_t); i++) {
         ptr[i] = ringBuf[outPos];
         outPos++;
-        if(outPos >= ringBufSize)
-        {
-            outPos = 0;
+        if (outPos >= ringBufSize) {
+            outPos   = 0;
             rollOver = false;
         }
     }
 }
 
-static void xecuter3LCDWrite(unsigned char data, unsigned char RSFlag)
-{
-    WriteToIO(X3_DISP_O_DAT, data); //Place b6,b7,b4,b5,x,x,x,x
+static void xecuter3LCDWrite(unsigned char data, unsigned char RSFlag) {
+    WriteToIO(X3_DISP_O_DAT, data); // Place b6,b7,b4,b5,x,x,x,x
     WriteToIO(X3_DISP_O_CMD, RSFlag);
-    //Raise E signal line
-    //2
+    // Raise E signal line
+    // 2
     WriteToIO(X3_DISP_O_CMD, RSFlag | DISPLAY_E);
-    //Drop E signal line
-    //3
+    // Drop E signal line
+    // 3
     WriteToIO(X3_DISP_O_CMD, RSFlag);
 }
 
-static void smartXXLCDwrite(unsigned char data)
-{
-    WriteToIO(LCD_DATA, data); //Place bit7,bit6,bit5,bit4,E,RS,x
+static void smartXXLCDwrite(unsigned char data) {
+    WriteToIO(LCD_DATA, data); // Place bit7,bit6,bit5,bit4,E,RS,x
     data |= DISPLAY_E;
-    //Raise E signal line
-    WriteToIO(LCD_DATA, data); //Place bit7,bit6,bit5,bit4,E,RS,x
+    // Raise E signal line
+    WriteToIO(LCD_DATA, data); // Place bit7,bit6,bit5,bit4,E,RS,x
     data ^= DISPLAY_E;
-    //Drop E signal line
-    WriteToIO(LCD_DATA, data); //Place bit7,bit6,bit5,bit4,E,RS,x
+    // Drop E signal line
+    WriteToIO(LCD_DATA, data); // Place bit7,bit6,bit5,bit4,E,RS,x
 }

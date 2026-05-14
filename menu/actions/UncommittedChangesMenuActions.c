@@ -6,124 +6,110 @@
  */
 
 #include "UncommittedChangesMenuActions.h"
+#include "BootEEPROM.h"
 #include "MenuActions.h"
+#include "lib/LPCMod/xblastDebug.h"
 #include "misc/ConfirmDialog.h"
+#include "stdlib.h"
+#include "string.h"
 #include "xblast/settings/xblastSettingsChangeTracker.h"
 #include "xblast/settings/xblastSettingsDefs.h"
-#include "BootEEPROM.h"
-#include "lib/LPCMod/xblastDebug.h"
-#include "string.h"
-#include "stdlib.h"
 #include <stdbool.h>
 
 typedef struct
 {
-    TEXTMENU** menu;
-    OSSettingsChangeEntry_t* change;
-}OSChangeRevert_t;
+    TEXTMENU               **menu;
+    OSSettingsChangeEntry_t *change;
+} OSChangeRevert_t;
 
 typedef struct
 {
-    TEXTMENU** menu;
-    EEPROMChangeEntry_t* change;
-}EEPROMChangeRevert_t;
+    TEXTMENU           **menu;
+    EEPROMChangeEntry_t *change;
+} EEPROMChangeRevert_t;
 
-TEXTMENU* generateMenuEntries(void)
-{
+TEXTMENU *generateMenuEntries(void) {
     TEXTMENUITEM *itemPtr;
-    TEXTMENU *menuPtr;
+    TEXTMENU     *menuPtr;
 
     cleanOSSettingsChangeListStruct(&osSettingsChangeList);
     int uncommittedChanges = LPCMod_CountNumberOfChangesInSettings(true, &osSettingsChangeList);
     cleanEEPROMSettingsChangeListStruct(&eepromChangeList);
-    unsigned char eepromChanges = generateEEPROMChangeList(true, &eepromChangeList); // generate strings
-    unsigned char bootScriptChange = LPCMod_checkForBootScriptChanges() ? 1 : 0;
+    unsigned char eepromChanges      = generateEEPROMChangeList(true, &eepromChangeList); // generate strings
+    unsigned char bootScriptChange   = LPCMod_checkForBootScriptChanges() ? 1 : 0;
     unsigned char backupEEPROMChange = LPCMod_checkForBackupEEPROMChange() ? 1 : 0;
-    int totalChangesCount = uncommittedChanges + eepromChanges + bootScriptChange + backupEEPROMChange;
-    unsigned int i;
+    int           totalChangesCount  = uncommittedChanges + eepromChanges + bootScriptChange + backupEEPROMChange;
+    unsigned int  i;
 
     menuPtr = calloc(1, sizeof(TEXTMENU));
     sprintf(menuPtr->szCaption, "Uncommitted Change%s:", totalChangesCount > 1 ? "s" : "");
-    menuPtr->smallChars = true;
-    menuPtr->visibleCount = 20;
+    menuPtr->smallChars                  = true;
+    menuPtr->visibleCount                = 20;
     menuPtr->hideUncommittedChangesLabel = true;
 
 
-    if(totalChangesCount == 0)
-    {
+    if (totalChangesCount == 0) {
         itemPtr = calloc(1, sizeof(TEXTMENUITEM));
         sprintf(itemPtr->szCaption, "%s", "No uncommitted change.");
         TextMenuAddItem(menuPtr, itemPtr);
-    }
-    else
-    {
-        OSSettingsChangeEntry_t* currentOSChangeEntry = osSettingsChangeList.firstChangeEntry;
-        EEPROMChangeEntry_t* currentEEPROMChangeEntry =  eepromChangeList.firstChangeEntry;
-        for(i = 0; i < totalChangesCount; i++)
-        {
-            if(i < uncommittedChanges)
-            {
-              if(currentOSChangeEntry != NULL)
-              {
-                  debugSPIPrint(DEBUG_GENERAL_UI, "%s%s\n", currentOSChangeEntry->label, currentOSChangeEntry->changeString);
-                  itemPtr = malloc(sizeof(TEXTMENUITEM));
-                  memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
-                  sprintf(itemPtr->szCaption, "%s ", currentOSChangeEntry->label);
-                  sprintf(itemPtr->szParameter, "%s", currentOSChangeEntry->changeString);
+    } else {
+        OSSettingsChangeEntry_t *currentOSChangeEntry     = osSettingsChangeList.firstChangeEntry;
+        EEPROMChangeEntry_t     *currentEEPROMChangeEntry = eepromChangeList.firstChangeEntry;
+        for (i = 0; i < totalChangesCount; i++) {
+            if (i < uncommittedChanges) {
+                if (currentOSChangeEntry != NULL) {
+                    debugSPIPrint(DEBUG_GENERAL_UI, "%s%s\n", currentOSChangeEntry->label, currentOSChangeEntry->changeString);
+                    itemPtr = malloc(sizeof(TEXTMENUITEM));
+                    memset(itemPtr, 0x00, sizeof(TEXTMENUITEM));
+                    sprintf(itemPtr->szCaption, "%s ", currentOSChangeEntry->label);
+                    sprintf(itemPtr->szParameter, "%s", currentOSChangeEntry->changeString);
 #ifdef DEV_FEATURES
-                  itemPtr->functionPtr = revertOSChange;
-                  OSChangeRevert_t* param = malloc(sizeof(OSChangeRevert_t));
-                  param->menu = &menuPtr;
-                  param->change = currentOSChangeEntry;
-                  itemPtr->functionDataPtr = param;
-                  itemPtr->dataPtrAlloc = true;
+                    itemPtr->functionPtr     = revertOSChange;
+                    OSChangeRevert_t *param  = malloc(sizeof(OSChangeRevert_t));
+                    param->menu              = &menuPtr;
+                    param->change            = currentOSChangeEntry;
+                    itemPtr->functionDataPtr = param;
+                    itemPtr->dataPtrAlloc    = true;
 #endif
-                  TextMenuAddItem(menuPtr, itemPtr);
+                    TextMenuAddItem(menuPtr, itemPtr);
 
-                  currentOSChangeEntry = currentOSChangeEntry->nextChange;
-              }
-            }
-            else if(i < (uncommittedChanges + bootScriptChange))
-            {
+                    currentOSChangeEntry = currentOSChangeEntry->nextChange;
+                }
+            } else if (i < (uncommittedChanges + bootScriptChange)) {
                 debugSPIPrint(DEBUG_GENERAL_UI, "Boot script in flash change\n");
                 itemPtr = malloc(sizeof(TEXTMENUITEM));
-                memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
+                memset(itemPtr, 0x00, sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "Boot script in flash modified");
 #ifdef DEV_FEATURES
-                itemPtr->functionPtr = revertBootScriptChange;
+                itemPtr->functionPtr     = revertBootScriptChange;
                 itemPtr->functionDataPtr = &menuPtr;
 #endif
                 TextMenuAddItem(menuPtr, itemPtr);
-            }
-            else if(i < (uncommittedChanges + bootScriptChange + backupEEPROMChange))
-            {
+            } else if (i < (uncommittedChanges + bootScriptChange + backupEEPROMChange)) {
                 debugSPIPrint(DEBUG_GENERAL_UI, "Backup EEPROM modified\n");
                 itemPtr = malloc(sizeof(TEXTMENUITEM));
-                memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
+                memset(itemPtr, 0x00, sizeof(TEXTMENUITEM));
                 sprintf(itemPtr->szCaption, "Backup EEPROM modified");
 #ifdef DEV_FEATURES
-                itemPtr->functionPtr = revertBackupEEPROMChange;
+                itemPtr->functionPtr     = revertBackupEEPROMChange;
                 itemPtr->functionDataPtr = &menuPtr;
 #endif
                 TextMenuAddItem(menuPtr, itemPtr);
-            }
-            else if(i < (uncommittedChanges + bootScriptChange + backupEEPROMChange + eepromChanges))
-            {
+            } else if (i < (uncommittedChanges + bootScriptChange + backupEEPROMChange + eepromChanges)) {
                 debugSPIPrint(DEBUG_GENERAL_UI, "New EEPROM change #%u\n", i);
-                if(currentEEPROMChangeEntry != NULL)
-                {
+                if (currentEEPROMChangeEntry != NULL) {
                     debugSPIPrint(DEBUG_GENERAL_UI, "%s%s\n", currentEEPROMChangeEntry->label, currentEEPROMChangeEntry->changeString);
                     itemPtr = malloc(sizeof(TEXTMENUITEM));
-                    memset(itemPtr,0x00,sizeof(TEXTMENUITEM));
-                    sprintf(itemPtr->szCaption,"%s", currentEEPROMChangeEntry->label);
-                    sprintf(itemPtr->szParameter,"%s", currentEEPROMChangeEntry->changeString);
+                    memset(itemPtr, 0x00, sizeof(TEXTMENUITEM));
+                    sprintf(itemPtr->szCaption, "%s", currentEEPROMChangeEntry->label);
+                    sprintf(itemPtr->szParameter, "%s", currentEEPROMChangeEntry->changeString);
 #ifdef DEV_FEATURES
-                    itemPtr->functionPtr = revertEEPROMChange;
-                    EEPROMChangeRevert_t* param = malloc(sizeof(EEPROMChangeRevert_t));
-                    param->menu = &menuPtr;
-                    param->change = currentEEPROMChangeEntry;
-                    itemPtr->functionDataPtr = param;
-                    itemPtr->dataPtrAlloc = true;
+                    itemPtr->functionPtr        = revertEEPROMChange;
+                    EEPROMChangeRevert_t *param = malloc(sizeof(EEPROMChangeRevert_t));
+                    param->menu                 = &menuPtr;
+                    param->change               = currentEEPROMChangeEntry;
+                    itemPtr->functionDataPtr    = param;
+                    itemPtr->dataPtrAlloc       = true;
 #endif
                     TextMenuAddItem(menuPtr, itemPtr);
 
@@ -136,17 +122,15 @@ TEXTMENU* generateMenuEntries(void)
     return menuPtr;
 }
 
-void revertOSChange(void* customSruct)
-{
-    OSChangeRevert_t* param = (OSChangeRevert_t *)customSruct;
-    TEXTMENU** menuPtr = param->menu;
-    OSSettingsChangeEntry_t* changeEntry = param->change;
+void revertOSChange(void *customSruct) {
+    OSChangeRevert_t        *param       = (OSChangeRevert_t *)customSruct;
+    TEXTMENU               **menuPtr     = param->menu;
+    OSSettingsChangeEntry_t *changeEntry = param->change;
 
-    char confirmString[120];
+    char                     confirmString[120];
     sprintf(confirmString, "Revert change :\n%s %s", changeEntry->label, changeEntry->changeString);
 
-    if(ConfirmDialog(confirmString, true))
-    {
+    if (ConfirmDialog(confirmString, true)) {
         return;
     }
 
@@ -155,12 +139,10 @@ void revertOSChange(void* customSruct)
     *menuPtr = generateMenuEntries();
 }
 
-void revertBootScriptChange(void* menuPtr)
-{
-    TEXTMENU** menu = (TEXTMENU **)menuPtr;
+void revertBootScriptChange(void *menuPtr) {
+    TEXTMENU **menu = (TEXTMENU **)menuPtr;
 
-    if(ConfirmDialog("Revert change :\nBoot script in flash modified", true))
-    {
+    if (ConfirmDialog("Revert change :\nBoot script in flash modified", true)) {
         return;
     }
 
@@ -171,12 +153,10 @@ void revertBootScriptChange(void* menuPtr)
     *menu = generateMenuEntries();
 }
 
-void revertBackupEEPROMChange(void* menuPtr)
-{
-    TEXTMENU** menu = (TEXTMENU **)menuPtr;
+void revertBackupEEPROMChange(void *menuPtr) {
+    TEXTMENU **menu = (TEXTMENU **)menuPtr;
 
-    if(ConfirmDialog("Revert change :\nBackup EEPROM modified", true))
-    {
+    if (ConfirmDialog("Revert change :\nBackup EEPROM modified", true)) {
         return;
     }
 
@@ -186,17 +166,15 @@ void revertBackupEEPROMChange(void* menuPtr)
     *menu = generateMenuEntries();
 }
 
-void revertEEPROMChange(void* customStruct)
-{
-    EEPROMChangeRevert_t* param = (EEPROMChangeRevert_t *)customStruct;
-    TEXTMENU** menuPtr = param->menu;
-    EEPROMChangeEntry_t* changeEntry = param->change;
+void revertEEPROMChange(void *customStruct) {
+    EEPROMChangeRevert_t *param       = (EEPROMChangeRevert_t *)customStruct;
+    TEXTMENU            **menuPtr     = param->menu;
+    EEPROMChangeEntry_t  *changeEntry = param->change;
 
-    char confirmString[120];
+    char                  confirmString[120];
     sprintf(confirmString, "Revert change :\n%s %s", changeEntry->label, changeEntry->changeString);
 
-    if(ConfirmDialog(confirmString, true))
-    {
+    if (ConfirmDialog(confirmString, true)) {
         return;
     }
 

@@ -12,33 +12,33 @@
 #include "TextMenu.h"
 #include <stdbool.h>
 
-void saveEEPromToFlash(void* ignored);
-void restoreEEPromFromFlash(void* ignored);
+void saveEEPromToFlash(void *ignored);
+void restoreEEPromFromFlash(void *ignored);
 #ifdef DEV_FEATURES
-void eraseEEPromFromFlash(void* ignored);
+void eraseEEPromFromFlash(void *ignored);
 #endif
-void warningDisplayEepromEditMenu(void* ignored);
-void wipeEEPromUserSettings(void* ignored);
+void                 warningDisplayEepromEditMenu(void *ignored);
+void                 wipeEEPromUserSettings(void *ignored);
 
-void showMemTest(void* ignored);
-void showMemTest256(void* ignored);
+void                 showMemTest(void *ignored);
+void                 showMemTest256(void *ignored);
 
-//void TSOPRecoveryReboot(void *ignored);
+// void TSOPRecoveryReboot(void *ignored);
 
-void saveXBlastcfg(void* ignored);
-void loadXBlastcfg(void* ignored);
+void                 saveXBlastcfg(void *ignored);
+void                 loadXBlastcfg(void *ignored);
 
-void prevA19controlModBootValue(void* itemPtr);
-void nextA19controlModBootValue(void* itemPtr);
+void                 prevA19controlModBootValue(void *itemPtr);
+void                 nextA19controlModBootValue(void *itemPtr);
 
-bool replaceEEPROMContentFromBuffer(EEPROMDATA* eepromPtr);
+bool                 replaceEEPROMContentFromBuffer(EEPROMDATA *eepromPtr);
 
-extern TEXTMENUITEM* saveEEPROMPtr;
-extern TEXTMENUITEM* restoreEEPROMPtr;
-extern TEXTMENUITEM* editEEPROMPtr;
+extern TEXTMENUITEM *saveEEPROMPtr;
+extern TEXTMENUITEM *restoreEEPROMPtr;
+extern TEXTMENUITEM *editEEPROMPtr;
 
 #ifdef DEV_FEATURES
-extern TEXTMENUITEM* eraseEEPROMPtr;
+extern TEXTMENUITEM *eraseEEPROMPtr;
 #endif
 
 #endif
