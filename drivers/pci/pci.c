@@ -151,11 +151,11 @@ void LpcSelectRegister(uint8_t index) {
     IoOutputByte(0x2E, index);
 }
 
-void LpcEnterConfiguration() {
+void LpcEnterConfiguration(void) {
 	LpcSelectRegister(0x55);
 }
 
-void LpcExitConfiguration() {
+void LpcExitConfiguration(void) {
 	LpcSelectRegister(0xAA);
 }
 
@@ -169,7 +169,7 @@ void LpcWriteRegister(uint8_t index, uint8_t value) {
 	IoOutputByte(0x2F, value);
 }
 
-int LpcGetSerialState() {
+int LpcGetSerialState(void) {
 	// Select serial device
 	LpcWriteRegister(0x07, 0x04);
 
@@ -191,7 +191,7 @@ void LpcSetSerialState(int enable) {
 	LpcWriteRegister(0x30, enable ? 0x01 : 0x00);
 }
 
-int LpcGetSerialIRQState() {
+int LpcGetSerialIRQState(void) {
 	// Select serial device
 	LpcWriteRegister(0x07, 0x04);
 
@@ -207,7 +207,7 @@ void LpcSetSerialIRQState(int enable) {
 	LpcWriteRegister(0x70, enable ? SERIAL_IRQ : 0x00);
 }
 
-void BootAGPBUSInitialization() {
+void BootAGPBUSInitialization(void) {
     uint32_t temp;
     PciWriteDword(BUS_0, DEV_1, FUNC_0, 0x54, PciReadDword(BUS_0, DEV_1, FUNC_0, 0x54) | 0x88000000 );
     PciWriteDword(BUS_0, DEV_0, FUNC_0, 0x64, (PciReadDword(BUS_0, DEV_0, FUNC_0, 0x64))| 0x88000000 );
@@ -279,7 +279,7 @@ void BootDetectMemorySize(void) {
     free(fillstring);
 }
 
-void BootPciPeripheralInitialization() {
+void BootPciPeripheralInitialization(void) {
     __asm__ __volatile__ ( "cli" );
 
     // PciWriteDword(BUS_0, DEV_1, 0, 0x80, 2);  // v1.1 2BL kill ROM area (pointless)
