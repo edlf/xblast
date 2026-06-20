@@ -11,6 +11,7 @@
 #ifndef XZ_LZMA2_H
 #define XZ_LZMA2_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 /* Range coder constants */
