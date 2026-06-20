@@ -740,7 +740,7 @@ static void td_done (struct ohci_hcd *ohci, struct urb *urb, struct td *td) {
 static inline struct td *
 ed_halted (struct ohci_hcd *ohci, struct td *td, int cc, struct td *rev)
 {
-      struct urb        *urb = td->urb;
+    struct urb        *urb = td->urb;
     struct ed        *ed = td->ed;
     struct list_head    *tmp = td->td_list.next;
     unsigned int            toggle = ed->hwHeadP & ED_C;

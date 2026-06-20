@@ -11,6 +11,8 @@
 #ifndef _BootLCD_H_
 #define _BootLCD_H_
 
+#include "stdbool.h"
+
 typedef struct _xLCD {
     int           DisplayType;
     int           enable;
