@@ -24,6 +24,7 @@ jobs:
       with:
         path: |
           xbe/XBlast OS.xbe
+          xbe/XBlast OS habibi.xbe
           image/crcwell.bin
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -31,5 +32,6 @@ jobs:
       with:
         files: |
           xbe/XBlast OS.xbe
+          xbe/XBlast OS habibi.xbe
           image/crcwell.bin
         tag_name: ${{ steps.build_tag.outputs.BUILD_TAG }}

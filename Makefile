@@ -21,10 +21,10 @@ LWIPFOLDER := lwip-2.0.3
 INCLUDE_ALL = -DBL_END_ADDR=0x3600 -DBUILD_RAMTEST=$(BUILD_RAMTEST) -DRAMTEST_256MB=$(RAMTEST_256MB)
 
 INCLUDE = \
-    -I$(TOPDIR)/ \
+	-I$(TOPDIR)/ \
 	-I./ \
 	-I$(TOPDIR)/boot_xbe/ \
-    -I$(TOPDIR)/include \
+	-I$(TOPDIR)/include \
 	-I$(TOPDIR)/drivers/cpu \
 	-I$(TOPDIR)/drivers/flash \
 	-I$(TOPDIR)/drivers/ide \
@@ -232,7 +232,7 @@ BOOT_ETH_SUBDIRS = ethsubdirs
 .PHONY: all clean
 
 all: makefsdata
-	@$(MAKE) --no-print-directory resources $(BOOT_ETH_SUBDIRS) cromsubdirs xbeboot xromwell.xbe $(BOOT_ETH_DIR) obj/image-crom.bin cromwell.bin imagecompress 256KBBinGen crcbin INCLUDE_ALL="$(INCLUDE_ALL)"
+	@$(MAKE) --no-print-directory resources $(BOOT_ETH_SUBDIRS) cromsubdirs xbeboot xromwell.xbe $(BOOT_ETH_DIR) obj/image-crom.bin cromwell.bin imagecompress habibi 256KBBinGen crcbin INCLUDE_ALL="$(INCLUDE_ALL)"
 
 ethsubdirs: $(patsubst %, _dir_%, $(ETH_SUBDIRS))
 $(patsubst %, _dir_%, $(ETH_SUBDIRS)) : dummy
@@ -274,6 +274,8 @@ clean:
 	mkdir -p $(TOPDIR)/image
 	mkdir -p $(TOPDIR)/obj
 	mkdir -p $(TOPDIR)/bin
+	$(MAKE) -C $(TOPDIR)/xbedump clean
+	rm -f $(TOPDIR)/out.xbe
 
 obj/image-crom.bin: cromsubdirs resources
 	${LD} -o obj/image-crom.elf ${OBJECTS-CROM} ${RESOURCES} ${LDFLAGS-ROM} -Map $(TOPDIR)/obj/image-crom.map
@@ -291,13 +293,18 @@ cromwell.bin: cromsubdirs 2blsubdirs
 	${OBJCOPY} --output-target=binary --strip-all $(TOPDIR)/obj/2lbimage.elf $(TOPDIR)/obj/2blimage.bin
 
 # This is a local executable, so don't use a cross compiler...
+bin/xbedump:
+	$(MAKE) -C $(TOPDIR)/xbedump
+	cp $(TOPDIR)/xbedump/xbe $(TOPDIR)/bin/xbedump
+
+# Same here
 bin/imagebld:
 	gcc $(INCLUDE_ALL) -Ilib/crypt -o bin/sha1.o -c lib/crypt/sha1.c
 	gcc $(INCLUDE_ALL) -Ilib/crypt -o bin/md5.o -c lib/crypt/md5.c
 	gcc $(INCLUDE_ALL) -Ilib/crypt -o bin/imagebld.o -c pc_tools/imagebld/imagebld.c
 	gcc $(INCLUDE_ALL) -o bin/imagebld bin/imagebld.o bin/sha1.o bin/md5.o
 
-# Same here.
+# Same here
 crcbin:
 	gcc -o bin/crcbin.o -c pc_tools/crcbin/crcbin.c
 	gcc -o bin/crc32.o -c lib/misc/crc32.c
@@ -313,6 +320,10 @@ imagecompress: obj/image-crom.bin bin/imagebld
 	cp obj/image-crom.bin obj/c
 	gzip -9 obj/c
 	bin/imagebld -xbe xbe/XBlast\ OS.xbe obj/image-crom.bin
+
+habibi: imagecompress bin/xbedump
+	bin/xbedump $(TOPDIR)/xbe/XBlast\ OS.xbe -habibi
+	mv $(TOPDIR)/out.xbe $(TOPDIR)/xbe/XBlast\ OS\ habibi.xbe
 
 256KBBinGen: imagecompress crcbin cromwell.bin
 	bin/imagebld -rom obj/2blimage.bin obj/c.gz image/cromwell.bin
